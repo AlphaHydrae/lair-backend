@@ -2,6 +2,20 @@ Rails.application.routes.draw do
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
+  #devise_for :users, path_names: { sign_in: 'login', sign_out: 'logout', password: 'secret', confirmation: 'verification', unlock: 'unblock', registration: 'register', sign_up: 'cmon_let_me_in' }
+  devise_for :users, skip: [:sessions], controllers: { :omniauth_callbacks => "users/omniauth_callbacks" }
+
+  #devise_scope :user do
+  #  get '/session/new(.:format)'        =>  'devise/sessions#new',      as: :new_user_session
+  #  get '/session/sign_out(.:format)'   =>  'devise/sessions#destroy',  as: :destroy_user_session
+  #end
+
+  #devise_scope :user do
+  #  get "sign_in", to: "devise/sessions#new"
+  #end
+
+  root 'home#index'
+
   # You can have the root of your site routed with "root"
   # root 'welcome#index'
 

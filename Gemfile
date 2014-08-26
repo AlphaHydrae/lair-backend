@@ -5,9 +5,14 @@ gem 'rails', '4.2.0.beta1'
 gem 'pg'
 
 gem 'haml-rails'
+gem 'jquery-rails'
 
 gem 'stylus'
 gem 'uglifier', '>= 1.3.0'
+
+#gem 'devise'
+gem 'devise', git: 'https://github.com/plataformatec/devise.git', :branch => 'lm-rails-4-2'
+gem 'omniauth-google-oauth2'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
