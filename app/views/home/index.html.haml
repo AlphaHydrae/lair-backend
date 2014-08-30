@@ -1,9 +1,1 @@
-%p Hello World!
 
-- if current_user
-  %p Logged in
-- else
-  %p Not logged in
-
-%p
-  = link_to "Sign in with Google", user_omniauth_authorize_path(:google_oauth2), class: 'google-login'

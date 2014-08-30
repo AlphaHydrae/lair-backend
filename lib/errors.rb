@@ -1,0 +1,2 @@
+
+class LairError < StandardError; end

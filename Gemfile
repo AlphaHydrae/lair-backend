@@ -6,7 +6,6 @@ gem 'dotenv-rails', groups: [:development, :test]
 gem 'pg'
 
 gem 'haml-rails'
-gem 'jquery-rails'
 
 gem 'stylus'
 gem 'uglifier', '>= 1.3.0'
@@ -17,8 +16,8 @@ gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: 'lm-ra
 gem 'omniauth-google-oauth2'
 gem 'jwt'
 
-# Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
-gem 'jbuilder', '~> 2.0'
+gem 'grape'
+
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0', group: :doc
 
@@ -47,4 +46,3 @@ group :development, :test do
 
   gem 'quiet_assets'
 end
-
