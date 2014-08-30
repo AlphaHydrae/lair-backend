@@ -1,0 +1,14 @@
+source $HOME/.screenrc
+
+screen -t pgc 0
+stuff "psql new-lair\012"
+screen -t srv 1
+stuff "bundle exec rails server\012"
+screen -t vim 2
+stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
+screen -t zsh 3
+screen -t spec 4
+stuff "bundle exec rake"
+screen -t console 5
+stuff "bundle exec rails console\012"
+select vim

@@ -1,24 +1,21 @@
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
+  before_filter :generate_auth_csrf_token, only: [ :google_oauth2, :auth_failed ]
+
+  def auth_failed
+    render json: { errors: { code: 'auth.failure', message: 'Authentication failed.' } }, status: :unauthorized
+  end
 
   def google_oauth2
 
-    # You need to implement the method below in your model (e.g. app/models/user.rb)
-    @user = User.find_for_google_oauth2(request.env["omniauth.auth"], current_user)
-    return render text: 'bar'
+    @user = User.find_for_google_oauth2 request.env['omniauth.auth']
+    return render json: { errors: [ { code: 'auth.notRegistered', message: 'You are not a registered user. Please contact the administrator.' } ] }, status: :unauthorized unless @user.present?
 
-    if @user.persisted?
-      flash[:notice] = I18n.t "devise.omniauth_callbacks.success", :kind => "Google"
-      sign_in_and_redirect @user, :event => :authentication
-    else
-      session["devise.google_data"] = request.env["omniauth.auth"]
-      #redirect_to new_user_registration_url
-      render text: 'foo'
-    end
+    jwt = JWT.encode({ iss: @user.email }, Rails.application.secrets.jwt_hmac_key, 'HS512')
+
+    return render json: { token: jwt }
   end
 
   def new_session_path *args 
-    #new_user_session_path *args
-    #'/users/sign_in'
-    root_path
+    users_auth_failed_path
   end
 end

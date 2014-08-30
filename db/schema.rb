@@ -18,9 +18,6 @@ ActiveRecord::Schema.define(version: 20140826164057) do
 
   create_table "users", force: true do |t|
     t.string   "email",              default: "", null: false
-    t.string   "provider"
-    t.string   "uid"
-    t.string   "encrypted_password", default: "", null: false
     t.integer  "sign_in_count",      default: 0,  null: false
     t.datetime "current_sign_in_at"
     t.datetime "last_sign_in_at"

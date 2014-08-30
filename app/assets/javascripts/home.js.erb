@@ -1,0 +1,66 @@
+// Place all the behaviors and hooks related to the matching controller here.
+// All this logic will automatically be available in application.js.
+
+$(function() {
+  return $.ajax({
+    url: 'https://apis.google.com/js/client:plus.js?onload=gpAsyncInit',
+    dataType: 'script',
+    cache: true
+  });
+});
+
+function authorize(state) {
+  console.log('authorizing...');
+  gapi.auth.authorize({
+    immediate: false,
+    response_type: 'code',
+    cookie_policy: 'single_host_origin',
+    client_id: '<%= Rails.application.secrets.google_oauth2_client_id %>',
+    scope: 'email',
+    state: state
+  }, function(response) {
+    console.log('got gapi response');
+    console.log(response);
+
+    if (response && !response.error) {
+      response.state = state;
+
+      // google authentication succeed, now post data to server and handle data securely
+      $.ajax({
+        type: 'POST',
+        url: "http://localhost:3000/users/auth/google_oauth2/callback",
+        dataType: 'json',
+        data: response,
+        success: function(json) {
+          console.log('success!');
+          console.log(json);
+        }, error: function(err) {
+          console.log('app failure');
+          console.log(err);
+        }
+      });
+    } else {
+      // google authentication failed
+      console.log('google failure');
+      console.log(response);
+    }
+  });
+};
+
+function testFunc(state) {
+  console.log('state: ' + state);
+};
+
+window.gpAsyncInit = function() {
+
+  $('.google-login').click(function(e) {
+    e.preventDefault();
+
+    var value = "; " + document.cookie;
+    var parts = value.split("; auth.csrfToken=");
+    var csrf = parts.length == 2 ? parts.pop().split(";").shift() : null;
+    console.log('auth.csrfToken = ' + csrf);
+
+    authorize(csrf);
+  });
+};

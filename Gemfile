@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '4.2.0.beta1'
+gem 'dotenv-rails', groups: [:development, :test]
 
 gem 'pg'
 
@@ -11,8 +12,10 @@ gem 'stylus'
 gem 'uglifier', '>= 1.3.0'
 
 #gem 'devise'
-gem 'devise', git: 'https://github.com/plataformatec/devise.git', :branch => 'lm-rails-4-2'
+# https://github.com/plataformatec/devise/pull/3153
+gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: 'lm-rails-4-2'
 gem 'omniauth-google-oauth2'
+gem 'jwt'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
