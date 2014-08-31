@@ -28,7 +28,7 @@ module Lair
           raise AuthError.new('Wrong credentials')
         end
 
-        @token = token
+        @token = token[0]
       end
     end
 

@@ -6,8 +6,8 @@ gem 'dotenv-rails', groups: [:development, :test]
 gem 'pg'
 
 gem 'haml-rails'
-
-gem 'stylus'
+gem 'less-rails'
+gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
 
 #gem 'devise'

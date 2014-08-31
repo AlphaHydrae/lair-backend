@@ -1,0 +1,11 @@
+.modal-header
+  %h4.modal-title Sign in
+.modal-body
+  %ul
+    %li
+      %a.btn.btn-block.btn-social.btn-google-plus{ ng: { click: 'signInWith("google")' } }
+        %i.fa.fa-google-plus
+        Sign in with Google
+  %alert{ type: 'danger', ng: { show: 'error', bind: 'error' } }
+.modal-footer
+  %button.btn.btn-default{ ng: { click: '$close()' } } Close

@@ -24,6 +24,9 @@ module Lair
     config.active_record.raise_in_transactional_callbacks = true
 
     config.assets.paths << Rails.root.join('bower_components')
+    config.assets.paths << Rails.root.join('app', 'assets', 'fonts')
+    config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
+    config.assets.precompile << /\.(?:svg|eot|woff|ttf|otf)\z/
 
     config.paths.add File.join('app', 'api'), glob: File.join('**', '*.rb')
     config.autoload_paths += Dir[Rails.root.join('app', 'api', '*')]

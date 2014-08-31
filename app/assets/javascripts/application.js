@@ -14,5 +14,12 @@
 //= require jquery/dist/jquery
 //= require angular/angular
 //= require angular-ui-router/release/angular-ui-router
-//= require bootstrap/dist/js/bootstrap
+//= require angular-bootstrap/ui-bootstrap
+//= require angular-bootstrap/ui-bootstrap-tpls
+//= require angular-cookies/angular-cookies
+//= require angular-base64/angular-base64
+//= require angular-local-storage/angular-local-storage
+//= require angular-gravatar/build/md5
+//= require angular-gravatar/build/angular-gravatar
+//= require bootstrap/dist/js/bootstrap.js
 //= require_tree .

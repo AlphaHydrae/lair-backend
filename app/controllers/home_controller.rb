@@ -4,7 +4,7 @@ class HomeController < ApplicationController
   def template
 
     raise 'Invalid template format' unless params[:format] == 'html'
-    raise 'Invalid template path' unless params[:path].to_s.match /\A[a-z0-9\.\-\_]+(\/[a-z0-9\.\-\_]+)*\Z/
+    raise 'Invalid template path' unless params[:path].to_s.match /\A[a-z0-9\.\-\_]+(\/[a-z0-9\.\-\_]+)*\Z/i
 
     template_logical_path = params[:path].sub /\.html$/, ''
     render template: "templates/#{template_logical_path}", layout: false
