@@ -42,7 +42,11 @@ group :development, :test do
   gem 'spring'
 
   gem 'rspec-rails', '~> 3.0.0'
+  gem 'shoulda-matchers'
   gem 'factory_girl_rails'
 
   gem 'quiet_assets'
+
+  gem 'capybara'
+  gem 'selenium-webdriver'
 end

@@ -1,5 +1,5 @@
 
-angular.module('lair.auth', ['lair.auth.google', 'ui.bootstrap', 'ui.gravatar', 'ngCookies', 'base64', 'LocalStorageModule'])
+angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap', 'ui.gravatar', 'ngCookies', 'base64', 'LocalStorageModule'])
 
   .run(['AuthService', 'localStorageService', function($auth, $local) {
     var authPayload = $local.get('authPayload');
@@ -64,10 +64,13 @@ angular.module('lair.auth', ['lair.auth.google', 'ui.bootstrap', 'ui.gravatar', 
     };
   }])
   
-  .controller('LoginController', ['$q', '$scope', '$modalInstance', 'AuthService', 'GoogleAuthService', function($q, $scope, $modalInstance, $auth, $googleAuth) {
+  .controller('LoginController', ['$q', '$scope', '$modalInstance', 'AuthService', 'GoogleAuthService', 'TestAuthService', 'config.environment', function($q, $scope, $modalInstance, $auth, $googleAuth, $testAuth, env) {
+
+    $scope.environment = env;
 
     var strategies = {
-      google: $googleAuth
+      google: $googleAuth,
+      test: $testAuth
     };
 
     function getStrategy(name) {
@@ -76,13 +79,17 @@ angular.module('lair.auth', ['lair.auth.google', 'ui.bootstrap', 'ui.gravatar', 
 
     function signIn(authPayload) {
       $auth.signIn(authPayload);
+      delete $scope.signingIn;
       $modalInstance.close();
     }
 
     $scope.signInWith = function(strategyName) {
+      delete $scope.error;
+      $scope.signingIn = true;
 
       getStrategy(strategyName).then(function(strategy) {
-        strategy.signIn().then(signIn, function(err) {
+        strategy.signIn($scope.credentials).then(signIn, function(err) {
+          delete $scope.signingIn;
           $scope.error = err && err.message ? err.message : 'An error occurred during authentication.';
         });
       })

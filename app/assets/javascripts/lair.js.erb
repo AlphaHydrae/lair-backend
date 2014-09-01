@@ -2,5 +2,7 @@
 <% environment.context_class.instance_eval { include Rails.application.routes.url_helpers } %>
 
 angular.module('lair', ['lair.state', 'lair.auth'])
+  .value('config.environment', <%= JSON.dump Rails.env %>)
   .value('config.googleOAuth2ClientId', <%= JSON.dump Rails.application.secrets.google_oauth2_client_id.to_s %>)
-  .value('config.googleOAuth2CallbackUrl', <%= JSON.dump user_omniauth_callback_path(:google_oauth2).to_s %>);
+  .value('config.googleOAuth2CallbackUrl', <%= JSON.dump user_omniauth_callback_path(:google_oauth2).to_s %>)
+;

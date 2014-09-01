@@ -18,12 +18,14 @@ module Lair
           raise AuthError.new('Missing credentials')
         end
 
-        unless m = headers['Authorization'].match(/\ABearer ([a-zA-Z0-9\-\_\/\:\=]+)\Z/)
+        unless m = headers['Authorization'].match(/\ABearer ([a-zA-Z0-9\-\_\/\:\=\.]+)\Z/)
           raise AuthError.new('Wrong credentials')
         end
 
+        @raw_token = m[1]
+
         begin
-          token = JWT.decode m[1], Rails.application.secrets.jwt_hmac_key
+          token = JWT.decode @raw_token, Rails.application.secrets.jwt_hmac_key
         rescue JWT::DecodeError
           raise AuthError.new('Wrong credentials')
         end
@@ -38,6 +40,10 @@ module Lair
 
     get :ping do
       'pong'
+    end
+
+    get :auth do
+      { token: @raw_token }
     end
 
     class Error < LairError
