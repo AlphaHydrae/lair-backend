@@ -10,7 +10,9 @@ angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap
 
   .service('AuthService', ['$base64', '$rootScope', 'localStorageService', function($base64, $rootScope, $local) {
 
-    var service = {};
+    var service = {
+      ready: false
+    };
 
     service.signIn = function(response) {
       if (!$local.get('authPayload')) {
@@ -40,6 +42,10 @@ angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap
       console.log(user.email + ' signed out');
     };
 
+    service.setReady = function(ready) {
+      service.ready = ready;
+    };
+
     return service;
   }])
 
@@ -64,9 +70,24 @@ angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap
     };
   }])
   
-  .controller('LoginController', ['$q', '$scope', '$modalInstance', 'AuthService', 'GoogleAuthService', 'TestAuthService', 'config.environment', function($q, $scope, $modalInstance, $auth, $googleAuth, $testAuth, env) {
+  .controller('LoginController', ['$http', '$q', '$scope', '$modalInstance', 'AuthService', 'GoogleAuthService', 'TestAuthService', 'config.environment', function($http, $q, $scope, $modalInstance, $auth, $googleAuth, $testAuth, env) {
 
     $scope.environment = env;
+
+    if ($auth.ready) {
+      $scope.authReady = true;
+    } else {
+      $http({
+        method: 'POST',
+        url: '/users/auth/start'
+      }).then(function() {
+        $auth.setReady(true);
+        $scope.authReady = true;
+        console.log($scope.authReady);
+      }, function() {
+        $scope.error = 'The authentication service is down. Please try again later.';
+      });
+    }
 
     var strategies = {
       google: $googleAuth,

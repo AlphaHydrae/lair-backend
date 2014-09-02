@@ -22,15 +22,15 @@ module Lair
           raise AuthError.new('Wrong credentials')
         end
 
-        @raw_token = m[1]
+        @raw_auth_token = m[1]
 
         begin
-          token = JWT.decode @raw_token, Rails.application.secrets.jwt_hmac_key
+          token = JWT.decode @raw_auth_token, Rails.application.secrets.jwt_hmac_key
         rescue JWT::DecodeError
           raise AuthError.new('Wrong credentials')
         end
 
-        @token = token[0]
+        @auth_token = token[0]
       end
     end
 
@@ -43,7 +43,7 @@ module Lair
     end
 
     get :auth do
-      { token: @raw_token }
+      { token: @raw_auth_token }
     end
 
     class Error < LairError

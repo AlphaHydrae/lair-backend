@@ -1,12 +1,13 @@
 Rails.application.routes.draw do
 
-  devise_for :users, skip: [:sessions], controllers: { :omniauth_callbacks => "users/omniauth_callbacks" }
+  devise_for :users, skip: [ :sessions ], controllers: { omniauth_callbacks: 'security' }
 
   devise_scope :user do
-    get '/users/auth/failed', to: 'users/omniauth_callbacks#auth_failed'
+    get '/users/auth/failed', to: 'security#auth_failed'
+    post '/users/auth/start', to: 'security#auth_csrf_token'
   end
 
-  get '/templates/*path', to: 'home#template'
+  get '/templates/:name', to: 'home#template'
 
   mount Lair::API => '/api'
 

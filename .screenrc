@@ -8,7 +8,7 @@ screen -t vim 2
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
 screen -t zsh 3
 screen -t spec 4
-stuff "bundle exec rake"
+stuff "bundle exec rspec"
 screen -t console 5
 stuff "bundle exec rails console\012"
 select vim

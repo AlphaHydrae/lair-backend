@@ -1,12 +1,23 @@
 class HomeController < ApplicationController
-  before_filter :generate_auth_csrf_token, only: :index
 
   def template
 
-    raise 'Invalid template format' unless params[:format] == 'html'
-    raise 'Invalid template path' unless params[:path].to_s.match /\A[a-z0-9\.\-\_]+(\/[a-z0-9\.\-\_]+)*\Z/i
+    # only accept html templates
+    return render_template_not_found unless params[:format] == 'html'
 
-    template_logical_path = params[:path].sub /\.html$/, ''
-    render template: "templates/#{template_logical_path}", layout: false
+    # only accept alphanumeric characters, hyphens and underscores, separated by slashes
+    return render_template_not_found unless params[:name].to_s.match /\A[a-z0-9\-\_]+(\.[a-z0-9\-\_]+)*\Z/i
+
+    begin
+      render template: "templates/#{params[:name]}", layout: false
+    rescue ActionView::MissingTemplate
+      render_template_not_found
+    end
+  end
+
+  private
+
+  def render_template_not_found
+    render text: 'Template not found', status: :not_found
   end
 end
