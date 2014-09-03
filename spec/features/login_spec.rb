@@ -14,7 +14,7 @@ RSpec.describe "login" do
     token = auth_token user
 
     within '.loginDialog' do
-      fill_in 'credentials', with: token
+      fill_in 'authCredentials', with: token
       click_button 'Test'
     end
 

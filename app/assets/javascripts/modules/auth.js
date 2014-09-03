@@ -109,7 +109,7 @@ angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap
       $scope.signingIn = true;
 
       getStrategy(strategyName).then(function(strategy) {
-        strategy.signIn($scope.credentials).then(signIn, function(err) {
+        strategy.signIn($scope.authCredentials).then(signIn, function(err) {
           delete $scope.signingIn;
           $scope.error = err && err.message ? err.message : 'An error occurred during authentication.';
         });

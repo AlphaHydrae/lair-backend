@@ -10,16 +10,16 @@
 // Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
 // about supported directives.
 //
-//= require underscore/underscore
-//= require jquery/dist/jquery
-//= require angular/angular
-//= require angular-ui-router/release/angular-ui-router
-//= require angular-bootstrap/ui-bootstrap
-//= require angular-bootstrap/ui-bootstrap-tpls
-//= require angular-cookies/angular-cookies
-//= require angular-base64/angular-base64
-//= require angular-local-storage/angular-local-storage
-//= require angular-gravatar/build/md5
-//= require angular-gravatar/build/angular-gravatar
-//= require bootstrap/dist/js/bootstrap.js
+//= require underscore
+//= require jquery
+//= require angular
+//= require angular-ui-router
+//= require angular-ui-bootstrap
+//= require angular-ui-bootstrap-tpls
+//= require angular-cookies
+//= require angular-base64
+//= require angular-local-storage
+//= require md5
+//= require angular-gravatar
+//= require bootstrap.js
 //= require_tree .
