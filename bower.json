@@ -1,6 +1,6 @@
 {
   "name": "lair",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "homepage": "https://github.com/AlphaHydrae/lair",
   "license": "MIT",
   "private": true,
@@ -17,5 +17,8 @@
     "normalize-css": "~3.0.1",
     "angular-local-storage": "~0.0.7",
     "angular-gravatar": "~0.2.1"
+  },
+  "devDependencies": {
+    "angular-mocks": "~1.2.23"
   }
 }

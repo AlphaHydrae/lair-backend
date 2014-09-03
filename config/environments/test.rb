@@ -36,4 +36,7 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
+
+  # Compile the application configuration for angular tests.
+  config.assets.precompile = %w(test.js)
 end

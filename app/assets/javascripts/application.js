@@ -22,4 +22,5 @@
 //= require md5
 //= require angular-gravatar
 //= require bootstrap.js
-//= require_tree .
+//= require ./lair
+//= require_tree ./modules
