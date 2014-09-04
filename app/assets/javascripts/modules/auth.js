@@ -70,7 +70,7 @@ angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap
     };
   }])
   
-  .controller('LoginController', ['$http', '$q', '$scope', '$modalInstance', 'AuthService', 'GoogleAuthService', 'TestAuthService', 'config.environment', function($http, $q, $scope, $modalInstance, $auth, $googleAuth, $testAuth, env) {
+  .controller('LoginController', ['$http', '$q', '$scope', '$modalInstance', 'AuthService', 'GoogleAuthService', 'TestAuthService', 'environment', function($http, $q, $scope, $modalInstance, $auth, $googleAuth, $testAuth, env) {
 
     $scope.environment = env;
 
@@ -113,7 +113,7 @@ angular.module('lair.auth', ['lair.auth.google', 'lair.auth.test', 'ui.bootstrap
           delete $scope.signingIn;
           $scope.error = err && err.message ? err.message : 'An error occurred during authentication.';
         });
-      })
+      });
     };
   }])
 ;

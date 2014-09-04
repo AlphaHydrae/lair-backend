@@ -4,21 +4,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
-    jshint: {
-      all: ['*.js', 'app/assets/javascripts/**/*.js']
-    },
-
-    clean: {
-      precompiledAssets: ['public/assets']
-    },
-
     copy: {
-      angularTestApplication: {
-        files: [
-          { nonull: true, src: 'public/assets/test-*.js', dest: 'spec/angular/lair.js' }
-        ]
-      },
-
       assets: {
         files: [
           { nonull: true, src: 'bower_components/underscore/underscore.js', dest: 'vendor/assets/javascripts/underscore.js' },
@@ -75,13 +61,46 @@ module.exports = function(grunt) {
           }
         }
       }
+    },
+
+    jshint: {
+      all: ['*.js', 'app/assets/javascripts/**/*.js', 'spec/angular/**/*.js', '!spec/angular/support/angular-mocks.js']
+    },
+
+    karma: {
+      unit: {
+        configFile: 'spec/angular/karma.conf.js'
+      },
+
+      unitSingleRun: {
+        configFile: 'spec/angular/karma.conf.js',
+        singleRun: true
+      }
+    },
+
+    watch: {
+      jshint: {
+        files: ['*.js', 'app/assets/javascripts/**/*.js', 'spec/angular/**/*.js', '!spec/angular/support/angular-mocks.js'],
+        tasks: ['jshint']
+      },
+
+      test: {
+        files: ['spec/angular/assets.json', 'spec/angular/lair.js'],
+        tasks: ['karma:unit'],
+        options: {
+          atBegin: true,
+          interrupt: true
+        }
+      }
     }
   });
 
-  grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-karma');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('default', ['jshint']);
+  grunt.registerTask('default', ['jshint', 'karma:unitSingleRun']);
+  grunt.registerTask('test', ['watch:test']);
   grunt.registerTask('vendor', ['copy:assets', 'copy:testAssets', 'copy:bootstrap', 'copy:bootstrapTheme', 'copy:fontawesome']);
 };

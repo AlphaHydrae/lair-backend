@@ -2,116 +2,78 @@
   {
     "logicalPath": "application.js",
     "projectPath": "app/assets/javascripts/application.js",
-    "mtime": "2014-09-03T19:17:24+02:00",
-    "digest": "908de5df49ad91776861aad342f4a04a",
     "dependencies": [
       {
         "logicalPath": "underscore.js",
-        "projectPath": "vendor/assets/javascripts/underscore.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "62c06628887baa4d3af1a12a2c001091"
+        "projectPath": "vendor/assets/javascripts/underscore.js"
       },
       {
         "logicalPath": "jquery.js",
-        "projectPath": "vendor/assets/javascripts/jquery.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "3b9fd3d26460c06854dbc81edc8ce1f4"
+        "projectPath": "vendor/assets/javascripts/jquery.js"
       },
       {
         "logicalPath": "angular.js",
-        "projectPath": "vendor/assets/javascripts/angular.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "1c66f92275ff91b7ebce385d1f562b0b"
+        "projectPath": "vendor/assets/javascripts/angular.js"
       },
       {
         "logicalPath": "angular-ui-router.js",
-        "projectPath": "vendor/assets/javascripts/angular-ui-router.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "f50764422d2684d8818e20f6d8095086"
+        "projectPath": "vendor/assets/javascripts/angular-ui-router.js"
       },
       {
         "logicalPath": "angular-ui-bootstrap.js",
-        "projectPath": "vendor/assets/javascripts/angular-ui-bootstrap.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "7cf5dff2743526f9390246a923d03d83"
+        "projectPath": "vendor/assets/javascripts/angular-ui-bootstrap.js"
       },
       {
         "logicalPath": "angular-ui-bootstrap-tpls.js",
-        "projectPath": "vendor/assets/javascripts/angular-ui-bootstrap-tpls.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "ea0c83f48671347351380c0b462e6ebc"
+        "projectPath": "vendor/assets/javascripts/angular-ui-bootstrap-tpls.js"
       },
       {
         "logicalPath": "angular-cookies.js",
-        "projectPath": "vendor/assets/javascripts/angular-cookies.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "c3931b645e28615ddad698a11ad17239"
+        "projectPath": "vendor/assets/javascripts/angular-cookies.js"
       },
       {
         "logicalPath": "angular-base64.js",
-        "projectPath": "vendor/assets/javascripts/angular-base64.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "30ccec22ff7082c96cb81ea465372bb5"
+        "projectPath": "vendor/assets/javascripts/angular-base64.js"
       },
       {
         "logicalPath": "angular-local-storage.js",
-        "projectPath": "vendor/assets/javascripts/angular-local-storage.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "291d6e3ecce1a81eef970cecf0c365a9"
+        "projectPath": "vendor/assets/javascripts/angular-local-storage.js"
       },
       {
         "logicalPath": "md5.js",
-        "projectPath": "vendor/assets/javascripts/md5.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "888f28d464fbd8aa58de652da8288f58"
+        "projectPath": "vendor/assets/javascripts/md5.js"
       },
       {
         "logicalPath": "angular-gravatar.js",
-        "projectPath": "vendor/assets/javascripts/angular-gravatar.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "de11f34c036967bd15dbdaebce48326e"
+        "projectPath": "vendor/assets/javascripts/angular-gravatar.js"
       },
       {
         "logicalPath": "bootstrap.js",
-        "projectPath": "vendor/assets/javascripts/bootstrap.js",
-        "mtime": "2014-09-03T19:17:24+02:00",
-        "digest": "9f512a034a2473d37833a1958112bff5"
+        "projectPath": "vendor/assets/javascripts/bootstrap.js"
       },
       {
         "logicalPath": "lair.js",
-        "projectPath": "app/assets/javascripts/lair.js.erb",
-        "mtime": "2014-09-03T18:50:42+02:00",
-        "digest": "9191546df9784cbbae5831b2358deaf0"
+        "projectPath": "app/assets/javascripts/lair.js.erb"
       },
       {
         "logicalPath": "modules/auth.google.js",
-        "projectPath": "app/assets/javascripts/modules/auth.google.js",
-        "mtime": "2014-08-31T21:35:32+02:00",
-        "digest": "5dffc3abc0f4bdf1f3b1f1860458c52e"
+        "projectPath": "app/assets/javascripts/modules/auth.google.js"
       },
       {
         "logicalPath": "modules/auth.js",
-        "projectPath": "app/assets/javascripts/modules/auth.js",
-        "mtime": "2014-09-03T18:29:01+02:00",
-        "digest": "841b92287491e50c4a6f571998cf8958"
+        "projectPath": "app/assets/javascripts/modules/auth.js"
       },
       {
         "logicalPath": "modules/auth.test.js",
-        "projectPath": "app/assets/javascripts/modules/auth.test.js",
-        "mtime": "2014-09-01T21:35:42+02:00",
-        "digest": "ead35382600e86f06114afdeee4aa031"
+        "projectPath": "app/assets/javascripts/modules/auth.test.js"
       },
       {
         "logicalPath": "modules/state.js",
-        "projectPath": "app/assets/javascripts/modules/state.js",
-        "mtime": "2014-08-31T21:35:32+02:00",
-        "digest": "df5c7671534c11b0593ffffb0446e9ee"
+        "projectPath": "app/assets/javascripts/modules/state.js"
       },
       {
         "logicalPath": "application.js",
-        "projectPath": "app/assets/javascripts/application.js",
-        "mtime": "2014-09-03T19:09:14+02:00",
-        "digest": "77d0b72b0c54411290b916b6f8b7f72b"
+        "projectPath": "app/assets/javascripts/application.js"
       }
     ]
   }

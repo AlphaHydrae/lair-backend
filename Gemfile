@@ -51,4 +51,7 @@ group :development, :test do
   gem 'selenium-webdriver'
 
   gem 'rake-version'
+
+  gem 'guard'
+  gem 'guard-rake'
 end
