@@ -56,16 +56,20 @@
         "projectPath": "app/assets/javascripts/lair.js.erb"
       },
       {
-        "logicalPath": "modules/auth.google.js",
-        "projectPath": "app/assets/javascripts/modules/auth.google.js"
-      },
-      {
         "logicalPath": "modules/auth.js",
         "projectPath": "app/assets/javascripts/modules/auth.js"
       },
       {
-        "logicalPath": "modules/auth.test.js",
-        "projectPath": "app/assets/javascripts/modules/auth.test.js"
+        "logicalPath": "modules/auth.strategy.google.js",
+        "projectPath": "app/assets/javascripts/modules/auth.strategy.google.js"
+      },
+      {
+        "logicalPath": "modules/auth.strategy.js",
+        "projectPath": "app/assets/javascripts/modules/auth.strategy.js"
+      },
+      {
+        "logicalPath": "modules/auth.strategy.test.js",
+        "projectPath": "app/assets/javascripts/modules/auth.strategy.test.js"
       },
       {
         "logicalPath": "modules/state.js",

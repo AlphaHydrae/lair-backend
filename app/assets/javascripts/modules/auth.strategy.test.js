@@ -1,7 +1,7 @@
 
-angular.module('lair.auth.test', [])
+angular.module('lair.auth.strategy.test', [])
 
-  .service('TestAuthService', ['$http', function($http) {
+  .factory('TestAuthService', ['$http', function($http) {
 
     function checkToken(token) {
       return $http({
@@ -18,4 +18,6 @@ angular.module('lair.auth.test', [])
     return {
       signIn: checkToken
     };
-  }]);
+  }])
+
+;

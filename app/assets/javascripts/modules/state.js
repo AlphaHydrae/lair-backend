@@ -11,4 +11,6 @@ angular.module('lair.state', [ 'ui.router' ])
         url: "/",
         templateUrl: "templates/home.html"
       });
-  }]);
+  }])
+
+;

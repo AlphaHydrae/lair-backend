@@ -1,5 +1,5 @@
 
-angular.module('lair.auth.google', [])
+angular.module('lair.auth.strategy.google', [])
 
   .run(['$window', function($window) {
     $window.jQuery.ajax({
@@ -9,26 +9,21 @@ angular.module('lair.auth.google', [])
     });
   }])
 
-  .service('GoogleAuthService', ['$q', '$window', '$cookies', 'config.googleOAuth2ClientId', 'config.googleOAuth2CallbackUrl', function($q, $window, $cookies, oauthClientId, oauthCallbackUrl) {
+  .factory('GoogleAuthService', ['config.googleOAuth2ClientId', 'config.googleOAuth2CallbackUrl', '$cookies', '$log', '$q', '$window', function(oauthClientId, oauthCallbackUrl, $cookies, $log, $q, $window) {
 
     function redeemGoogleOAuth2Token(gapiResponse) {
 
       var deferred = $q.defer();
 
       gapiResponse.state = $cookies['auth.csrfToken'];
-      console.log('Redeeming Google OAuth 2 token (CSRF token: ' + gapiResponse.state + ')');
+      $log.debug('Redeeming Google OAuth 2 token (CSRF token: ' + gapiResponse.state + ')');
 
       $window.jQuery.ajax({
         type: 'POST',
         url: oauthCallbackUrl,
         dataType: 'json',
-        data: gapiResponse,
-        success: function(authPayload) {
-          deferred.resolve(authPayload);
-        }, error: function(err) {
-          deferred.reject(err);
-        }
-      });
+        data: gapiResponse
+      }).done(deferred.resolve).fail(deferred.reject);
 
       // FIXME: replace $.ajax by $http
       /*return $http({
@@ -43,14 +38,14 @@ angular.module('lair.auth.google', [])
       return deferred.promise;
     }
 
-    function signInWithGoogle() {
+    function signInWithGoogle(immediate) {
 
       var deferred = $q.defer();
 
-      console.log('Authenticating to Google (CSRF token: ' + $cookies['auth.csrfToken'] + ')');
+      $log.debug('Authenticating with Google OAuth 2 (CSRF token: ' + $cookies['auth.csrfToken'] + ')');
 
       $window.gapi.auth.authorize({
-        immediate: false,
+        immediate: immediate,
         response_type: 'code',
         cookie_policy: 'single_host_origin',
         client_id: oauthClientId,
@@ -68,6 +63,9 @@ angular.module('lair.auth.google', [])
     }
 
     return {
-      signIn: signInWithGoogle
+      checkSignedIn: _.bind(signInWithGoogle, undefined, true),
+      signIn: _.bind(signInWithGoogle, undefined, false)
     };
-  }]);
+  }])
+
+;

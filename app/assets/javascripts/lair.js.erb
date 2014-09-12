@@ -2,8 +2,16 @@
 <% environment.context_class.instance_eval{ include Rails.application.routes.url_helpers } %>
 
 angular.module('lair', ['lair.state', 'lair.auth'])
-  .value('version', <%= JSON.dump Lair::Application::VERSION %>)
-  .value('environment', <%= JSON.dump Rails.env %>)
-  .value('config.googleOAuth2ClientId', <%= JSON.dump Rails.application.secrets.google_oauth2_client_id.to_s %>)
-  .value('config.googleOAuth2CallbackUrl', <%= JSON.dump user_omniauth_callback_path(:google_oauth2).to_s %>)
+
+  // configuration
+  .constant('version', <%= JSON.dump Lair::Application::VERSION %>)
+  .constant('environment', <%= JSON.dump Rails.env %>)
+  .constant('config.googleOAuth2ClientId', <%= JSON.dump Rails.application.secrets.google_oauth2_client_id.to_s %>)
+  .constant('config.googleOAuth2CallbackUrl', <%= JSON.dump user_omniauth_callback_path(:google_oauth2).to_s %>)
+
+  // enable debug log unless in production
+  .config(['environment', '$logProvider', function(env, $logProvider) {
+    $logProvider.debugEnabled(env !== 'production');
+  }])
+
 ;
