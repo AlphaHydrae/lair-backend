@@ -1,11 +1,8 @@
 
 angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule', 'ngCookies', 'ui.bootstrap', 'ui.gravatar'])
 
-  .run(['AuthService', 'localStorageService', function($auth, $local) {
-    var authPayload = $local.get('auth.payload');
-    if (authPayload) {
-      $auth.setAuthentication({ payload: authPayload });
-    }
+  .run(['AuthService', function($auth) {
+    $auth.checkAuthentication();
   }])
 
   .service('AuthService', ['AuthStrategiesService', '$base64', '$http', 'localStorageService', '$log', '$q', '$rootScope', function($strategies, $base64, $http, $local, $log, $q, $rootScope) {
@@ -31,6 +28,13 @@ angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule
       }, function() {
         return $q.reject(new Error('The authentication service is unavailable. Please try again later.'));
       });
+    };
+
+    service.checkAuthentication = function() {
+      var authPayload = $local.get('auth.payload');
+      if (authPayload) {
+        service.setAuthentication({ payload: authPayload });
+      }
     };
 
     service.setAuthentication = function(auth) {
