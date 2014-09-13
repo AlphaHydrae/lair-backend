@@ -11,10 +11,25 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140826164057) do
+ActiveRecord::Schema.define(version: 20140913130401) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "item_titles", force: true do |t|
+    t.integer "item_id",          null: false
+    t.string  "contents",         null: false
+    t.integer "display_position", null: false
+  end
+
+  add_index "item_titles", ["item_id", "display_position"], name: "index_item_titles_on_item_id_and_display_position", unique: true, using: :btree
+
+  create_table "items", force: true do |t|
+    t.integer  "original_title_id"
+    t.integer  "year",              null: false
+    t.datetime "created_at",        null: false
+    t.datetime "updated_at",        null: false
+  end
 
   create_table "users", force: true do |t|
     t.string   "email",              limit: 255,             null: false
@@ -29,4 +44,6 @@ ActiveRecord::Schema.define(version: 20140826164057) do
 
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
 
+  add_foreign_key "item_titles", "items"
+  add_foreign_key "items", "item_titles", column: "original_title_id"
 end

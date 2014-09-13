@@ -40,6 +40,10 @@
         "projectPath": "vendor/assets/javascripts/angular-local-storage.js"
       },
       {
+        "logicalPath": "ng-table.js",
+        "projectPath": "vendor/assets/javascripts/ng-table.js"
+      },
+      {
         "logicalPath": "md5.js",
         "projectPath": "vendor/assets/javascripts/md5.js"
       },
@@ -56,6 +60,10 @@
         "projectPath": "app/assets/javascripts/lair.js.erb"
       },
       {
+        "logicalPath": "modules/api.js",
+        "projectPath": "app/assets/javascripts/modules/api.js"
+      },
+      {
         "logicalPath": "modules/auth.js",
         "projectPath": "app/assets/javascripts/modules/auth.js"
       },
@@ -70,6 +78,10 @@
       {
         "logicalPath": "modules/auth.strategy.test.js",
         "projectPath": "app/assets/javascripts/modules/auth.strategy.test.js"
+      },
+      {
+        "logicalPath": "modules/home.js",
+        "projectPath": "app/assets/javascripts/modules/home.js"
       },
       {
         "logicalPath": "modules/state.js",

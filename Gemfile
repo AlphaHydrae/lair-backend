@@ -17,6 +17,7 @@ gem 'omniauth-google-oauth2'
 gem 'jwt'
 
 gem 'grape'
+gem 'jbuilder'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0', group: :doc

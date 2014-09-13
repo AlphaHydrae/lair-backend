@@ -18,9 +18,11 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-local-storage/angular-local-storage.js', dest: 'vendor/assets/javascripts/angular-local-storage.js' },
           { nonull: true, src: 'bower_components/angular-gravatar/build/md5.js', dest: 'vendor/assets/javascripts/md5.js' },
           { nonull: true, src: 'bower_components/angular-gravatar/build/angular-gravatar.js', dest: 'vendor/assets/javascripts/angular-gravatar.js' },
+          { nonull: true, src: 'bower_components/ng-table/ng-table.js', dest: 'vendor/assets/javascripts/ng-table.js' },
           { nonull: true, src: 'bower_components/bootstrap/dist/js/bootstrap.js', dest: 'vendor/assets/javascripts/bootstrap.js' },
           { nonull: true, src: 'bower_components/normalize-css/normalize.css', dest: 'vendor/assets/stylesheets/normalize.css' },
           { nonull: true, src: 'bower_components/bootstrap-social/bootstrap-social.css', dest: 'vendor/assets/stylesheets/bootstrap-social.css' },
+          { nonull: true, src: 'bower_components/ng-table/ng-table.css', dest: 'vendor/assets/stylesheets/ng-table.css' },
           { nonull: true, cwd: 'bower_components/font-awesome/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true },
           { nonull: true, cwd: 'bower_components/bootstrap/dist/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true }
         ]

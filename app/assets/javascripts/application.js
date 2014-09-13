@@ -19,6 +19,7 @@
 //= require angular-cookies
 //= require angular-base64
 //= require angular-local-storage
+//= require ng-table
 //= require md5
 //= require angular-gravatar
 //= require bootstrap.js

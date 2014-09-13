@@ -21,5 +21,10 @@
           %ul.dropdown-menu{ role: 'menu' }
             %li
               %a{ href: '#', ng: { click: 'signOut()' } } Sign out
-.container-fluid
-  %p Foo
+.container-fluid{ ng: { controller: 'HomeController' } }
+  .col-xs-offset-3.col-xs-6
+    %table.table{ ng: { table: 'tableParams' } }
+      %tbody
+        %tr{ ng: { repeat: 'item in items' } }
+          %td{ data: { title: '"Title"' } } {{ item.titles[0].text }}
+          %td{ data: { title: '"Year"' } } {{ item.year }}

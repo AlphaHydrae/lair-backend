@@ -15,5 +15,6 @@
  *= require bootstrap-theme
  *= require bootstrap-social
  *= require font-awesome
+ *= require ng-table
  *= require_tree .
  */

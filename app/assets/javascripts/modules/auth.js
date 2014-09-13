@@ -44,6 +44,7 @@ angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule
       }
 
       var token = auth.payload.token;
+      service.token = token;
 
       var tokenParts = token.split(/\./),
           decodedToken = JSON.parse($base64.decode(tokenParts[1]));
@@ -79,6 +80,7 @@ angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule
 
       var user = $rootScope.currentUser;
       delete $rootScope.currentUser;
+      delete service.token;
 
       $log.debug('User ' + user.email + ' signed out');
     };

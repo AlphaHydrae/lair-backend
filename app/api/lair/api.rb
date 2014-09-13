@@ -46,6 +46,38 @@ module Lair
       { token: @raw_auth_token }
     end
 
+    namespace :items do
+
+      params do
+        requires :titles do
+          requires :text
+        end
+        requires :year, type: Integer
+      end
+
+      post do
+
+        Item.transaction do
+          item = Item.new year: params[:year]
+
+          params[:titles].each.with_index do |title,i|
+            title = item.titles.build contents: title[:text], display_position: i
+          end
+
+          item.save!
+
+          item.original_title = item.titles.first
+          item.save!
+
+          item.to_builder.attributes!
+        end
+      end
+
+      get do
+        Item.all.to_a.collect{ |item| item.to_builder.attributes! }
+      end
+    end
+
     class Error < LairError
     end
 

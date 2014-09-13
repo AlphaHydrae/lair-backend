@@ -1,7 +1,7 @@
 
 <% environment.context_class.instance_eval{ include Rails.application.routes.url_helpers } %>
 
-angular.module('lair', ['lair.state', 'lair.auth'])
+angular.module('lair', ['lair.state', 'lair.auth', 'lair.home'])
 
   // configuration
   .constant('version', <%= JSON.dump Lair::Application::VERSION %>)

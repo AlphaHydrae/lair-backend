@@ -1,6 +1,6 @@
 
 
-angular.module('lair', ['lair.state', 'lair.auth'])
+angular.module('lair', ['lair.state', 'lair.auth', 'lair.home'])
 
   // configuration
   .constant('version', "0.1.0")
