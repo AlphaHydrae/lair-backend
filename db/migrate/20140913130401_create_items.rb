@@ -3,6 +3,7 @@ class CreateItems < ActiveRecord::Migration
     create_table :items do |t|
       t.integer :original_title_id
       t.integer :year, null: false
+      t.string :language, null: false, limit: 5
       t.timestamps null: false
     end
 

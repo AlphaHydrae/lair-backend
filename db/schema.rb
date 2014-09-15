@@ -26,9 +26,10 @@ ActiveRecord::Schema.define(version: 20140913130401) do
 
   create_table "items", force: true do |t|
     t.integer  "original_title_id"
-    t.integer  "year",              null: false
-    t.datetime "created_at",        null: false
-    t.datetime "updated_at",        null: false
+    t.integer  "year",                        null: false
+    t.string   "language",          limit: 5, null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
   end
 
   create_table "users", force: true do |t|

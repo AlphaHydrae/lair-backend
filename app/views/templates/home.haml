@@ -25,6 +25,6 @@
   .col-xs-offset-3.col-xs-6
     %table.table{ ng: { table: 'tableParams' } }
       %tbody
-        %tr{ ng: { repeat: 'item in items' } }
+        %tr{ ng: { repeat: 'item in $data' } }
           %td{ data: { title: '"Title"' } } {{ item.titles[0].text }}
           %td{ data: { title: '"Year"' } } {{ item.year }}

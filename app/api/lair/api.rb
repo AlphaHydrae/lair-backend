@@ -53,12 +53,13 @@ module Lair
           requires :text
         end
         requires :year, type: Integer
+        requires :language, type: String, regexp: /\A[a-z]{2}(?:\-[A-Z]{2})?\Z/
       end
 
       post do
 
         Item.transaction do
-          item = Item.new year: params[:year]
+          item = Item.new year: params[:year], language: params[:language]
 
           params[:titles].each.with_index do |title,i|
             title = item.titles.build contents: title[:text], display_position: i
@@ -74,7 +75,16 @@ module Lair
       end
 
       get do
-        Item.all.to_a.collect{ |item| item.to_builder.attributes! }
+
+        limit = params[:pageSize].to_i
+        limit = 10 if limit < 1
+
+        offset = (params[:page].to_i - 1) * limit
+        offset = 0 if offset < 1
+
+        header 'X-Pagination-Total', Item.count(:all).to_s
+
+        Item.joins(:titles).where('item_titles.id = items.original_title_id').order('item_titles.contents asc').offset(offset).limit(limit).includes(:titles).all.to_a.collect{ |item| item.to_builder.attributes! }
       end
     end
 
