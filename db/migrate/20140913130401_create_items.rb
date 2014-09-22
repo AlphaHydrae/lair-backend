@@ -1,48 +1,109 @@
 class CreateItems < ActiveRecord::Migration
+  class Item < ActiveRecord::Base; end
+
   def up
+    create_table :languages do |t|
+      t.string :iso_code, null: false, limit: 5
+    end
+
+    create_table :people do |t|
+      t.string :last_name
+      t.string :first_names
+      t.string :pseudonym
+    end
+
     create_table :items do |t|
-      # TODO: add type (book/movie)
-      # TODO: add serial boolean (single vs. series)
-      # TODO: add category/tags
-      # TODO: add url(s)
-      # TODO: add description with language
+      t.string :category, null: false, limit: 10
+      t.integer :number_of_parts
       t.integer :original_title_id
-      t.integer :year, null: false
-      t.string :language, null: false, limit: 5
+      t.integer :start_year, null: false
+      t.integer :end_year, null: false
+      t.integer :language_id, null: false
       t.timestamps null: false
+    end
+
+    create_table :item_urls do |t|
+      t.string :contents, null: false
+      t.integer :item_id, null: false
+      t.integer :language_id
     end
 
     create_table :item_titles do |t|
       t.integer :item_id, null: false
+      t.integer :language_id, null: false
       t.string :contents, null: false
       t.integer :display_position, null: false
     end
 
-    create_table :books do |t|
-      # TODO: add link to item
-      # TODO: add link to item title
-      # TODO: add description with language
-      t.integer :volume_start
-      t.integer :volume_end
-      t.string :language, null: false, limit: 5
+    create_table :item_descriptions do |t|
+      t.integer :item_id, null: false
+      t.integer :language_id, null: false
+      t.text :contents, null: false
+    end
+
+    create_table :item_parts do |t|
+      t.string :type, null: false, limit: 5
+      t.integer :item_id, null: false
+      t.integer :item_title_id, null: false
+      t.integer :range_start
+      t.integer :range_end
+      t.integer :language_id, null: false
       t.string :edition
       t.string :edition_number
-      t.string :publisher
       t.string :format
-      t.integer :pages
+      t.integer :length # minutes (video), pages (book)
+
+      # books
+      t.string :publisher
       t.string :isbn10, limit: 10
       t.string :isbn13, limit: 13
+
       t.timestamps null: false
     end
 
-    add_foreign_key :item_titles, :items
+    create_table :item_people do |t|
+      t.integer :item_id, null: false
+      t.integer :person_id, null: false
+      t.string :relationship, null: false, limit: 20
+    end
+
+    create_table :ownerships do |t|
+      t.integer :item_id, null: false
+      t.integer :user_id, null: false
+      t.datetime :gotten_at, null: false
+    end
+
+    add_index :languages, :iso_code, unique: true
+    add_index :items, :category
+    add_index :item_parts, :isbn10, unique: true
+    add_index :item_parts, :isbn13, unique: true
+    add_index :item_urls, [ :item_id, :contents ], unique: true
+    add_foreign_key :items, :languages
     add_foreign_key :items, :item_titles, column: :original_title_id
-    add_index :item_titles, [ :item_id, :display_position ], unique: true
+    add_foreign_key :item_urls, :items
+    add_foreign_key :item_urls, :languages
+    add_foreign_key :item_titles, :languages
+    add_foreign_key :item_titles, :items
+    add_foreign_key :item_descriptions, :items
+    add_foreign_key :item_parts, :items
+    add_foreign_key :item_parts, :item_titles
+    add_foreign_key :item_parts, :languages
+    add_foreign_key :item_people, :items
+    add_foreign_key :item_people, :people
+    add_foreign_key :ownerships, :items
+    add_foreign_key :ownerships, :users
   end
 
   def down
     remove_foreign_key :item_titles, :items
+    drop_table :ownerships
+    drop_table :item_people
+    drop_table :item_parts
+    drop_table :item_descriptions
+    drop_table :item_urls
     drop_table :items
     drop_table :item_titles
+    drop_table :people
+    drop_table :languages
   end
 end

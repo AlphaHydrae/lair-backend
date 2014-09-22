@@ -4,6 +4,7 @@ gem 'rails', '4.2.0.beta1'
 gem 'dotenv-rails', groups: [:development, :test]
 
 gem 'pg'
+gem 'strip_attributes'
 
 gem 'haml-rails'
 gem 'less-rails'

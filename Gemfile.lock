@@ -262,6 +262,8 @@ GEM
       actionpack (>= 4.0)
       activesupport (>= 4.0)
       sprockets (~> 2.8)
+    strip_attributes (1.5.1)
+      activemodel (>= 3.0, < 5.0)
     therubyracer (0.12.1)
       libv8 (~> 3.16.14.0)
       ref
@@ -317,6 +319,7 @@ DEPENDENCIES
   selenium-webdriver
   shoulda-matchers
   spring
+  strip_attributes
   therubyracer
   uglifier (>= 1.3.0)
   web-console (~> 2.0.0.beta2)
