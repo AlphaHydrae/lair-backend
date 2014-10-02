@@ -23,25 +23,25 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   end
 
   create_table "item_parts", force: true do |t|
-    t.string   "type",           limit: 5,  null: false
-    t.integer  "item_id",                   null: false
-    t.integer  "item_title_id",             null: false
+    t.string   "key",         limit: 12, null: false
+    t.string   "type",        limit: 5,  null: false
+    t.integer  "item_id",                null: false
+    t.integer  "title_id",               null: false
     t.integer  "range_start"
     t.integer  "range_end"
-    t.integer  "language_id",               null: false
+    t.integer  "language_id",            null: false
     t.string   "edition"
-    t.string   "edition_number"
+    t.string   "version"
     t.string   "format"
     t.integer  "length"
     t.string   "publisher"
-    t.string   "isbn10",         limit: 10
-    t.string   "isbn13",         limit: 13
-    t.datetime "created_at",                null: false
-    t.datetime "updated_at",                null: false
+    t.string   "isbn",        limit: 13
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
   end
 
-  add_index "item_parts", ["isbn10"], name: "index_item_parts_on_isbn10", unique: true, using: :btree
-  add_index "item_parts", ["isbn13"], name: "index_item_parts_on_isbn13", unique: true, using: :btree
+  add_index "item_parts", ["isbn"], name: "index_item_parts_on_isbn", unique: true, using: :btree
+  add_index "item_parts", ["key"], name: "index_item_parts_on_key", unique: true, using: :btree
 
   create_table "item_people", force: true do |t|
     t.integer "item_id",                 null: false
@@ -50,11 +50,14 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   end
 
   create_table "item_titles", force: true do |t|
-    t.integer "item_id",          null: false
-    t.integer "language_id",      null: false
-    t.string  "contents",         null: false
-    t.integer "display_position", null: false
+    t.string  "key",              limit: 12, null: false
+    t.integer "item_id",                     null: false
+    t.integer "language_id",                 null: false
+    t.string  "contents",                    null: false
+    t.integer "display_position",            null: false
   end
+
+  add_index "item_titles", ["key"], name: "index_item_titles_on_key", unique: true, using: :btree
 
   create_table "item_urls", force: true do |t|
     t.string  "contents",    null: false
@@ -65,6 +68,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "item_urls", ["item_id", "contents"], name: "index_item_urls_on_item_id_and_contents", unique: true, using: :btree
 
   create_table "items", force: true do |t|
+    t.string   "key",               limit: 6,  null: false
     t.string   "category",          limit: 10, null: false
     t.integer  "number_of_parts"
     t.integer  "original_title_id"
@@ -76,6 +80,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   end
 
   add_index "items", ["category"], name: "index_items_on_category", using: :btree
+  add_index "items", ["key"], name: "index_items_on_key", unique: true, using: :btree
 
   create_table "languages", force: true do |t|
     t.string "iso_code", limit: 5, null: false
@@ -84,9 +89,10 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "languages", ["iso_code"], name: "index_languages_on_iso_code", unique: true, using: :btree
 
   create_table "ownerships", force: true do |t|
-    t.integer  "item_id",   null: false
-    t.integer  "user_id",   null: false
-    t.datetime "gotten_at", null: false
+    t.string   "key",       limit: 12, null: false
+    t.integer  "item_id",              null: false
+    t.integer  "user_id",              null: false
+    t.datetime "gotten_at",            null: false
   end
 
   create_table "people", force: true do |t|
@@ -96,6 +102,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   end
 
   create_table "users", force: true do |t|
+    t.string   "key",                limit: 12,              null: false
     t.string   "email",              limit: 255,             null: false
     t.integer  "sign_in_count",                  default: 0, null: false
     t.datetime "current_sign_in_at"
@@ -109,7 +116,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
 
   add_foreign_key "item_descriptions", "items"
-  add_foreign_key "item_parts", "item_titles"
+  add_foreign_key "item_parts", "item_titles", column: "title_id"
   add_foreign_key "item_parts", "items"
   add_foreign_key "item_parts", "languages"
   add_foreign_key "item_people", "items"

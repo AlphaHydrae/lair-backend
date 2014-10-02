@@ -13,6 +13,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :items do |t|
+      t.string :key, null: false, limit: 6
       t.string :category, null: false, limit: 10
       t.integer :number_of_parts
       t.integer :original_title_id
@@ -29,6 +30,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :item_titles do |t|
+      t.string :key, null: false, limit: 12
       t.integer :item_id, null: false
       t.integer :language_id, null: false
       t.string :contents, null: false
@@ -42,21 +44,21 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :item_parts do |t|
+      t.string :key, null: false, limit: 12
       t.string :type, null: false, limit: 5
       t.integer :item_id, null: false
-      t.integer :item_title_id, null: false
+      t.integer :title_id, null: false
       t.integer :range_start
       t.integer :range_end
       t.integer :language_id, null: false
       t.string :edition
-      t.string :edition_number
+      t.string :version
       t.string :format
       t.integer :length # minutes (video), pages (book)
 
       # books
       t.string :publisher
-      t.string :isbn10, limit: 10
-      t.string :isbn13, limit: 13
+      t.string :isbn, limit: 13
 
       t.timestamps null: false
     end
@@ -68,6 +70,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :ownerships do |t|
+      t.string :key, null: false, limit: 12
       t.integer :item_id, null: false
       t.integer :user_id, null: false
       t.datetime :gotten_at, null: false
@@ -75,8 +78,10 @@ class CreateItems < ActiveRecord::Migration
 
     add_index :languages, :iso_code, unique: true
     add_index :items, :category
-    add_index :item_parts, :isbn10, unique: true
-    add_index :item_parts, :isbn13, unique: true
+    add_index :items, :key, unique: true
+    add_index :item_titles, :key, unique: true
+    add_index :item_parts, :key, unique: true
+    add_index :item_parts, :isbn, unique: true
     add_index :item_urls, [ :item_id, :contents ], unique: true
     add_foreign_key :items, :languages
     add_foreign_key :items, :item_titles, column: :original_title_id
@@ -86,7 +91,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_titles, :items
     add_foreign_key :item_descriptions, :items
     add_foreign_key :item_parts, :items
-    add_foreign_key :item_parts, :item_titles
+    add_foreign_key :item_parts, :item_titles, column: :title_id
     add_foreign_key :item_parts, :languages
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people

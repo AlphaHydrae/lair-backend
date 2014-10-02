@@ -8,10 +8,18 @@ module Lair
 
     cascade false
     rescue_from :all do |e|
+      if Rails.env != 'production'
+        puts e.message
+        puts e.backtrace.join("\n")
+      end
       Rack::Response.new([ JSON.dump({ errors: [ { message: e.message } ] }) ], 500, { "Content-type" => "application/json" }).finish
     end
 
     helpers do
+      def language iso_code
+        Language.find_or_create_by(iso_code: iso_code)
+      end
+
       def authenticate!
 
         if headers['Authorization'].blank?
@@ -32,6 +40,10 @@ module Lair
 
         @auth_token = token[0]
       end
+
+      def current_user
+        User.where(email: @auth_token['iss']).first!
+      end
     end
 
     before do
@@ -46,23 +58,60 @@ module Lair
       { token: @raw_auth_token }
     end
 
-    namespace :items do
-
-      params do
-        requires :titles do
-          requires :text
-        end
-        requires :year, type: Integer
-        requires :language, type: String, regexp: /\A[a-z]{2}(?:\-[A-Z]{2})?\Z/
-      end
-
+    namespace :ownerships do
       post do
 
+        item = Item.where(key: params[:itemKey]).first!
+        user = params.key?(:userKey) ? User.where(key: params[:userKey]).first! : current_user
+
+        Ownership.transaction do
+          ownership = Ownership.new item: item, user: user
+          ownership.gotten_at = Time.parse(params[:gottenAt]) if params[:gottenAt]
+
+          ownership.save!
+          ownership.to_builder.attributes!
+        end
+      end
+    end
+
+    namespace :parts do
+      post do
+
+        item = Item.where(key: params[:itemKey]).first!
+        title = item.titles.where(key: params[:titleKey]).first!
+        language = language(params[:language])
+
+        ItemPart.transaction do
+          part = Book.new
+          part.item = item
+          part.title = title
+          part.language = language
+          part.range_start = params[:start] if params.key?(:start)
+          part.range_end = params[:end] if params.key?(:end)
+          part.edition = params[:edition]
+          part.version = params[:version] if params.key?(:version)
+          part.format = params[:format] if params.key?(:format)
+          part.length = params[:length] if params.key?(:length)
+          part.publisher = params[:publisher] if params.key?(:publisher)
+          part.isbn = params[:isbn] if params.key?(:isbn)
+          part.save!
+
+          part.to_builder.attributes!
+        end
+      end
+    end
+
+    namespace :items do
+      post do
+        language = language(params[:language])
+
         Item.transaction do
-          item = Item.new year: params[:year], language: params[:language]
+          item = Item.new category: params[:category], start_year: params[:startYear], language: language
+          item.end_year = params[:endYear] if params.key?(:endYear)
+          item.number_of_parts = params[:numberOfParts] if params.key?(:numberOfParts)
 
           params[:titles].each.with_index do |title,i|
-            title = item.titles.build contents: title[:text], display_position: i
+            title = item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
           end
 
           item.save!

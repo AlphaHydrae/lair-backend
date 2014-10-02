@@ -23,8 +23,14 @@
               %a{ href: '#', ng: { click: 'signOut()' } } Sign out
 .container-fluid{ ng: { controller: 'HomeController' } }
   .col-xs-offset-3.col-xs-6
+    .btn-group.btn-group-lg.pull-right
+      %button.btn.btn-default{ type: 'button' }
+        %span.glyphicon.glyphicon-list
+      %button.btn.btn-default{ type: 'button' }
+        %span.glyphicon.glyphicon-th
+  .col-xs-offset-3.col-xs-6
     %table.table{ ng: { table: 'tableParams' } }
       %tbody
         %tr{ ng: { repeat: 'item in $data' } }
           %td{ data: { title: '"Title"' } } {{ item.titles[0].text }}
-          %td{ data: { title: '"Year"' } } {{ item.year }}
+          %td{ data: { title: '"Year"' } } {{ item.startYear }}

@@ -1,8 +1,12 @@
-class Item < ActiveRecord::Base
-  before_validation_on_create :complete_end_year
+require 'random'
 
-  has_many :titles, class_name: 'ItemTitle'
+class Item < ActiveRecord::Base
+  before_create :set_key
+  before_validation(on: :create){ complete_end_year }
+
+  belongs_to :language
   belongs_to :original_title, class_name: 'ItemTitle'
+  has_many :titles, class_name: 'ItemTitle'
 
   strip_attributes
   validates :category, presence: true, inclusion: { in: %w(anime book manga movie show), allow_blank: true }
@@ -15,13 +19,21 @@ class Item < ActiveRecord::Base
 
   def to_builder
     Jbuilder.new do |json|
-      json.year year
-      json.language language
+      json.key key
+      json.category category
+      json.startYear start_year
+      json.endYear end_year
+      json.language language.iso_code
+      json.numberOfParts number_of_parts if number_of_parts
       json.titles titles.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
     end
   end
 
   private
+
+  def set_key
+    self.key = SecureRandom.random_alphanumeric 6
+  end
 
   def complete_end_year
     self.end_year = start_year if end_year.nil?

@@ -2,6 +2,8 @@ class DeviseCreateUsers < ActiveRecord::Migration
   def change
     create_table :users do |t|
 
+      t.string :key, null: false, limit: 12
+
       ## Database authenticatable
       t.string :email, null: false, limit: 255
       #t.string :encrypted_password, null: false, default: ""
