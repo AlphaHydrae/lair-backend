@@ -6,7 +6,7 @@ gem 'dotenv-rails', groups: [:development, :test]
 gem 'pg'
 gem 'strip_attributes'
 
-gem 'haml-rails'
+gem 'slim-rails'
 gem 'less-rails'
 gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
