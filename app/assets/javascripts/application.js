@@ -20,6 +20,7 @@
 //= require angular-base64
 //= require angular-local-storage
 //= require ng-table
+//= require angular-ng-infinite-scroll
 //= require md5
 //= require angular-gravatar
 //= require bootstrap.js

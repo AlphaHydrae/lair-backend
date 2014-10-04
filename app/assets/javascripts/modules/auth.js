@@ -88,7 +88,7 @@ angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule
     return service;
   }])
 
-  .controller('AuthController', ['$modal', '$scope', 'AuthService', function($modal, $scope, $auth) {
+  .controller('AuthController', ['$log', '$modal', '$scope', 'AuthService', function($log, $modal, $scope, $auth) {
 
     $scope.showLoginDialog = function() {
 
