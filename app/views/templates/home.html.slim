@@ -1,11 +1,10 @@
 .container-fluid ng-controller='HomeController'
-  .col-xs-offset-3.col-xs-6
-    .row infinite-scroll='getNextItems()' infinite-scroll-distance=1 infinite-scroll-disabled='itemsLoading'
-      div ng-repeat='item in items'
-        .col-xs-12.clearfix ng-if='item.separator'
-        .col-md-3 ng-if='!item.separator'
-          a.thumbnail href='#' 
-            img src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Thumbnail'
-            .caption
-              h3
-                | {{ item.titles[0].text }}
+  .row infinite-scroll='getNextItems()' infinite-scroll-distance=1 infinite-scroll-disabled='itemsLoading'
+    div ng-repeat='item in items'
+      .col-xs-12.clearfix ng-if='item.separator'
+      .col-md-2 ng-if='!item.separator' ng-click='show(item)'
+        a.thumbnail href='#' 
+          img src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Thumbnail'
+          .caption
+            h3
+              | {{ item.titles[0].text }}

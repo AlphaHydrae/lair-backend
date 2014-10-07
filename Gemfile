@@ -34,6 +34,8 @@ gem 'rails-html-sanitizer', '~> 1.0'
 
 group :development, :test do
 
+  gem 'thin'
+
   # Call 'debugger' anywhere in the code to stop execution and get a debugger console
   gem 'byebug'
 

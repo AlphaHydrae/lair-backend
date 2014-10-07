@@ -4,7 +4,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
     angular.module('infinite-scroll').value('THROTTLE_MILLISECONDS', 1000);
   })
 
-  .controller('HomeController', ['ApiService', 'ngTableParams', '$scope', function($api, ngTableParams, $scope) {
+  .controller('HomeController', ['ApiService', '$modal', 'ngTableParams', '$scope', function($api, $modal, ngTableParams, $scope) {
 
     var page = 1,
         index = 0;
@@ -15,7 +15,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
 
     function addItems(items) {
       _.each(items, function(item) {
-        if (index !== 0 && index % 4 === 0) {
+        if (index !== 0 && index % 6 === 0) {
           $scope.items.push({ separator: true });
         }
         $scope.items.push(item);
@@ -35,7 +35,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
         url: '/api/items',
         params: {
           page: page,
-          pageSize: 8
+          pageSize: 12
         }
       }).then(function(response) {
         if (response.data.length) {
@@ -49,25 +49,20 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
       });
     };
 
-    /*$scope.tableParams = new ngTableParams({
-      page: 1,
-      count: 10
-    }, {
-      total: 0,
-      getData: function($defer, params) {
-        $api.http({
-          method: 'GET',
-          url: '/api/items',
-          params: {
-            page: params.page(),
-            pageSize: params.count()
-          }
-        }).then(function(response) {
-          params.total(response.headers('X-Pagination-Total'));
-          $defer.resolve(response.data);
-        }, $defer.reject);
-      }
-    });*/
+    $scope.show = function(item) {
+
+      $scope.item = item;
+
+      var modal = $modal.open({
+        templateUrl: '/templates/itemDialog.html',
+        scope: $scope,
+        size: 'lg'
+      });
+
+      modal.result.then(undefined, function() {
+        delete $scope.item;
+      });
+    };
   }])
 
 ;
