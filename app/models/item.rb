@@ -25,7 +25,7 @@ class Item < ActiveRecord::Base
       json.endYear end_year
       json.language language.iso_code
       json.numberOfParts number_of_parts if number_of_parts
-      json.titles titles.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
+      json.titles titles.all.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
     end
   end
 

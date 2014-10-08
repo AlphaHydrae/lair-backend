@@ -2,6 +2,24 @@
   h3.modal-title
     | {{ item.titles[0].text }}
 .modal-body
-  p foo
+  .row
+    .col-xs-7
+      h4 Type
+      p
+        | {{ item.category }}
+      h4 Year
+      p
+        | {{ item.startYear }}
+        span ng-show='item.endYear != item.startYear'
+          | -
+          | {{ item.endYear }}
+      h4 Language
+      p
+        | {{ item.language }}
+      h4 ng-show='item.titles.length >= 2' Other Titles
+      ul ng-show='item.titles.length >= 2'
+        li ng-repeat='title in item.titles.slice(1)' {{ title.text }}
+    .col-xs-5
+      img.center-block src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image' max-width='100%'
 .modal-footer
   button.btn.btn-default ng-click='$dismiss()' Close
