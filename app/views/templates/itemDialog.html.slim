@@ -1,12 +1,10 @@
 .modal-header
-  h3.modal-title
-    | {{ item.titles[0].text }}
+  h3.modal-title {{ item.titles[0].text }}
 .modal-body
   .row
     .col-xs-7
       h4 Type
-      p
-        | {{ item.category }}
+      p {{ item.category }}
       h4 Year
       p
         | {{ item.startYear }}
@@ -14,8 +12,7 @@
           | -
           | {{ item.endYear }}
       h4 Language
-      p
-        | {{ item.language }}
+      p {{ item.language }}
       h4 ng-show='item.titles.length >= 2' Other Titles
       ul ng-show='item.titles.length >= 2'
         li ng-repeat='title in item.titles.slice(1)' {{ title.text }}
