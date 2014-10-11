@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.0.beta1'
+gem 'rails', '4.2.0.beta2'
 gem 'dotenv-rails', groups: [:development, :test]
 
 gem 'pg'
@@ -8,12 +8,13 @@ gem 'strip_attributes'
 
 gem 'slim-rails'
 gem 'less-rails'
+gem 'stylus'
 gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
 
 #gem 'devise'
 # https://github.com/plataformatec/devise/pull/3153
-gem 'devise', git: 'https://github.com/plataformatec/devise.git', branch: 'lm-rails-4-2'
+gem 'devise'
 gem 'omniauth-google-oauth2'
 gem 'jwt'
 

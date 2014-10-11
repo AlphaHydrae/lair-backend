@@ -4,7 +4,8 @@
   ul
     li
       a.btn.btn-block.btn-social.btn-google-plus ng-click='signInWith("google")' class='{disabled: signingIn || !authReady}'
-        i.fa.fa-google-plus Sign in with Google
+        i.fa.fa-google-plus
+        | Sign in with Google
     li ng-show='environment == "test"'
       .input-group
         input.form-control type='text' name='authCredentials' ng-model='$parent.authCredentials'
