@@ -119,6 +119,20 @@ module Lair
             title = item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
           end
 
+          if params[:links].kind_of?(Array)
+            params[:links].each.with_index do |link,i|
+              options = { url: link[:url] }
+              options[:language] = language(link[:language]) if link.key? :language
+              link = item.links.build options
+            end
+          end
+
+          if params[:decriptions].kind_of?(Array)
+            params[:descriptions].each.with_index do |description,i|
+              description = item.descriptions.build contents: description[:text], language: language(description[:language])
+            end
+          end
+
           item.save!
 
           item.original_title = item.titles.first

@@ -22,6 +22,14 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.text    "contents",    null: false
   end
 
+  create_table "item_links", force: true do |t|
+    t.string  "url",         null: false
+    t.integer "item_id",     null: false
+    t.integer "language_id"
+  end
+
+  add_index "item_links", ["item_id", "url"], name: "index_item_links_on_item_id_and_url", unique: true, using: :btree
+
   create_table "item_parts", force: true do |t|
     t.string   "key",         limit: 12, null: false
     t.string   "type",        limit: 5,  null: false
@@ -58,14 +66,6 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   end
 
   add_index "item_titles", ["key"], name: "index_item_titles_on_key", unique: true, using: :btree
-
-  create_table "item_urls", force: true do |t|
-    t.string  "contents",    null: false
-    t.integer "item_id",     null: false
-    t.integer "language_id"
-  end
-
-  add_index "item_urls", ["item_id", "contents"], name: "index_item_urls_on_item_id_and_contents", unique: true, using: :btree
 
   create_table "items", force: true do |t|
     t.string   "key",               limit: 6,  null: false
@@ -116,6 +116,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
 
   add_foreign_key "item_descriptions", "items"
+  add_foreign_key "item_links", "items"
+  add_foreign_key "item_links", "languages"
   add_foreign_key "item_parts", "item_titles", column: "title_id"
   add_foreign_key "item_parts", "items"
   add_foreign_key "item_parts", "languages"
@@ -123,8 +125,6 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_people", "people"
   add_foreign_key "item_titles", "items"
   add_foreign_key "item_titles", "languages"
-  add_foreign_key "item_urls", "items"
-  add_foreign_key "item_urls", "languages"
   add_foreign_key "items", "item_titles", column: "original_title_id"
   add_foreign_key "items", "languages"
   add_foreign_key "ownerships", "items"

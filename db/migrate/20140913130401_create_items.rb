@@ -23,8 +23,8 @@ class CreateItems < ActiveRecord::Migration
       t.timestamps null: false
     end
 
-    create_table :item_urls do |t|
-      t.string :contents, null: false
+    create_table :item_links do |t|
+      t.string :url, null: false
       t.integer :item_id, null: false
       t.integer :language_id
     end
@@ -82,11 +82,11 @@ class CreateItems < ActiveRecord::Migration
     add_index :item_titles, :key, unique: true
     add_index :item_parts, :key, unique: true
     add_index :item_parts, :isbn, unique: true
-    add_index :item_urls, [ :item_id, :contents ], unique: true
+    add_index :item_links, [ :item_id, :url ], unique: true
     add_foreign_key :items, :languages
     add_foreign_key :items, :item_titles, column: :original_title_id
-    add_foreign_key :item_urls, :items
-    add_foreign_key :item_urls, :languages
+    add_foreign_key :item_links, :items
+    add_foreign_key :item_links, :languages
     add_foreign_key :item_titles, :languages
     add_foreign_key :item_titles, :items
     add_foreign_key :item_descriptions, :items
@@ -105,7 +105,7 @@ class CreateItems < ActiveRecord::Migration
     drop_table :item_people
     drop_table :item_parts
     drop_table :item_descriptions
-    drop_table :item_urls
+    drop_table :item_links
     drop_table :items
     drop_table :item_titles
     drop_table :people

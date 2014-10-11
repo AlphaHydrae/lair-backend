@@ -25,12 +25,12 @@ class ItemPart < ActiveRecord::Base
       json.language language.iso_code
       json.start range_start if range_start
       json.end range_end if range_end
-      json.edition = edition if edition
-      json.version = version if version
-      json.format = format if format
-      json.length = length if length
-      json.publisher = publisher if publisher
-      json.isbn = isbn if isbn
+      json.edition edition if edition
+      json.version version if version
+      json.format format if format
+      json.length length if length
+      json.publisher publisher if publisher
+      json.isbn isbn if isbn
     end
   end
 

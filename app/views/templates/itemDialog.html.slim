@@ -1,6 +1,6 @@
 .modal-header
   h3.modal-title {{ item.titles[0].text }}
-.modal-body
+.modal-body.itemInfo
   .row
     .col-xs-7
       h4 Type
@@ -16,18 +16,35 @@
       h4 ng-show='item.titles.length >= 2' Other Titles
       ul ng-show='item.titles.length >= 2'
         li ng-repeat='title in item.titles.slice(1)' {{ title.text }}
+      h4 ng-show='item.links.length' Links
+      ul ng-show='item.links.length'
+        li ng-repeat='link in item.links'
+          a href='{{ link.url }}' {{ link.url }}
     .col-xs-5
       img.center-block src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image' max-width='100%'
   tabset.clearfix ng-show='item.parts'
-    tab heading='Parts'
+    tab ng-repeat='tab in item.parts' heading='{{ tab.name }}'
       table.table
         tbody
-          tr ng-repeat='part in item.parts'
-            td.thumbnail
+          tr.itemPartInfo ng-repeat='part in tab.parts'
+            td.partThumbnail
               img src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image'
             td.title
-              h5 {{ part.title.text }}
+              h5
+                | {{ part.title.text }}
+                |  
+                span.range
+                  | {{ part.start }}
+                  span ng-if='part.end && part.end != part.start'
+                    | -
+                    | {{ part.end }}
             td.description
-              p Info
+              dl
+                dt ng-show='part.format' Format
+                dd ng-show='part.format' {{ part.format }}
+                dt ng-show='part.length' Pages
+                dd ng-show='part.length' {{ part.length }}
+                dt ng-show='part.isbn' ISBN
+                dd ng-show='part.isbn' {{ part.isbn }}
 .modal-footer
   button.btn.btn-default ng-click='$dismiss()' Close

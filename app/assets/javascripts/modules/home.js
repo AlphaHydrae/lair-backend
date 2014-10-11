@@ -75,7 +75,20 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
         itemKey: $scope.item.key
       }
     }).then(function(response) {
-      $scope.item.parts = response.data;
+
+      $scope.item.parts = _.reduce(response.data, function(memo, part) {
+
+        var tabName = part.publisher || 'Other';
+        if (!_.findWhere(memo, { name: tabName })) {
+          memo.push({ name: tabName, parts: [] });
+        }
+
+        var tabData = _.findWhere(memo, { name: tabName });
+        tabData.parts.push(part);
+
+        return memo;
+      }, []);
+      console.log($scope.item.parts);
     });
   }])
 
