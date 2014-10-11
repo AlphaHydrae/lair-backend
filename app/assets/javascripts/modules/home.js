@@ -54,6 +54,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
       $scope.item = item;
 
       var modal = $modal.open({
+        controller: 'ItemDialogController',
         templateUrl: '/templates/itemDialog.html',
         scope: $scope,
         size: 'lg'
@@ -63,6 +64,19 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
         delete $scope.item;
       });
     };
+  }])
+
+  .controller('ItemDialogController', ['ApiService', '$scope', function($api, $scope) {
+
+    $api.http({
+      method: 'GET',
+      url: '/api/parts',
+      params: {
+        itemKey: $scope.item.key
+      }
+    }).then(function(response) {
+      $scope.item.parts = response.data;
+    });
   }])
 
 ;

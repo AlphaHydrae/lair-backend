@@ -99,6 +99,11 @@ module Lair
           part.to_builder.attributes!
         end
       end
+
+      get do
+        item = Item.where(key: params[:itemKey]).first!
+        ItemPart.joins(:item).where('items.id = ?', item.id).order('item_parts.range_start asc').includes(:title, :language).all.to_a.collect{ |item| item.to_builder.attributes! }
+      end
     end
 
     namespace :items do

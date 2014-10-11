@@ -18,5 +18,16 @@
         li ng-repeat='title in item.titles.slice(1)' {{ title.text }}
     .col-xs-5
       img.center-block src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image' max-width='100%'
+  tabset.clearfix ng-show='item.parts'
+    tab heading='Parts'
+      table.table
+        tbody
+          tr ng-repeat='part in item.parts'
+            td.thumbnail
+              img src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image'
+            td.title
+              h5 {{ part.title.text }}
+            td.description
+              p Info
 .modal-footer
   button.btn.btn-default ng-click='$dismiss()' Close
