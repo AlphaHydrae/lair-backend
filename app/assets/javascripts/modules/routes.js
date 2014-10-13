@@ -10,15 +10,19 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('std.home', {
-        url: '/',
+        url: '^/',
         views: {
           'navbar@std': {
-            templateUrl: 'templates/navbar.html'
+            templateUrl: '/templates/navbar.html'
           },
           'content@std': {
-            templateUrl: 'templates/home.html'
+            templateUrl: '/templates/home.html'
           }
         }
+      })
+
+      .state('std.home.item', {
+        url: '^/items/:itemId'
       });
   }])
 

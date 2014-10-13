@@ -4,7 +4,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
     angular.module('infinite-scroll').value('THROTTLE_MILLISECONDS', 1000);
   })
 
-  .controller('HomeController', ['ApiService', '$modal', 'ngTableParams', '$scope', function($api, $modal, ngTableParams, $scope) {
+  .controller('HomeController', ['ApiService', '$modal', 'ngTableParams', '$scope', '$state', function($api, $modal, ngTableParams, $scope, $state) {
 
     var page = 1,
         index = 0;
@@ -14,6 +14,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
     $scope.noMoreItems = false;
 
     function addItems(items) {
+      // TODO: handled already fetched items
       _.each(items, function(item) {
         if (index !== 0 && index % 6 === 0) {
           $scope.items.push({ separator: true });
@@ -47,11 +48,34 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
         }
         //params.total(response.headers('X-Pagination-Total'));
       });
+      // TODO: handle failure
     };
 
-    $scope.show = function(item) {
+    $scope.$on('$stateChangeSuccess', function(event, toState, toParams) {
+      if (toState.name == 'std.home.item') {
+        if ($scope.item) {
+          showModal();
+        } else {
+          $api.http({
+            method: 'GET',
+            url: '/api/items/' + toParams.itemId
+          }).then(function(response) {
+            $scope.item = response.data;
+            showModal();
+          });
+          // TODO: handle failure
+        }
+      }
+    });
 
+    $scope.show = function(item) {
       $scope.item = item;
+      $state.go('std.home.item', {
+        itemId: item.key
+      });
+    };
+
+    function showModal() {
 
       var modal = $modal.open({
         controller: 'ItemDialogController',
@@ -62,8 +86,9 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
 
       modal.result.then(undefined, function() {
         delete $scope.item;
+        $state.go('std.home');
       });
-    };
+    }
   }])
 
   .controller('ItemDialogController', ['ApiService', '$scope', function($api, $scope) {
@@ -88,7 +113,6 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
 
         return memo;
       }, []);
-      console.log($scope.item.parts);
     });
   }])
 

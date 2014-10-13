@@ -154,6 +154,12 @@ module Lair
 
         Item.joins(:titles).where('item_titles.id = items.original_title_id').order('item_titles.contents asc').offset(offset).limit(limit).includes(:titles).all.to_a.collect{ |item| item.to_builder.attributes! }
       end
+
+      namespace ':id' do
+        get do
+          Item.where(key: params[:id]).includes(:titles).first!.to_builder.attributes!
+        end
+      end
     end
 
     class Error < LairError

@@ -11,5 +11,6 @@ Rails.application.routes.draw do
 
   mount Lair::API => '/api'
 
+  get '/*path', to: 'home#index'
   root 'home#index'
 end
