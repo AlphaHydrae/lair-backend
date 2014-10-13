@@ -6,7 +6,8 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
 
   .controller('HomeController', ['ApiService', '$modal', 'ngTableParams', '$scope', '$state', function($api, $modal, ngTableParams, $scope, $state) {
 
-    var page = 1,
+    var modal,
+        page = 1,
         index = 0;
 
     $scope.items = [];
@@ -75,18 +76,27 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
       });
     };
 
+    $scope.edit = function(item) {
+      modal.dismiss('edit');
+      $state.go('std.items.edit', {
+        itemId: item.key
+      });
+    };
+
     function showModal() {
 
-      var modal = $modal.open({
+      modal = $modal.open({
         controller: 'ItemDialogController',
         templateUrl: '/templates/itemDialog.html',
         scope: $scope,
         size: 'lg'
       });
 
-      modal.result.then(undefined, function() {
-        delete $scope.item;
-        $state.go('std.home');
+      modal.result.then(undefined, function(reason) {
+        if (reason != 'edit') {
+          delete $scope.item;
+          $state.go('std.home');
+        }
       });
     }
   }])

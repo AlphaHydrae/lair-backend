@@ -155,9 +155,21 @@ module Lair
         Item.joins(:titles).where('item_titles.id = items.original_title_id').order('item_titles.contents asc').offset(offset).limit(limit).includes(:titles).all.to_a.collect{ |item| item.to_builder.attributes! }
       end
 
-      namespace ':id' do
+      namespace '/:itemId' do
         get do
-          Item.where(key: params[:id]).includes(:titles).first!.to_builder.attributes!
+          Item.where(key: params[:itemId]).includes(:titles).first!.to_builder.attributes!
+        end
+
+        namespace '/titles' do
+
+          namespace '/:titleId' do
+            patch do
+              title = ItemTitle.joins(:item).where('items.key = ? AND item_titles.key = ?', params[:itemId], params[:titleId]).first!
+              title.contents = params[:text] if params.key? :text
+              title.save!
+              title.to_builder.attributes!
+            end
+          end
         end
       end
     end

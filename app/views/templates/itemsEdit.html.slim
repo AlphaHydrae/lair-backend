@@ -1,0 +1,10 @@
+.container ng-controller='EditItemController'
+  h1
+    | Edit
+    span ng-show='item'  {{ item.titles[0].text }}
+  form role='form'
+    .form-group ng-class='{"has-feedback": titleChanged || titleSaved, "has-success": titleSaved, "has-warning": titleChanged}'
+      label for='itemTitle' Title
+      input#itemTitle.form-control type='text' ng-model='item.titles[0].text' ng-change='changeTitle(item.titles[0])'
+      span.form-control-feedback.glyphicon.glyphicon-time ng-show='titleChanged'
+      span.form-control-feedback.glyphicon.glyphicon-ok ng-show='titleSaved'

@@ -88,6 +88,10 @@
         "projectPath": "app/assets/javascripts/modules/home.js"
       },
       {
+        "logicalPath": "modules/items.edit.js",
+        "projectPath": "app/assets/javascripts/modules/items.edit.js"
+      },
+      {
         "logicalPath": "modules/routes.js",
         "projectPath": "app/assets/javascripts/modules/routes.js"
       },

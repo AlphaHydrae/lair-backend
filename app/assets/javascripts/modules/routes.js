@@ -23,7 +23,29 @@ angular.module('lair.routes', [ 'ui.router' ])
 
       .state('std.home.item', {
         url: '^/items/:itemId'
-      });
+      })
+
+      .state('std.items', {
+        abstract: true,
+        url: '^/items',
+        views: {
+          'navbar@std': {
+            templateUrl: '/templates/navbar.html'
+          }
+        }
+      })
+
+      .state('std.items.edit', {
+        url: '/:itemId/edit',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/itemsEdit.html'
+          }
+        }
+      })
+      
+    ;
+
   }])
 
 ;
