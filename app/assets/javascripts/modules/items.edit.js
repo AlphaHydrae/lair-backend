@@ -8,13 +8,9 @@ angular.module('lair.items.edit', [])
       $scope.item = response.data;
     });
 
-    $scope.changeTitle = function(title) {
+    $scope.saveTitle = function(title) {
       $scope.titleChanged = true;
       $scope.titleSaved = false;
-      saveTitle(title);
-    };
-
-    var saveTitle = _.debounce(function(title) {
       $api.http({
         method: 'PATCH',
         url: '/api/items/' + $scope.item.key + '/titles/' + title.key,
@@ -25,7 +21,7 @@ angular.module('lair.items.edit', [])
         $scope.titleChanged = false;
         $scope.titleSaved = true;
       });
-    }, 1000);
+    };
   }])
 
 ;
