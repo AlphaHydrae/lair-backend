@@ -16,13 +16,13 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "item_descriptions", force: true do |t|
+  create_table "item_descriptions", force: :cascade do |t|
     t.integer "item_id",     null: false
     t.integer "language_id", null: false
     t.text    "contents",    null: false
   end
 
-  create_table "item_links", force: true do |t|
+  create_table "item_links", force: :cascade do |t|
     t.string  "url",         null: false
     t.integer "item_id",     null: false
     t.integer "language_id"
@@ -30,7 +30,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
 
   add_index "item_links", ["item_id", "url"], name: "index_item_links_on_item_id_and_url", unique: true, using: :btree
 
-  create_table "item_parts", force: true do |t|
+  create_table "item_parts", force: :cascade do |t|
     t.string   "key",         limit: 12, null: false
     t.string   "type",        limit: 5,  null: false
     t.integer  "item_id",                null: false
@@ -51,13 +51,13 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "item_parts", ["isbn"], name: "index_item_parts_on_isbn", unique: true, using: :btree
   add_index "item_parts", ["key"], name: "index_item_parts_on_key", unique: true, using: :btree
 
-  create_table "item_people", force: true do |t|
+  create_table "item_people", force: :cascade do |t|
     t.integer "item_id",                 null: false
     t.integer "person_id",               null: false
     t.string  "relationship", limit: 20, null: false
   end
 
-  create_table "item_titles", force: true do |t|
+  create_table "item_titles", force: :cascade do |t|
     t.string  "key",              limit: 12, null: false
     t.integer "item_id",                     null: false
     t.integer "language_id",                 null: false
@@ -67,7 +67,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
 
   add_index "item_titles", ["key"], name: "index_item_titles_on_key", unique: true, using: :btree
 
-  create_table "items", force: true do |t|
+  create_table "items", force: :cascade do |t|
     t.string   "key",               limit: 6,  null: false
     t.string   "category",          limit: 10, null: false
     t.integer  "number_of_parts"
@@ -82,26 +82,26 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "items", ["category"], name: "index_items_on_category", using: :btree
   add_index "items", ["key"], name: "index_items_on_key", unique: true, using: :btree
 
-  create_table "languages", force: true do |t|
+  create_table "languages", force: :cascade do |t|
     t.string "iso_code", limit: 5, null: false
   end
 
   add_index "languages", ["iso_code"], name: "index_languages_on_iso_code", unique: true, using: :btree
 
-  create_table "ownerships", force: true do |t|
+  create_table "ownerships", force: :cascade do |t|
     t.string   "key",       limit: 12, null: false
     t.integer  "item_id",              null: false
     t.integer  "user_id",              null: false
     t.datetime "gotten_at",            null: false
   end
 
-  create_table "people", force: true do |t|
+  create_table "people", force: :cascade do |t|
     t.string "last_name"
     t.string "first_names"
     t.string "pseudonym"
   end
 
-  create_table "users", force: true do |t|
+  create_table "users", force: :cascade do |t|
     t.string   "key",                limit: 12,              null: false
     t.string   "email",              limit: 255,             null: false
     t.integer  "sign_in_count",                  default: 0, null: false
