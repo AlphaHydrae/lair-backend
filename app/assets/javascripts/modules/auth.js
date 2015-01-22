@@ -1,5 +1,5 @@
 
-angular.module('lair.auth', ['base64', 'LocalStorageModule', 'satellizer', 'ui.bootstrap', 'ui.gravatar'])
+angular.module('lair.auth', ['base64', 'lair.auth.token', 'LocalStorageModule', 'satellizer', 'ui.bootstrap', 'ui.gravatar'])
 
   .run(['$auth', 'localStorageService', '$rootScope', function($auth, $local, $rootScope) {
     if ($auth.isAuthenticated()) {
@@ -34,24 +34,31 @@ angular.module('lair.auth', ['base64', 'LocalStorageModule', 'satellizer', 'ui.b
     };
   }])
 
-  .controller('LoginController', ['$auth', 'environment', '$rootScope', '$scope', 'localStorageService', '$log', '$modalInstance', function($auth, env, $rootScope, $scope, $local, $log, $modalInstance) {
+  .controller('LoginController', ['$auth', 'environment', '$rootScope', '$scope', 'localStorageService', '$log', '$modalInstance', 'TokenAuthService', function($auth, env, $rootScope, $scope, $local, $log, $modalInstance, $tokenAuth) {
 
     $scope.environment = env;
+
+    function signIn(response) {
+      $log.debug('User ' + response.data.user.email + ' has signed in');
+      $rootScope.currentUser = response.data.user;
+      $local.set('auth.user', response.data.user);
+      $modalInstance.close();
+    }
+
+    function onError(response) {
+      $scope.signingIn = false;
+      $scope.error = response.data && response.data.message ? response.data.message : 'An error occurred during authentication.';
+    }
 
     $scope.signInWith = function(provider) {
       delete $scope.error;
       $scope.signingIn = true;
 
-      $auth.authenticate(provider).then(function(response) {
-        $log.debug('User ' + response.data.user.email + ' has signed in');
-        $rootScope.currentUser = response.data.user;
-        $local.set('auth.user', response.data.user);
-        $modalInstance.close();
-      }, function(response) {
-        $scope.signingIn = false;
-        console.log(response);
-        $scope.error = response.data && response.data.message ? response.data.message : 'An error occurred during authentication.';
-      });
+      if (provider === 'token') {
+        $tokenAuth.authenticate($scope.authToken).then(signIn, onError);
+      } else {
+        $auth.authenticate(provider).then(signIn, onError);
+      }
     };
   }])
 

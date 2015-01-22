@@ -1,4 +1,6 @@
 class User < ActiveRecord::Base
+  include ResourceWithIdentifier
+  before_create{ set_identifier :key }
   # TODO: add tracking information about logins
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }

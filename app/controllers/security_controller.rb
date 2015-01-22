@@ -1,4 +1,10 @@
 class SecurityController < ApplicationController
+  include AuthenticationHelper
+
+  def token
+    authenticate_with_header request.headers['Authorization']
+    render json: { token: @raw_auth_token, user: { email: @auth_token['iss'] } }
+  end
 
   def google
 

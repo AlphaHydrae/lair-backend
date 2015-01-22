@@ -2,10 +2,33 @@ require 'rails_helper'
 
 RSpec.describe SecurityController, type: :controller do
 
-  before :each do
-    @request.env["devise.mapping"] = Devise.mappings[:user]
+  describe "POST #token" do
+    let(:user){ create :user }
+
+    it "should return the token used for authentication and user data" do
+
+      token = user.generate_auth_token
+      request.env['HTTP_AUTHORIZATION'] = "Bearer #{token}"
+      post :token
+
+      expect(response.status).to eq(200)
+
+      res = JSON.parse response.body
+      expect(res).to eq({
+        'token' => token,
+        'user' => {
+          'email' => user.email
+        }
+      })
+    end
+
+    it "should not return a token for an unauthorized user" do
+      expect{ post :token }.to raise_error(AuthError)
+    end
   end
 
+=begin
+TODO: write tests for google oauth2
   describe "POST google_oauth2" do
     let(:user){ create :user }
 
@@ -50,52 +73,5 @@ RSpec.describe SecurityController, type: :controller do
       # TODO: check error
     end
   end
-
-  describe "POST auth_csrf_token" do
-
-    it "should generate an authentication anti-csrf token and store it in the session" do
-      post :auth_csrf_token
-      expect(response.status).to eq(204)
-      expect(response.cookies['auth.csrfToken']).to match(/\A[a-z0-9]+\Z/)
-      expect(session['omniauth.state']).to eq(response.cookies['auth.csrfToken'])
-    end
-
-    it "should regenerate the authentication anti-csrf token" do
-
-      session['omniauth.state'] = 'foo'
-      expect(session['omniauth.state']).to eq('foo')
-
-      post :auth_csrf_token
-      expect(response.cookies['auth.csrfToken']).to match(/\A[a-z0-9]+\Z/)
-      expect(session['omniauth.state']).to eq(response.cookies['auth.csrfToken'])
-      expect(session['omniauth.state']).not_to eq('foo')
-    end
-  end
-
-  describe "GET auth_failed" do
-
-    it "should return an error indicating that authentication has failed" do
-      get :auth_failed
-      expect(response.status).to eq(401)
-      # TODO: check error
-    end
-
-    it "should regenerate the authentication anti-csrf token" do
-
-      session['omniauth.state'] = 'foo'
-      expect(session['omniauth.state']).to eq('foo')
-
-      get :auth_failed
-      expect(response.cookies['auth.csrfToken']).to match(/\A[a-z0-9]+\Z/)
-      expect(session['omniauth.state']).to eq(response.cookies['auth.csrfToken'])
-      expect(session['omniauth.state']).not_to eq('foo')
-    end
-  end
-
-  describe "#new_session_path" do
-
-    it "should redirect to users_auth_failed" do
-      expect(controller.new_session_path).to eq(users_auth_failed_path)
-    end
-  end
+=end
 end

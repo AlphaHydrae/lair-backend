@@ -1,5 +1,3 @@
-require_dependency 'errors'
-
 module Lair
 
   class API < Grape::API
@@ -15,30 +13,14 @@ module Lair
       Rack::Response.new([ JSON.dump({ errors: [ { message: e.message } ] }) ], 500, { "Content-type" => "application/json" }).finish
     end
 
+    helpers AuthenticationHelper
     helpers do
       def language iso_code
         Language.find_or_create_by(iso_code: iso_code)
       end
 
       def authenticate!
-
-        if headers['Authorization'].blank?
-          raise AuthError.new('Missing credentials')
-        end
-
-        unless m = headers['Authorization'].match(/\ABearer ([a-zA-Z0-9\-\_\/\:\=\.]+)\Z/)
-          raise AuthError.new('Wrong credentials')
-        end
-
-        @raw_auth_token = m[1]
-
-        begin
-          token = JWT.decode @raw_auth_token, Rails.application.secrets.jwt_hmac_key
-        rescue JWT::DecodeError
-          raise AuthError.new('Wrong credentials')
-        end
-
-        @auth_token = token[0]
+        authenticate_with_header headers['Authorization'], required: false
       end
 
       def current_user
@@ -54,11 +36,8 @@ module Lair
       'pong'
     end
 
-    get :auth do
-      { token: @raw_auth_token }
-    end
-
     namespace :ownerships do
+
       post do
 
         item = Item.where(key: params[:itemKey]).first!
@@ -172,12 +151,6 @@ module Lair
           end
         end
       end
-    end
-
-    class Error < LairError
-    end
-
-    class AuthError < Error
     end
   end
 end

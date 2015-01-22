@@ -11,10 +11,10 @@ RSpec.describe "login" do
     click_link 'Sign in'
     expect(page).to have_content('Sign in with Google')
 
-    token = auth_token user
+    token = user.generate_auth_token
 
     within '.loginDialog' do
-      fill_in 'authCredentials', with: token
+      fill_in 'authToken', with: token
       click_button 'Test'
     end
 

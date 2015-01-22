@@ -4,6 +4,7 @@ Rails.application.routes.draw do
 
   namespace :auth, module: nil do
     post '/google', to: 'security#google'
+    post '/token', to: 'security#token'
   end
 
   mount Lair::API => '/api'
