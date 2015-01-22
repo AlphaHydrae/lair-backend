@@ -17,7 +17,7 @@ angular.module('lair.items.edit', [])
     var saveTitle = _.debounce(function(title) {
       $api.http({
         method: 'PATCH',
-        url: '/api/items/' + $scope.item.key + '/titles/' + title.key,
+        url: '/api/items/' + $scope.item.id + '/titles/' + title.id,
         params: {
           text: title.text
         }

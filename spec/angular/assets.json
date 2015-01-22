@@ -28,10 +28,6 @@
         "projectPath": "vendor/assets/javascripts/angular-ui-bootstrap-tpls.js"
       },
       {
-        "logicalPath": "angular-cookies.js",
-        "projectPath": "vendor/assets/javascripts/angular-cookies.js"
-      },
-      {
         "logicalPath": "angular-base64.js",
         "projectPath": "vendor/assets/javascripts/angular-base64.js"
       },
@@ -56,6 +52,10 @@
         "projectPath": "vendor/assets/javascripts/angular-gravatar.js"
       },
       {
+        "logicalPath": "satellizer.js",
+        "projectPath": "vendor/assets/javascripts/satellizer.js"
+      },
+      {
         "logicalPath": "bootstrap.js",
         "projectPath": "vendor/assets/javascripts/bootstrap.js"
       },
@@ -72,16 +72,8 @@
         "projectPath": "app/assets/javascripts/modules/auth.js"
       },
       {
-        "logicalPath": "modules/auth.strategy.google.js",
-        "projectPath": "app/assets/javascripts/modules/auth.strategy.google.js"
-      },
-      {
-        "logicalPath": "modules/auth.strategy.js",
-        "projectPath": "app/assets/javascripts/modules/auth.strategy.js"
-      },
-      {
-        "logicalPath": "modules/auth.strategy.test.js",
-        "projectPath": "app/assets/javascripts/modules/auth.strategy.test.js"
+        "logicalPath": "modules/auth.token.js",
+        "projectPath": "app/assets/javascripts/modules/auth.token.js"
       },
       {
         "logicalPath": "modules/home.js",

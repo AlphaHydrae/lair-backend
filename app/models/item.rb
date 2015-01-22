@@ -1,7 +1,8 @@
 require 'random'
 
 class Item < ActiveRecord::Base
-  before_create :set_key
+  include ResourceWithIdentifier
+  before_create{ set_identifier :api_id, 6 }
   before_validation(on: :create){ complete_end_year }
 
   belongs_to :language
@@ -21,7 +22,7 @@ class Item < ActiveRecord::Base
 
   def to_builder
     Jbuilder.new do |json|
-      json.key key
+      json.id api_id
       json.category category
       json.startYear start_year
       json.endYear end_year
@@ -33,10 +34,6 @@ class Item < ActiveRecord::Base
   end
 
   private
-
-  def set_key
-    self.key = SecureRandom.random_alphanumeric 6
-  end
 
   def complete_end_year
     self.end_year = start_year if end_year.nil?

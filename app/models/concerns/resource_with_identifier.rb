@@ -3,7 +3,7 @@ require_dependency 'random'
 module ResourceWithIdentifier
   extend ActiveSupport::Concern
 
-  def set_identifier attr = :api_key, size = 12
+  def set_identifier attr = :api_id, size = 12
     self[attr] = self.class.generate_unused_identifier attr, size
   end
 

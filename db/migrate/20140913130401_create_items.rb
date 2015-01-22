@@ -3,7 +3,7 @@ class CreateItems < ActiveRecord::Migration
 
   def up
     create_table :users do |t|
-      t.string :key, null: false, limit: 12
+      t.string :api_id, null: false, limit: 12
       t.string :email, null: false, limit: 255
       #t.string :encrypted_password, null: false, default: ""
       t.integer :sign_in_count, default: 0, null: false
@@ -21,7 +21,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :items do |t|
-      t.string :key, null: false, limit: 6
+      t.string :api_id, null: false, limit: 6
       t.string :category, null: false, limit: 10
       t.integer :number_of_parts
       t.integer :original_title_id
@@ -38,7 +38,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :item_titles do |t|
-      t.string :key, null: false, limit: 12
+      t.string :api_id, null: false, limit: 12
       t.integer :item_id, null: false
       t.integer :language_id, null: false
       t.string :contents, null: false
@@ -52,7 +52,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :item_parts do |t|
-      t.string :key, null: false, limit: 12
+      t.string :api_id, null: false, limit: 12
       t.string :type, null: false, limit: 5
       t.integer :item_id, null: false
       t.integer :title_id, null: false
@@ -78,7 +78,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :ownerships do |t|
-      t.string :key, null: false, limit: 12
+      t.string :api_id, null: false, limit: 12
       t.integer :item_id, null: false
       t.integer :user_id, null: false
       t.datetime :gotten_at, null: false
@@ -87,9 +87,9 @@ class CreateItems < ActiveRecord::Migration
     add_index :users, :email, unique: true
     add_index :languages, :iso_code, unique: true
     add_index :items, :category
-    add_index :items, :key, unique: true
-    add_index :item_titles, :key, unique: true
-    add_index :item_parts, :key, unique: true
+    add_index :items, :api_id, unique: true
+    add_index :item_titles, :api_id, unique: true
+    add_index :item_parts, :api_id, unique: true
     add_index :item_parts, :isbn, unique: true
     add_index :item_links, [ :item_id, :url ], unique: true
     add_foreign_key :items, :languages

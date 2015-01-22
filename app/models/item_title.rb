@@ -1,5 +1,6 @@
 class ItemTitle < ActiveRecord::Base
-  before_create :set_key
+  include ResourceWithIdentifier
+  before_create :set_identifier
 
   belongs_to :item
   belongs_to :language
@@ -12,15 +13,9 @@ class ItemTitle < ActiveRecord::Base
 
   def to_builder
     Jbuilder.new do |title|
-      title.key key
+      title.id api_id
       title.text contents
       title.language language.iso_code
     end
-  end
-
-  private
-
-  def set_key
-    self.key = SecureRandom.random_alphanumeric 12
   end
 end

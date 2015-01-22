@@ -1,5 +1,6 @@
 class ItemPart < ActiveRecord::Base
-  before_create :set_key
+  include ResourceWithIdentifier
+  before_create :set_identifier
 
   belongs_to :item
   belongs_to :title, class_name: 'ItemTitle'
@@ -19,8 +20,8 @@ class ItemPart < ActiveRecord::Base
 
   def to_builder
     Jbuilder.new do |json|
-      json.key key
-      json.itemKey item.key
+      json.id api_id
+      json.itemId item.api_id
       json.title title.to_builder
       json.language language.iso_code
       json.start range_start if range_start
@@ -35,10 +36,6 @@ class ItemPart < ActiveRecord::Base
   end
 
   private
-
-  def set_key
-    self.key = SecureRandom.random_alphanumeric 12
-  end
 
   def title_belongs_to_parent
     errors.add :title, :must_belong_to_parent if item.present? && title.present? && title.item != item

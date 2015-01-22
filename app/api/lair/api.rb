@@ -40,8 +40,8 @@ module Lair
 
       post do
 
-        item = Item.where(key: params[:itemKey]).first!
-        user = params.key?(:userKey) ? User.where(key: params[:userKey]).first! : current_user
+        item = Item.where(api_id: params[:itemId]).first!
+        user = params.key?(:userId) ? User.where(api_id: params[:userId]).first! : current_user
 
         Ownership.transaction do
           ownership = Ownership.new item: item, user: user
@@ -56,8 +56,8 @@ module Lair
     namespace :parts do
       post do
 
-        item = Item.where(key: params[:itemKey]).first!
-        title = item.titles.where(key: params[:titleKey]).first!
+        item = Item.where(api_id: params[:itemId]).first!
+        title = item.titles.where(api_id: params[:titleId]).first!
         language = language(params[:language])
 
         ItemPart.transaction do
@@ -80,7 +80,7 @@ module Lair
       end
 
       get do
-        item = Item.where(key: params[:itemKey]).first!
+        item = Item.where(api_id: params[:itemId]).first!
         ItemPart.joins(:item).where('items.id = ?', item.id).order('item_parts.range_start asc').includes(:title, :language).all.to_a.collect{ |item| item.to_builder.attributes! }
       end
     end
@@ -136,14 +136,14 @@ module Lair
 
       namespace '/:itemId' do
         get do
-          Item.where(key: params[:itemId]).includes(:titles).first!.to_builder.attributes!
+          Item.where(api_id: params[:itemId]).includes(:titles).first!.to_builder.attributes!
         end
 
         namespace '/titles' do
 
           namespace '/:titleId' do
             patch do
-              title = ItemTitle.joins(:item).where('items.key = ? AND item_titles.key = ?', params[:itemId], params[:titleId]).first!
+              title = ItemTitle.joins(:item).where('items.api_id = ? AND item_titles.api_id = ?', params[:itemId], params[:titleId]).first!
               title.contents = params[:text] if params.key? :text
               title.save!
               title.to_builder.attributes!

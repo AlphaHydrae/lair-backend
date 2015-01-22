@@ -72,14 +72,14 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
     $scope.show = function(item) {
       $scope.item = item;
       $state.go('std.home.item', {
-        itemId: item.key
+        itemId: item.id
       });
     };
 
     $scope.edit = function(item) {
       modal.dismiss('edit');
       $state.go('std.items.edit', {
-        itemId: item.key
+        itemId: item.id
       });
     };
 
@@ -107,7 +107,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
       method: 'GET',
       url: '/api/parts',
       params: {
-        itemKey: $scope.item.key
+        itemId: $scope.item.id
       }
     }).then(function(response) {
 
