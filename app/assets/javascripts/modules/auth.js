@@ -1,13 +1,52 @@
 
 angular.module('lair.auth', ['base64', 'lair.auth.token', 'LocalStorageModule', 'satellizer', 'ui.bootstrap', 'ui.gravatar'])
 
-  .run(['$auth', 'localStorageService', '$rootScope', function($auth, $local, $rootScope) {
-    if ($auth.isAuthenticated()) {
-      $rootScope.currentUser = $local.get('auth.user');
+  .factory('AuthService', ['$auth', 'localStorageService', '$log', '$rootScope', 'TokenAuthService', function($auth, $local, $log, $rootScope, $tokenAuth) {
+
+    function signIn(response) {
+
+      var user = response.data.user;
+      $rootScope.currentUser = user;
+      $local.set('auth.user', user);
+
+      $log.debug('User ' + user.email + ' has signed in');
+
+      return response;
     }
+
+    return {
+
+      authenticate: function(provider, authCredentials) {
+        if (provider === 'token') {
+          return $tokenAuth.authenticate(authCredentials).then(signIn);
+        } else {
+          return $auth.authenticate(provider).then(signIn);
+        }
+      },
+
+      unauthenticate: function() {
+        $auth.logout().then(function() {
+          $local.remove('auth.user');
+          delete $rootScope.currentUser;
+          $log.debug('User has signed out');
+        });
+      },
+
+      isAuthenticated: $auth.isAuthenticated,
+
+      checkAuthentication: function() {
+        if ($auth.isAuthenticated()) {
+          $rootScope.currentUser = $local.get('auth.user');
+        }
+      }
+    };
   }])
 
-  .controller('AuthController', ['$auth', 'localStorageService', '$log', '$modal', '$scope', '$rootScope', function($auth, $local, $log, $modal, $scope, $rootScope) {
+  .run(['AuthService', function($auth) {
+    $auth.checkAuthentication();
+  }])
+
+  .controller('AuthController', ['AuthService', '$log', '$modal', '$scope', function($auth, $log, $modal, $scope) {
 
     $scope.isAuthenticated = $auth.isAuthenticated;
 
@@ -25,40 +64,20 @@ angular.module('lair.auth', ['base64', 'lair.auth.token', 'LocalStorageModule', 
       });
     };
 
-    $scope.signOut = function() {
-      $auth.logout().then(function() {
-        $local.remove('auth.user');
-        delete $rootScope.currentUser;
-        $log.debug('User has signed out');
-      });
-    };
+    $scope.signOut = $auth.unauthenticate;
   }])
 
-  .controller('LoginController', ['$auth', 'environment', '$rootScope', '$scope', 'localStorageService', '$log', '$modalInstance', 'TokenAuthService', function($auth, env, $rootScope, $scope, $local, $log, $modalInstance, $tokenAuth) {
-
-    $scope.environment = env;
-
-    function signIn(response) {
-      $log.debug('User ' + response.data.user.email + ' has signed in');
-      $rootScope.currentUser = response.data.user;
-      $local.set('auth.user', response.data.user);
-      $modalInstance.close();
-    }
+  .controller('LoginController', ['AuthService', '$modalInstance', '$scope', function($auth, $modalInstance, $scope) {
 
     function onError(response) {
       $scope.signingIn = false;
       $scope.error = response.data && response.data.message ? response.data.message : 'An error occurred during authentication.';
     }
 
-    $scope.signInWith = function(provider) {
+    $scope.signInWith = function(provider, authCredentials) {
       delete $scope.error;
       $scope.signingIn = true;
-
-      if (provider === 'token') {
-        $tokenAuth.authenticate($scope.authToken).then(signIn, onError);
-      } else {
-        $auth.authenticate(provider).then(signIn, onError);
-      }
+      return $auth.authenticate(provider, authCredentials).then($modalInstance.close, onError);
     };
   }])
 

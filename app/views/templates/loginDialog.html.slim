@@ -8,9 +8,9 @@
         | Sign in with Google
     li ng-show='environment == "test"'
       .input-group
-        input.form-control type='text' name='authToken' ng-model='$parent.authToken'
+        input.form-control type='text' name='authCredentials' ng-model='$parent.authCredentials'
         .input-group-btn
-          button.btn.btn-default type='button' ng-click='signInWith("token")' Test
+          button.btn.btn-default type='button' ng-click='signInWith("token", authCredentials)' Test
   progressbar.progress-striped.active max=100 value=100 type='primary' ng-show='signingIn' Signing in
   alert type='danger' ng-show='error' ng-bind='error'
 .modal-footer

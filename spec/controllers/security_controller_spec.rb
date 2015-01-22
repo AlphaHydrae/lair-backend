@@ -23,7 +23,13 @@ RSpec.describe SecurityController, type: :controller do
     end
 
     it "should not return a token for an unauthorized user" do
-      expect{ post :token }.to raise_error(AuthError)
+      post :token
+      expect(response.status).to eq(401)
+      expect(JSON.parse(response.body)).to eq({
+        'errors' => [
+          { 'reason' => 'error', 'message' => 'Missing credentials' }
+        ]
+      })
     end
   end
 

@@ -15,7 +15,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
     $scope.noMoreItems = false;
 
     function addItems(items) {
-      // TODO: handled already fetched items
+      // TODO: handle already fetched items
       _.each(items, function(item) {
         if (index !== 0 && index % 6 === 0) {
           $scope.items.push({ separator: true });
