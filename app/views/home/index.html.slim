@@ -10,12 +10,12 @@ script type='text/ng-template' id='/templates/navbar.html'
         a.navbar-brand ui-sref='std.home' Lair
       #menu.collapse.navbar-collapse
         ul.nav.navbar-nav.navbar-right ng-controller='AuthController'
-          li ng-hide='currentUser'
+          li ng-hide='isAuthenticated()'
             a href='#' ng-click='showLoginDialog()' Sign in
           li.gravatar ng-show='currentUser'
             a href='#'
               img gravatar-src='currentUser.email' gravatar-size=40
-          li ng-show='currentUser' dropdown=true
+          li ng-show='isAuthenticated()' dropdown=true
             a.dropdown-toggle href='#'
               span ng-bind='currentUser.email'
               span.caret

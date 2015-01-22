@@ -1,94 +1,15 @@
 
-angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule', 'ngCookies', 'ui.bootstrap', 'ui.gravatar'])
+angular.module('lair.auth', ['base64', 'LocalStorageModule', 'satellizer', 'ui.bootstrap', 'ui.gravatar'])
 
-  .run(['AuthService', function($auth) {
-    $auth.checkAuthentication();
+  .run(['$auth', 'localStorageService', '$rootScope', function($auth, $local, $rootScope) {
+    if ($auth.isAuthenticated()) {
+      $rootScope.currentUser = $local.get('auth.user');
+    }
   }])
 
-  .service('AuthService', ['AuthStrategiesService', '$base64', '$http', 'localStorageService', '$log', '$q', '$rootScope', function($strategies, $base64, $http, $local, $log, $q, $rootScope) {
+  .controller('AuthController', ['$auth', 'localStorageService', '$log', '$modal', '$scope', '$rootScope', function($auth, $local, $log, $modal, $scope, $rootScope) {
 
-    var ready = false,
-        service = {};
-
-    service.start = function() {
-
-      // TODO: cache strategy name
-      var strategyName = $local.get('auth.strategy');
-
-      if (ready) {
-        return $q.when(strategyName);
-      }
-
-      return $http({
-        method: 'POST',
-        url: '/users/auth/start'
-      }).then(function() {
-        ready = true;
-        return strategyName;
-      }, function() {
-        return $q.reject(new Error('The authentication service is unavailable. Please try again later.'));
-      });
-    };
-
-    service.checkAuthentication = function() {
-      var authPayload = $local.get('auth.payload');
-      if (authPayload) {
-        service.setAuthentication({ payload: authPayload });
-      }
-    };
-
-    service.setAuthentication = function(auth) {
-      if (!$local.get('auth.payload')) {
-        $local.set('auth.strategy', auth.strategyName);
-        $local.set('auth.payload', auth.payload);
-      }
-
-      var token = auth.payload.token;
-      service.token = token;
-
-      var tokenParts = token.split(/\./),
-          decodedToken = JSON.parse($base64.decode(tokenParts[1]));
-
-      var user = { email: decodedToken.iss };
-      $rootScope.currentUser = user;
-
-      $log.debug('User ' + user.email + ' signed in');
-    };
-
-    service.checkSignedIn = function(strategyName) {
-      var auth = { strategyName: strategyName };
-      return $q.when(auth).then($strategies.checkSignedIn).then(function(authPayload) {
-        auth.payload = authPayload;
-        return service.setAuthentication(auth);
-      }, function(err) {
-        $local.remove('auth.strategy');
-        return $q.reject(err);
-      });
-    };
-
-    service.signIn = function(strategyName, credentials) {
-      var auth = { strategyName: strategyName, credentials: credentials };
-      return $q.when(auth).then($strategies.signIn).then(function(authPayload) {
-        auth.payload = authPayload;
-        return service.setAuthentication(auth);
-      });
-    };
-
-    service.signOut = function() {
-
-      $local.remove('auth.payload');
-
-      var user = $rootScope.currentUser;
-      delete $rootScope.currentUser;
-      delete service.token;
-
-      $log.debug('User ' + user.email + ' signed out');
-    };
-
-    return service;
-  }])
-
-  .controller('AuthController', ['$log', '$modal', '$scope', 'AuthService', function($log, $modal, $scope, $auth) {
+    $scope.isAuthenticated = $auth.isAuthenticated;
 
     $scope.showLoginDialog = function() {
 
@@ -105,38 +26,31 @@ angular.module('lair.auth', ['base64', 'lair.auth.strategy', 'LocalStorageModule
     };
 
     $scope.signOut = function() {
-      $auth.signOut();
+      $auth.logout().then(function() {
+        $local.remove('auth.user');
+        delete $rootScope.currentUser;
+        $log.debug('User has signed out');
+      });
     };
   }])
-  
-  .controller('LoginController', ['$q', '$scope', '$log', '$modalInstance', 'AuthService', 'environment', function($q, $scope, $log, $modalInstance, $auth, env) {
+
+  .controller('LoginController', ['$auth', 'environment', '$rootScope', '$scope', 'localStorageService', '$log', '$modalInstance', function($auth, env, $rootScope, $scope, $local, $log, $modalInstance) {
 
     $scope.environment = env;
 
-    $auth.start().then(function(strategyName) {
-      $scope.authReady = true;
-
-      if (strategyName) {
-        $scope.signingIn = true;
-        $auth.checkSignedIn(strategyName).then(function() {
-          $scope.signingIn = false;
-        }, function() {
-          $scope.signingIn = false;
-        });
-      }
-    }, function() {
-      $scope.authReady = false;
-    });
-
-    $scope.signInWith = function(strategyName) {
+    $scope.signInWith = function(provider) {
       delete $scope.error;
       $scope.signingIn = true;
 
-      $auth.signIn(strategyName, $scope.authCredentials).then(function() {
+      $auth.authenticate(provider).then(function(response) {
+        $log.debug('User ' + response.data.user.email + ' has signed in');
+        $rootScope.currentUser = response.data.user;
+        $local.set('auth.user', response.data.user);
         $modalInstance.close();
-      }, function(err) {
+      }, function(response) {
         $scope.signingIn = false;
-        $scope.error = err && err.message ? err.message : 'An error occurred during authentication.';
+        console.log(response);
+        $scope.error = response.data && response.data.message ? response.data.message : 'An error occurred during authentication.';
       });
     };
   }])

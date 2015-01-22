@@ -1,17 +1,22 @@
 
 <% environment.context_class.instance_eval{ include Rails.application.routes.url_helpers } %>
 
-angular.module('lair', ['lair.state', 'lair.auth', 'lair.home', 'lair.routes', 'lair.items.edit'])
+angular.module('lair', ['lair.state', 'lair.auth', 'lair.home', 'lair.routes', 'lair.items.edit', 'satellizer'])
 
   // configuration
   .constant('version', <%= JSON.dump Lair::Application::VERSION %>)
   .constant('environment', <%= JSON.dump Rails.env %>)
   .constant('config.googleOAuth2ClientId', <%= JSON.dump Rails.application.secrets.google_oauth2_client_id.to_s %>)
-  .constant('config.googleOAuth2CallbackUrl', <%= JSON.dump user_omniauth_callback_path(:google_oauth2).to_s %>)
 
   // enable debug log unless in production
   .config(['environment', '$logProvider', function(env, $logProvider) {
     $logProvider.debugEnabled(env !== 'production');
+  }])
+
+  .config(['config.googleOAuth2ClientId', '$authProvider', function(googleOAuth2ClientId, $authProvider) {
+    $authProvider.google({
+      clientId: googleOAuth2ClientId
+    });
   }])
 
 ;

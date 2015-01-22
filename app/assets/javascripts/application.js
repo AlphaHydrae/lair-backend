@@ -16,13 +16,13 @@
 //= require angular-ui-router
 //= require angular-ui-bootstrap
 //= require angular-ui-bootstrap-tpls
-//= require angular-cookies
 //= require angular-base64
 //= require angular-local-storage
 //= require ng-table
 //= require angular-ng-infinite-scroll
 //= require md5
 //= require angular-gravatar
+//= require satellizer
 //= require bootstrap.js
 //= require ./lair
 //= require_tree ./modules

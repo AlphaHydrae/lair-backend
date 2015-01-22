@@ -1,12 +1,9 @@
 class User < ActiveRecord::Base
-
-  # Include default devise modules. Others available are:
-  # :confirmable, :lockable, :timeoutable and :omniauthable
-  devise :omniauthable, :trackable, :omniauth_providers => [:google_oauth2]
+  # TODO: add tracking information about logins
 
   validates :email, presence: true, uniqueness: { case_sensitive: false }
 
-  def self.find_for_google_oauth2 omniauth_auth
-    User.where(email: omniauth_auth.info[:email]).first
+  def generate_auth_token expiration = 2.weeks.from_now
+    JWT.encode({ iss: email, exp: expiration.to_i }, Rails.application.secrets.jwt_hmac_key, 'HS512')
   end
 end

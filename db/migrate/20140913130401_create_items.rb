@@ -2,6 +2,14 @@ class CreateItems < ActiveRecord::Migration
   class Item < ActiveRecord::Base; end
 
   def up
+    create_table :users do |t|
+      t.string :key, null: false, limit: 12
+      t.string :email, null: false, limit: 255
+      #t.string :encrypted_password, null: false, default: ""
+      t.integer :sign_in_count, default: 0, null: false
+      t.timestamps null: false
+    end
+
     create_table :languages do |t|
       t.string :iso_code, null: false, limit: 5
     end
@@ -76,6 +84,7 @@ class CreateItems < ActiveRecord::Migration
       t.datetime :gotten_at, null: false
     end
 
+    add_index :users, :email, unique: true
     add_index :languages, :iso_code, unique: true
     add_index :items, :category
     add_index :items, :key, unique: true
@@ -110,5 +119,6 @@ class CreateItems < ActiveRecord::Migration
     drop_table :item_titles
     drop_table :people
     drop_table :languages
+    drop_table :users
   end
 end

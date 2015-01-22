@@ -43,7 +43,7 @@ angular.module('lair.routes', [ 'ui.router' ])
           }
         }
       })
-      
+
     ;
 
   }])

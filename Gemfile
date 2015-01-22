@@ -12,14 +12,10 @@ gem 'stylus'
 gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
 
-#gem 'devise'
-# https://github.com/plataformatec/devise/pull/3153
-gem 'devise'
-gem 'omniauth-google-oauth2'
 gem 'jwt'
-
 gem 'grape'
 gem 'jbuilder'
+gem 'httparty'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0', group: :doc
