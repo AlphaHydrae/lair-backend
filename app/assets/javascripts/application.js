@@ -12,6 +12,7 @@
 //
 //= require underscore
 //= require jquery
+//= require jquery-ui
 //= require angular
 //= require angular-ui-router
 //= require angular-ui-bootstrap
@@ -22,6 +23,7 @@
 //= require angular-ng-infinite-scroll
 //= require md5
 //= require angular-gravatar
+//= require angular-ui-sortable
 //= require satellizer
 //= require bootstrap.js
 //= require ./lair

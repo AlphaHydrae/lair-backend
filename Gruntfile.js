@@ -10,6 +10,7 @@ module.exports = function(grunt) {
           // Javascripts
           { nonull: true, src: 'bower_components/underscore/underscore.js', dest: 'vendor/assets/javascripts/underscore.js' },
           { nonull: true, src: 'bower_components/jquery/dist/jquery.js', dest: 'vendor/assets/javascripts/jquery.js' },
+          { nonull: true, src: 'bower_components/jquery-ui/jquery-ui.js', dest: 'vendor/assets/javascripts/jquery-ui.js' },
           { nonull: true, src: 'bower_components/angular/angular.js', dest: 'vendor/assets/javascripts/angular.js' },
           { nonull: true, src: 'bower_components/angular-ui-router/release/angular-ui-router.js', dest: 'vendor/assets/javascripts/angular-ui-router.js' },
           { nonull: true, src: 'bower_components/angular-bootstrap/ui-bootstrap.js', dest: 'vendor/assets/javascripts/angular-ui-bootstrap.js' },
@@ -20,6 +21,7 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-gravatar/build/angular-gravatar.js', dest: 'vendor/assets/javascripts/angular-gravatar.js' },
           { nonull: true, src: 'bower_components/ng-table/ng-table.js', dest: 'vendor/assets/javascripts/ng-table.js' },
           { nonull: true, src: 'bower_components/ngInfiniteScroll/build/ng-infinite-scroll.js', dest: 'vendor/assets/javascripts/angular-ng-infinite-scroll.js' },
+          { nonull: true, src: 'bower_components/angular-ui-sortable/sortable.js', dest: 'vendor/assets/javascripts/angular-ui-sortable.js' },
           { nonull: true, src: 'bower_components/satellizer/satellizer.js', dest: 'vendor/assets/javascripts/satellizer.js' },
           { nonull: true, src: 'bower_components/bootstrap/dist/js/bootstrap.js', dest: 'vendor/assets/javascripts/bootstrap.js' },
           // Stylesheets
