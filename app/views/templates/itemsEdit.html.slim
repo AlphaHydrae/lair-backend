@@ -7,8 +7,8 @@
       label for='itemTitle-{{ item.titles[0].id }}' Title
       ul.list-group ui-sortable='titleSortOptions' ng-model='item.titles'
         li.list-group-item.row ng-repeat='title in item.titles'
-          .col-xs-1
-            button.move.btn.btn-default type='button'
-              span.glyphicon.glyphicon-move
-          .col-xs-11
+          .input-group
+            .input-group-btn
+              button.move.btn.btn-default type='button'
+                span.glyphicon.glyphicon-move
             input.form-control type='text' ng-model='title.text' ng-attr-id='itemTitle-{{ title.id }}'
