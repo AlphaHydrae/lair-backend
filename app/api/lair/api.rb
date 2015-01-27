@@ -15,8 +15,8 @@ module Lair
 
     helpers AuthenticationHelper
     helpers do
-      def language iso_code
-        Language.find_or_create_by(iso_code: iso_code)
+      def language tag
+        Language.find_or_create_by(tag: tag)
       end
 
       def authenticate!
@@ -28,17 +28,20 @@ module Lair
       end
     end
 
-    before do
-      authenticate!
-    end
-
     get :ping do
+      authenticate!
       'pong'
     end
 
-    namespace :ownerships do
+    namespace :languages do
+      get do
+        Language.full_list.collect(&:to_builder).collect(&:attributes!)
+      end
+    end
 
+    namespace :ownerships do
       post do
+        authenticate!
 
         item = Item.where(api_id: params[:itemId]).first!
         user = params.key?(:userId) ? User.where(api_id: params[:userId]).first! : current_user
@@ -55,6 +58,7 @@ module Lair
 
     namespace :parts do
       post do
+        authenticate!
 
         item = Item.where(api_id: params[:itemId]).first!
         title = item.titles.where(api_id: params[:titleId]).first!
@@ -87,6 +91,7 @@ module Lair
 
     namespace :items do
       post do
+        authenticate!
         language = language(params[:language])
 
         Item.transaction do
@@ -143,6 +148,7 @@ module Lair
 
           namespace '/:titleId' do
             patch do
+              authenticate!
               title = ItemTitle.joins(:item).where('items.api_id = ? AND item_titles.api_id = ?', params[:itemId], params[:titleId]).first!
               title.contents = params[:text] if params.key? :text
               title.save!

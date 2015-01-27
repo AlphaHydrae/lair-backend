@@ -26,7 +26,7 @@ class Item < ActiveRecord::Base
       json.category category
       json.startYear start_year
       json.endYear end_year
-      json.language language.iso_code
+      json.language language.tag
       json.numberOfParts number_of_parts if number_of_parts
       json.titles titles.all.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
       json.links links.all.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }

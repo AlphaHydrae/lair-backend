@@ -15,7 +15,7 @@ class ItemTitle < ActiveRecord::Base
     Jbuilder.new do |title|
       title.id api_id
       title.text contents
-      title.language language.iso_code
+      title.language language.tag
     end
   end
 end

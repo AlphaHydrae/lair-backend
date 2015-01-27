@@ -83,10 +83,10 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "items", ["category"], name: "index_items_on_category", using: :btree
 
   create_table "languages", force: :cascade do |t|
-    t.string "iso_code", limit: 5, null: false
+    t.string "tag", limit: 5, null: false
   end
 
-  add_index "languages", ["iso_code"], name: "index_languages_on_iso_code", unique: true, using: :btree
+  add_index "languages", ["tag"], name: "index_languages_on_tag", unique: true, using: :btree
 
   create_table "ownerships", force: :cascade do |t|
     t.string   "api_id",    limit: 12, null: false

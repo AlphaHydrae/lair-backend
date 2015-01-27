@@ -12,6 +12,8 @@ gem 'stylus'
 gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
 
+gem 'iso'
+
 gem 'jwt'
 gem 'grape'
 gem 'jbuilder'

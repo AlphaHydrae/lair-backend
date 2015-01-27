@@ -12,6 +12,12 @@ angular.module('lair.items.edit', ['ui.sortable'])
     }).then(function(response) {
       $scope.item = response.data;
     });
+
+    $api.http({
+      url: '/api/languages'
+    }).then(function(response) {
+      $scope.languages = response.data;
+    });
   }])
 
 ;

@@ -11,7 +11,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :languages do |t|
-      t.string :iso_code, null: false, limit: 5
+      t.string :tag, null: false, limit: 5
     end
 
     create_table :people do |t|
@@ -85,7 +85,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     add_index :users, :email, unique: true
-    add_index :languages, :iso_code, unique: true
+    add_index :languages, :tag, unique: true
     add_index :items, :category
     add_index :items, :api_id, unique: true
     add_index :item_titles, :api_id, unique: true
