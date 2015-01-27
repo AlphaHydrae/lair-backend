@@ -127,7 +127,6 @@ module Lair
       end
 
       get do
-
         limit = params[:pageSize].to_i
         limit = 10 if limit < 1
 

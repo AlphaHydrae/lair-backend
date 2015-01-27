@@ -2,16 +2,64 @@
   h1
     | Edit
     span ng-show='item'  {{ item.titles[0].text }}
-  form role='form'
-    .form-group
-      label for='itemTitle-{{ item.titles[0].id }}' Title
-      ul.list-group ui-sortable='titleSortOptions' ng-model='item.titles'
-        li.list-group-item.row ng-repeat='title in item.titles'
-          .col-xs-8.col-sm-9.col-md-10
-            .input-group
-              .input-group-btn
-                button.move.btn.btn-default type='button'
-                  span.glyphicon.glyphicon-move
-              input.form-control type='text' ng-model='title.text' ng-attr-id='itemTitle-{{ title.id }}'
-          .col-xs-4.col-sm-3.col-md-2
-            select.form-control ng-model='title.language' ng-options='item.tag as item.name for item in languages'
+  form#editItem role='form'
+    .row
+      .col-xs-12
+        .titles.form-group
+          button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTitle()'
+            span.glyphicon.glyphicon-plus
+          label for='itemTitle-{{ editedItem.titles[0].id }}' Title
+          ul.list-group ui-sortable='titleSortOptions' ng-model='editedItem.titles'
+            li.list-group-item.clearfix ng-repeat='title in editedItem.titles'
+              .col-xs-7.col-sm-8.col-md-9
+                .input-group
+                  .input-group-btn
+                    button.move.btn.btn-default type='button'
+                      span.glyphicon.glyphicon-move
+                  input.form-control type='text' ng-model='title.text' ng-attr-id='itemTitle-{{ title.id }}'
+              .col-xs-4.col-sm-3.col-md-2
+                select.form-control ng-model='title.language' ng-options='language.tag as language.name for language in languages'
+              .col-xs-1
+                button.btn.btn-default type='button' ng-click='removeTitle(title)'
+                  span.glyphicon.glyphicon-remove
+    .row
+      .col-xs-6
+        .form-group
+          label for='itemCategory' Category
+          select.form-control ng-model='editedItem.category' ng-options='category for category in itemCategories'
+      .col-xs-6
+        .form-group
+          label for='itemLanguage' Main language
+          select.form-control ng-model='editedItem.language' ng-options='language.tag as language.name for language in languages'
+    .row
+      .col-xs-4
+        .form-group
+          label for='itemStartYear' Year
+          input.form-control ng-model='editedItem.startYear' type='number'
+      .col-xs-4
+        .form-group
+          label for='itemEndYear' End year
+          input.form-control ng-model='editedItem.endYear' type='number'
+      .col-xs-4
+        .form-group
+          label for='itemNumberOfParts' Number of parts
+          input.form-control ng-model='editedItem.numberOfParts' type='text' size=5
+    .row
+      .col-xs-12
+        .form-group
+          button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addLink()'
+            span.glyphicon.glyphicon-plus
+          label for='itemLink-0' Links
+          ul.list-group
+            li.list-group-item.clearfix ng-repeat='link in editedItem.links'
+              .col-xs-7.col-sm-8.col-md-9
+                input.form-control type='text' ng-model='link.url' ng-attr-id='itemLink-{{ $index }}'
+              .col-xs-4.col-sm-3.col-md-2
+                select.form-control ng-model='link.language' ng-options='language.tag as language.name for language in languages' required='false'
+                  option value='' (language)
+              .col-xs-1
+                button.btn.btn-default type='button' ng-click='removeLink(link)'
+                  span.glyphicon.glyphicon-remove
+    .btn-group.pull-right
+      button.btn.btn-warning type='button' ng-disabled='!itemChanged()' ng-click='reset()' Reset
+      button.btn.btn-primary type='submit' ng-disabled='!itemChanged()' ng-click='save()' Save

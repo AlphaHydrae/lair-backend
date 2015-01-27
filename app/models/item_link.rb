@@ -10,6 +10,7 @@ class ItemLink < ActiveRecord::Base
   def to_builder
     Jbuilder.new do |json|
       json.url url
+      json.language language.tag if language
     end
   end
 end
