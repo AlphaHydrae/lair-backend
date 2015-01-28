@@ -7,8 +7,8 @@ class Item < ActiveRecord::Base
 
   belongs_to :language
   belongs_to :original_title, class_name: 'ItemTitle'
-  has_many :titles, class_name: 'ItemTitle'
-  has_many :links, class_name: 'ItemLink'
+  has_many :titles, class_name: 'ItemTitle', dependent: :destroy, autosave: true
+  has_many :links, class_name: 'ItemLink', dependent: :destroy, autosave: true
   has_many :descriptions, class_name: 'ItemDescription'
 
   strip_attributes
@@ -28,8 +28,8 @@ class Item < ActiveRecord::Base
       json.endYear end_year
       json.language language.tag
       json.numberOfParts number_of_parts if number_of_parts
-      json.titles titles.all.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
-      json.links links.all.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }
+      json.titles titles.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
+      json.links links.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }
     end
   end
 

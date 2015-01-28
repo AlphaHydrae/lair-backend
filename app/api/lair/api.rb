@@ -139,21 +139,70 @@ module Lair
       end
 
       namespace '/:itemId' do
-        get do
-          Item.where(api_id: params[:itemId]).includes(:titles).first!.to_builder.attributes!
+
+        helpers do
+          def fetch_item
+            Item.where(api_id: params[:itemId]).includes([ :language, { links: [ :language ], titles: [ :language ] } ]).first!
+          end
         end
 
-        namespace '/titles' do
+        get do
+          fetch_item.to_builder.attributes!
+        end
 
-          namespace '/:titleId' do
-            patch do
-              authenticate!
-              title = ItemTitle.joins(:item).where('items.api_id = ? AND item_titles.api_id = ?', params[:itemId], params[:titleId]).first!
-              title.contents = params[:text] if params.key? :text
-              title.save!
-              title.to_builder.attributes!
+        patch do
+
+          item = fetch_item
+
+          Item.transaction do
+            %i(startYear endYear numberOfParts).each do |attr|
+              item.send "#{attr.to_s.underscore}=".to_sym, params[attr] if params.key? attr
             end
+            item.language = language params[:language] if params.key? :language
+
+            if params.key? :titles
+              titles_to_delete = []
+              titles_to_add = params[:titles].dup
+
+              item.titles.each do |title|
+                title_data = params[:titles].find{ |h| h[:id] == title.api_id }
+
+                if title_data
+                  title.contents = title_data[:text] if title_data.key? :text
+                  title.language = language title_data[:language] if title_data.key? :language
+                  title.display_position = params[:titles].index title_data
+                  titles_to_add.delete title_data
+                else
+                  title.mark_for_destruction
+                end
+              end
+
+              titles_to_add.each do |title|
+                item.titles << item.titles.build(contents: title[:text], language: language(title[:language]), display_position: params[:titles].index(title))
+              end
+            end
+
+            if params.key? :links
+              links_to_add = params[:links]
+
+              item.links.each do |link|
+                if link_data = params[:links].find{ |l| l[:url] == link.url }
+                  link.language = language link_data[:language] if link_data.key? :language
+                  links_to_add.delete link_data
+                else
+                  link.mark_for_destruction
+                end
+              end
+
+              links_to_add.each do |link|
+                item.links << item.links.build(url: link[:url], language: link[:language] ? language(link[:language]) : nil)
+              end
+            end
+
+            item.save!
           end
+
+          item.to_builder.attributes!
         end
       end
     end

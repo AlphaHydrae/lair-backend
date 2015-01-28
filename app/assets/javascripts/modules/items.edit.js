@@ -23,7 +23,18 @@ angular.module('lair.items.edit', ['ui.sortable'])
     });
 
     $scope.save = function() {
-      alert('Not yet implemented');
+      $api.http({
+        method: 'PATCH',
+        url: '/api/items/' + $stateParams.itemId,
+        data: $scope.editedItem
+      }).then(function(response) {
+        $scope.item = response.data;
+        $scope.reset();
+      }, function(response) {
+        // TODO: handle error
+        console.log('FAILED!');
+        console.log(response);
+      });
     };
 
     $scope.reset = function() {
