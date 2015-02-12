@@ -83,6 +83,13 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
       });
     };
 
+    $scope.editPart = function(part) {
+      modal.dismiss('edit');
+      $state.go('std.parts.edit', {
+        partId: part.id
+      });
+    };
+
     function showModal() {
 
       modal = $modal.open({

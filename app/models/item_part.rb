@@ -16,7 +16,9 @@ class ItemPart < ActiveRecord::Base
   validates :version, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :format, length: { maximum: 255, allow_blank: true }
   validates :length, numericality: { only_integer: true, minimum: 1, allow_blank: true }
+  validates :publisher, length: { maximum: 255, allow_blank: true }
   validate :title_belongs_to_parent
+  # TODO: validate isbn
 
   def to_builder
     Jbuilder.new do |json|

@@ -1,6 +1,14 @@
 
 
-angular.module('lair', ['lair.state', 'lair.auth', 'lair.home', 'lair.routes', 'lair.items.edit', 'satellizer'])
+angular.module('lair', [
+  'lair.state',
+  'lair.auth',
+  'lair.home',
+  'lair.routes',
+  'lair.items.edit',
+  'lair.parts.edit',
+  'satellizer'
+])
 
   // configuration
   .constant('version', "0.1.0")

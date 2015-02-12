@@ -39,13 +39,30 @@ angular.module('lair.routes', [ 'ui.router' ])
         url: '/:itemId/edit',
         views: {
           'content@std': {
-            templateUrl: '/templates/itemsEdit.html'
+            templateUrl: '/templates/editItem.html'
           }
         }
       })
 
+      .state('std.parts', {
+        abstract: true,
+        url: '^/parts',
+        views: {
+          'navbar@std': {
+            templateUrl: '/templates/navbar.html'
+          }
+        }
+      })
+
+      .state('std.parts.edit', {
+        url: '/:partId/edit',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/editPart.html'
+          }
+        }
+      })
     ;
 
   }])
-
 ;

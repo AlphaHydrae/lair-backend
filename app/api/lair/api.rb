@@ -87,6 +87,19 @@ module Lair
         item = Item.where(api_id: params[:itemId]).first!
         ItemPart.joins(:item).where('items.id = ?', item.id).order('item_parts.range_start asc').includes(:title, :language).all.to_a.collect{ |item| item.to_builder.attributes! }
       end
+
+      namespace '/:partId' do
+
+        helpers do
+          def fetch_part
+            ItemPart.where(api_id: params[:partId]).includes([ :title, :language ]).first!
+          end
+        end
+
+        get do
+          fetch_part.to_builder.attributes!
+        end
+      end
     end
 
     namespace :items do

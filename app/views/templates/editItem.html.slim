@@ -26,24 +26,24 @@
       .col-xs-6
         .form-group
           label for='itemCategory' Category
-          select.form-control ng-model='editedItem.category' ng-options='category for category in itemCategories'
+          select#itemCategory.form-control ng-model='editedItem.category' ng-options='category for category in itemCategories'
       .col-xs-6
         .form-group
           label for='itemLanguage' Main language
-          select.form-control ng-model='editedItem.language' ng-options='language.tag as language.name for language in languages'
+          select#itemLanguage.form-control ng-model='editedItem.language' ng-options='language.tag as language.name for language in languages'
     .row
       .col-xs-4
         .form-group
           label for='itemStartYear' Year
-          input.form-control ng-model='editedItem.startYear' type='number'
+          input#itemStartYear.form-control ng-model='editedItem.startYear' type='number'
       .col-xs-4
         .form-group
           label for='itemEndYear' End year
-          input.form-control ng-model='editedItem.endYear' type='number'
+          input#itemEndYear.form-control ng-model='editedItem.endYear' type='number'
       .col-xs-4
         .form-group
           label for='itemNumberOfParts' Number of parts
-          input.form-control ng-model='editedItem.numberOfParts' type='text' size=5
+          input#itemNumberOfParts.form-control ng-model='editedItem.numberOfParts' type='text' size=5
     .row
       .col-xs-12
         .form-group

@@ -1,0 +1,53 @@
+.container ng-controller='EditPartController'
+  h1
+    | Edit
+    span ng-show='part'  {{ part.title.text }} {{ part.start }}
+  form#editPart role='form'
+    .row
+      .col-xs-6
+        .item.form-group
+          label for='partItem' Item
+          select#partItem.form-control
+            option {{ editedPart.itemId }}
+      .col-xs-6
+        .title.form-group
+          label for='partTitle' Title
+          select#partTitle.form-control
+            option {{ editedPart.title.text }}
+      .col-xs-4
+        .range.form-group
+          label for='partStart' Range
+          input#partStart.form-control ng-model='editedPart.start' type='number' size=3
+          |  - 
+          input#partEnd.form-control type='number' ng-model='editedPart.end' size=3
+      .col-xs-4
+        .form-group
+          label for='partLanguage' Language
+          select#partLanguage.form-control ng-model='editedPart.language' ng-options='language.tag as language.name for language in languages'
+      .col-xs-4
+        .length.form-group
+          label for='partLength' Length
+          input#partLength.form-control ng-model='editedPart.length' type='number'
+      .col-xs-4
+        .publisher.form-group
+          label for='partPublisher' Publisher
+          input#partPublisher.form-control ng-model='editedPart.publisher' type='text'
+      .col-xs-4
+        .edition.form-group
+          label for='partEdition' Edition
+          input#partEdition.form-control ng-model='editedPart.edition' type='text'
+      .col-xs-4
+        .version.form-group
+          label for='partVersion' Version
+          input#partVersion.form-control ng-model='editedPart.version' type='text'
+      .col-xs-4
+        .format.form-group
+          label for='partFormat' Format
+          input#partFormat.form-control ng-model='editedPart.format' type='text'
+      .col-xs-4
+        .isbn.form-group
+          label for='partIsbn' ISBN
+          input#partIsbn.form-control ng-model='editedPart.isbn' type='text'
+    .btn-group.pull-right
+      button.btn.btn-warning type='button' ng-disabled='!partChanged()' ng-click='reset()' Reset
+      button.btn.btn-primary type='submit' ng-disabled='!partChanged()' ng-click='save()' Save

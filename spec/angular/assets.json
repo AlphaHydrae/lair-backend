@@ -92,6 +92,10 @@
         "projectPath": "app/assets/javascripts/modules/items.edit.js"
       },
       {
+        "logicalPath": "modules/parts.edit.js",
+        "projectPath": "app/assets/javascripts/modules/parts.edit.js"
+      },
+      {
         "logicalPath": "modules/routes.js",
         "projectPath": "app/assets/javascripts/modules/routes.js"
       },
