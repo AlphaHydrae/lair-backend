@@ -20,6 +20,10 @@
         "projectPath": "vendor/assets/javascripts/angular.js"
       },
       {
+        "logicalPath": "angular-sanitize.js",
+        "projectPath": "vendor/assets/javascripts/angular-sanitize.js"
+      },
+      {
         "logicalPath": "angular-ui-router.js",
         "projectPath": "vendor/assets/javascripts/angular-ui-router.js"
       },
@@ -40,10 +44,6 @@
         "projectPath": "vendor/assets/javascripts/angular-local-storage.js"
       },
       {
-        "logicalPath": "ng-table.js",
-        "projectPath": "vendor/assets/javascripts/ng-table.js"
-      },
-      {
         "logicalPath": "angular-ng-infinite-scroll.js",
         "projectPath": "vendor/assets/javascripts/angular-ng-infinite-scroll.js"
       },
@@ -58,6 +58,10 @@
       {
         "logicalPath": "angular-ui-sortable.js",
         "projectPath": "vendor/assets/javascripts/angular-ui-sortable.js"
+      },
+      {
+        "logicalPath": "angular-ui-select.js",
+        "projectPath": "vendor/assets/javascripts/angular-ui-select.js"
       },
       {
         "logicalPath": "satellizer.js",

@@ -18,7 +18,10 @@
                       span.glyphicon.glyphicon-move
                   input.form-control type='text' ng-model='title.text' ng-attr-id='itemTitle-{{ title.id }}'
               .col-xs-4.col-sm-3.col-md-2
-                select.form-control ng-model='title.language' ng-options='language.tag as language.name for language in languages'
+                ui-select ng-model='title.language'
+                  ui-select-match {{ $select.selected.name }}
+                  ui-select-choices repeat='language.tag as language in languages | filter: $select.search'
+                    span ng-bind-html='language.name | highlight: $select.search'
               .col-xs-1
                 button.btn.btn-default type='button' ng-click='removeTitle(title)'
                   span.glyphicon.glyphicon-remove
@@ -30,7 +33,10 @@
       .col-xs-6
         .form-group
           label for='itemLanguage' Main language
-          select#itemLanguage.form-control ng-model='editedItem.language' ng-options='language.tag as language.name for language in languages'
+          ui-select#itemLanguage ng-model='editedItem.language'
+            ui-select-match {{ $select.selected.name }}
+            ui-select-choices repeat='language.tag as language in languages | filter: $select.search'
+              span ng-bind-html='language.name | highlight: $select.search'
     .row
       .col-xs-4
         .form-group

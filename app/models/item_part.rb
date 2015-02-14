@@ -25,6 +25,7 @@ class ItemPart < ActiveRecord::Base
       json.id api_id
       json.itemId item.api_id
       json.title title.to_builder
+      json.titleId title.api_id
       json.language language.tag
       json.start range_start if range_start
       json.end range_end if range_end

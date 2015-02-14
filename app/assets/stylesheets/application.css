@@ -11,10 +11,10 @@
  * file per style scope.
  *
  *= require normalize
- *= require ng-table
  *= require bootstrap
  *= require bootstrap-theme
  *= require bootstrap-social
  *= require font-awesome
+ *= require angular-ui-select
  *= require_tree .
  */

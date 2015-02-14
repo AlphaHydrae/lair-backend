@@ -8,7 +8,9 @@ angular.module('lair', [
   'lair.routes',
   'lair.items.edit',
   'lair.parts.edit',
-  'satellizer'
+  'ngSanitize',
+  'satellizer',
+  'ui.select'
 ])
 
   // configuration
@@ -21,10 +23,15 @@ angular.module('lair', [
     $logProvider.debugEnabled(env !== 'production');
   }])
 
+  // satellizer
   .config(['config.googleOAuth2ClientId', '$authProvider', function(googleOAuth2ClientId, $authProvider) {
     $authProvider.google({
       clientId: googleOAuth2ClientId
     });
   }])
 
+  // angular-ui-select
+  .config(function(uiSelectConfig) {
+    uiSelectConfig.theme = 'bootstrap';
+  })
 ;

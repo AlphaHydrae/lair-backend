@@ -1,10 +1,10 @@
-angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
+angular.module('lair.home', ['lair.api', 'infinite-scroll'])
 
   .run(function() {
     angular.module('infinite-scroll').value('THROTTLE_MILLISECONDS', 1000);
   })
 
-  .controller('HomeController', ['ApiService', '$modal', 'ngTableParams', '$scope', '$state', function($api, $modal, ngTableParams, $scope, $state) {
+  .controller('HomeController', ['ApiService', '$modal', '$scope', '$state', function($api, $modal, $scope, $state) {
 
     var modal,
         page = 1,
@@ -109,6 +109,8 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll', 'ngTable'])
   }])
 
   .controller('ItemDialogController', ['ApiService', '$scope', function($api, $scope) {
+
+    // FIXME: close when state changes
 
     $api.http({
       method: 'GET',
