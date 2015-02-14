@@ -143,12 +143,25 @@ module Lair
         limit = params[:pageSize].to_i
         limit = 10 if limit < 1
 
-        offset = (params[:page].to_i - 1) * limit
-        offset = 0 if offset < 1
+        page = params[:page].to_i
+        offset = (page - 1) * limit
+        if offset < 1
+          page = 1
+          offset = 0
+        end
 
-        header 'X-Pagination-Total', Item.count(:all).to_s
+        header 'X-Pagination-Page', page.to_s
+        header 'X-Pagination-Page-Size', limit.to_s
+        header 'X-Pagination-Total', Item.count.to_s
 
-        Item.joins(:titles).where('item_titles.id = items.original_title_id').order('item_titles.contents asc').offset(offset).limit(limit).includes(:titles).all.to_a.collect{ |item| item.to_builder.attributes! }
+        rel = Item.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc').offset(offset).limit(limit).includes([ :language, :links, { titles: :language } ])
+
+        if params[:search].present?
+          rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
+          header 'X-Pagination-Filtered-Total', rel.count.to_s
+        end
+
+        rel.all.to_a.collect{ |item| item.to_builder.attributes! }
       end
 
       namespace '/:itemId' do
