@@ -2,6 +2,7 @@
 /.bundle
 /.env
 /bower_components
+/lib/tasks/local*
 /local
 /log/*.log
 /node_modules

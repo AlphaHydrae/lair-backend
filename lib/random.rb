@@ -1,4 +1,3 @@
-
 module SecureRandom
   ALPHANUMERIC = [*'0'..'9', *'a'..'z'] unless defined?(ALPHANUMERIC)
 

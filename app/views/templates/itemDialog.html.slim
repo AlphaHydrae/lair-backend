@@ -18,6 +18,11 @@
       h4 ng-show='item.titles.length >= 2' Other Titles
       ul ng-show='item.titles.length >= 2'
         li ng-repeat='title in item.titles.slice(1)' {{ title.text }}
+      h4 ng-show='item.relationships.length' Authors
+      ul ng-show='item.relationships.length'
+        li ng-repeat='relationship in item.relationships'
+          span ng-show='relationship.person.pseudonym' {{ relationship.person.pseudonym }}
+          span ng-hide='relationship.person.pseudonym' {{ relationship.person.lastName | uppercase }} {{ relationship.person.firstNames }}
       h4 ng-show='item.links.length' Links
       ul ng-show='item.links.length'
         li ng-repeat='link in item.links'

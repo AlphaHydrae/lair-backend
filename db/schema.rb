@@ -89,13 +89,14 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "languages", ["tag"], name: "index_languages_on_tag", unique: true, using: :btree
 
   create_table "ownerships", force: :cascade do |t|
-    t.string   "api_id",    limit: 12, null: false
-    t.integer  "item_id",              null: false
-    t.integer  "user_id",              null: false
-    t.datetime "gotten_at",            null: false
+    t.string   "api_id",       limit: 12, null: false
+    t.integer  "item_part_id",            null: false
+    t.integer  "user_id",                 null: false
+    t.datetime "gotten_at",               null: false
   end
 
   create_table "people", force: :cascade do |t|
+    t.string "api_id",      limit: 12, null: false
     t.string "last_name"
     t.string "first_names"
     t.string "pseudonym"
@@ -123,6 +124,6 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_titles", "languages"
   add_foreign_key "items", "item_titles", column: "original_title_id"
   add_foreign_key "items", "languages"
-  add_foreign_key "ownerships", "items"
+  add_foreign_key "ownerships", "item_parts"
   add_foreign_key "ownerships", "users"
 end

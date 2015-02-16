@@ -1,4 +1,6 @@
 class Person < ActiveRecord::Base
+  include ResourceWithIdentifier
+  before_create :set_identifier
 
   strip_attributes
   validates :last_name, absence: { if: :pseudonym? }, presence: { unless: :pseudonym? }, length: { maximum: 255, allow_blank: true }, uniqueness: { scope: %i(first_names pseudonym) }
@@ -8,6 +10,15 @@ class Person < ActiveRecord::Base
 
   def pseudonym?
     pseudonym.present?
+  end
+
+  def to_builder
+    Jbuilder.new do |json|
+      json.id api_id
+      json.lastName last_name if last_name.present?
+      json.firstNames first_names if first_names.present?
+      json.pseudonym pseudonym if pseudonym.present?
+    end
   end
 
   private

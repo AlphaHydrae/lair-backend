@@ -43,16 +43,27 @@ module Lair
       post do
         authenticate!
 
-        item = Item.where(api_id: params[:itemId]).first!
+        part = ItemPart.where(api_id: params[:partId]).first!
         user = params.key?(:userId) ? User.where(api_id: params[:userId]).first! : current_user
 
         Ownership.transaction do
-          ownership = Ownership.new item: item, user: user
-          ownership.gotten_at = Time.parse(params[:gottenAt]) if params[:gottenAt]
-
+          ownership = Ownership.new item_part: part, user: user
+          ownership.gotten_at = Time.parse params[:gottenAt] if params[:gottenAt]
           ownership.save!
           ownership.to_builder.attributes!
         end
+      end
+    end
+
+    namespace :people do
+      post do
+        authenticate!
+
+        person = Person.new
+        %i(last_name first_names pseudonym).each{ |attr| person.send "#{attr}=", params[attr] if params.key? attr }
+
+        person.save!
+        person.to_builder.attributes!
       end
     end
 
@@ -125,7 +136,7 @@ module Lair
           item.number_of_parts = params[:numberOfParts] if params.key?(:numberOfParts)
 
           params[:titles].each.with_index do |title,i|
-            title = item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
+            item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
           end
 
           if params[:links].kind_of?(Array)
@@ -139,6 +150,12 @@ module Lair
           if params[:decriptions].kind_of?(Array)
             params[:descriptions].each.with_index do |description,i|
               description = item.descriptions.build contents: description[:text], language: language(description[:language])
+            end
+          end
+
+          if params[:relationships].kind_of?(Array)
+            params[:relationships].each do |p|
+              item.relationships.build relationship: p[:relation], person: Person.where(api_id: p[:personId]).first!
             end
           end
 
@@ -237,6 +254,7 @@ module Lair
               end
             end
 
+            # FIXME: update original title
             item.save!
           end
 

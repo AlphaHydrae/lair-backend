@@ -56,7 +56,8 @@
           button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addLink()'
             span.glyphicon.glyphicon-plus
           label for='itemLink-0' Links
-          ul.list-group
+          p.text-muted ng-hide='editedItem.links.length' No links.
+          ul.list-group ng-show='editedItem.links.length'
             li.list-group-item.clearfix ng-repeat='link in editedItem.links'
               .col-xs-7.col-sm-8.col-md-9
                 input.form-control type='text' ng-model='link.url' ng-attr-id='itemLink-{{ $index }}'

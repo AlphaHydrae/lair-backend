@@ -15,6 +15,7 @@ class CreateItems < ActiveRecord::Migration
     end
 
     create_table :people do |t|
+      t.string :api_id, null: false, limit: 12
       t.string :last_name
       t.string :first_names
       t.string :pseudonym
@@ -79,7 +80,7 @@ class CreateItems < ActiveRecord::Migration
 
     create_table :ownerships do |t|
       t.string :api_id, null: false, limit: 12
-      t.integer :item_id, null: false
+      t.integer :item_part_id, null: false
       t.integer :user_id, null: false
       t.datetime :gotten_at, null: false
     end
@@ -104,7 +105,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_parts, :languages
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people
-    add_foreign_key :ownerships, :items
+    add_foreign_key :ownerships, :item_parts
     add_foreign_key :ownerships, :users
   end
 

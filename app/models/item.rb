@@ -10,6 +10,7 @@ class Item < ActiveRecord::Base
   has_many :titles, class_name: 'ItemTitle', dependent: :destroy, autosave: true
   has_many :links, class_name: 'ItemLink', dependent: :destroy, autosave: true
   has_many :descriptions, class_name: 'ItemDescription'
+  has_many :relationships, class_name: 'ItemPerson', dependent: :destroy, autosave: true
 
   strip_attributes
   validates :category, presence: true, inclusion: { in: %w(anime book manga movie show), allow_blank: true }
@@ -29,6 +30,7 @@ class Item < ActiveRecord::Base
       json.language language.tag
       json.numberOfParts number_of_parts if number_of_parts
       json.titles titles.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
+      json.relationships relationships.to_a.collect{ |r| r.to_builder.attributes! }
       json.links links.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }
     end
   end
