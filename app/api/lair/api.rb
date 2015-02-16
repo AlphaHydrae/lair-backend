@@ -56,6 +56,18 @@ module Lair
       end
     end
 
+    get :bookPublishers do
+      Book.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
+    end
+
+    get :partEditions do
+      ItemPart.order(:edition).pluck('distinct(edition)').compact.collect{ |edition| { name: edition } }
+    end
+
+    get :partFormats do
+      ItemPart.order(:format).pluck('distinct(format)').compact.collect{ |format| { name: format } }
+    end
+
     namespace :parts do
       post do
         authenticate!

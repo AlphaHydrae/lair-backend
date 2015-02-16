@@ -7,8 +7,10 @@
       .col-xs-6
         .item.form-group
           label for='partItem' Item
-          select#partItem.form-control
-            option {{ editedPart.itemId }}
+          ui-select#partItem ng-model='editedPart.itemId'
+            ui-select-match {{ $select.selected.titles[0].text }}
+            ui-select-choices repeat='it.id as it in items' refresh='fetchItems($select.search)' refresh-delay='1000'
+              span ng-bind-html='it.titles[0].text'
       .col-xs-6
         .title.form-group
           label for='partTitle' Title
@@ -32,23 +34,23 @@
       .col-xs-4
         .length.form-group
           label for='partLength' Length
-          input#partLength.form-control ng-model='editedPart.length' type='number'
+          input#partLength.form-control ng-model='editedPart.length' type='number' min='1'
       .col-xs-4
         .publisher.form-group
           label for='partPublisher' Publisher
-          input#partPublisher.form-control ng-model='editedPart.publisher' type='text'
+          input#partPublisher.form-control ng-model='editedPart.publisher' type='text' typeahead='publisher.name for publisher in publishers'
       .col-xs-4
         .edition.form-group
           label for='partEdition' Edition
-          input#partEdition.form-control ng-model='editedPart.edition' type='text'
+          input#partEdition.form-control ng-model='editedPart.edition' type='text' typeahead='edition.name for edition in editions'
       .col-xs-4
         .version.form-group
           label for='partVersion' Version
-          input#partVersion.form-control ng-model='editedPart.version' type='number'
+          input#partVersion.form-control ng-model='editedPart.version' type='number' min='1'
       .col-xs-4
         .format.form-group
           label for='partFormat' Format
-          input#partFormat.form-control ng-model='editedPart.format' type='text'
+          input#partFormat.form-control ng-model='editedPart.format' type='text' typeahead='format.name for format in formats'
       .col-xs-4
         .isbn.form-group
           label for='partIsbn' ISBN

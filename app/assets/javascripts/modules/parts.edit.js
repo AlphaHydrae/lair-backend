@@ -15,11 +15,45 @@ angular.module('lair.parts.edit', [])
       });
     }
 
+    function fetchPublishers() {
+      return $api.http({
+        url: '/api/bookPublishers'
+      }).then(function(res) {
+        $scope.publishers = res.data;
+      }, function(res) {
+        $log.warn('Could not fetch book publishers');
+        $log.debug(res);
+      });
+    }
+
+    function fetchEditions() {
+      return $api.http({
+        url: '/api/partEditions'
+      }).then(function(res) {
+        $scope.editions = res.data;
+      }, function(res) {
+        $log.warn('Could not fetch part editions');
+        $log.debug(res);
+      });
+    }
+
+    function fetchFormats() {
+      return $api.http({
+        url: '/api/partFormats'
+      }).then(function(res) {
+        $scope.formats = res.data;
+      }, function(res) {
+        $log.warn('Could not fetch part formats');
+        $log.debug(res);
+      });
+    }
+
     function fetchItem() {
       return $api.http({
         url: '/api/items/' + $scope.part.itemId
       }).then(function(res) {
         $scope.item = res.data;
+        $scope.items = [ $scope.item ];
       }, function(res) {
         $log.warn('Could not fetch item ' + $scope.part.itemId);
         $log.debug(res);
@@ -38,7 +72,27 @@ angular.module('lair.parts.edit', [])
       });
     }
 
-    $q.all($q.when().then(fetchPart).then(fetchItem), fetchLanguages());
+    $q.all($q.when().then(fetchPart).then(fetchItem), fetchEditions(), fetchFormats(), fetchLanguages(), fetchPublishers());
+
+    $scope.fetchItems = function(search) {
+      if (!search || !search.trim().length) {
+        $scope.items = [ $scope.item ];
+        return;
+      }
+
+      $api.http({
+        url: '/api/items',
+        params: {
+          pageSize: 100,
+          search: search
+        }
+      }).then(function(res) {
+        $scope.items = res.data;
+      }, function(res) {
+        $log.warn('Could not fetch items matching "' + search + '"');
+        $log.debug(res);
+      });
+    };
 
     $scope.save = function() {
       $api.http({
