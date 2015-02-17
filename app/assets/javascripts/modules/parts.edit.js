@@ -1,4 +1,4 @@
-angular.module('lair.parts.edit', [])
+angular.module('lair.parts.edit', ['lair.forms'])
 
   .controller('EditPartController', ['ApiService', '$log', '$q', '$scope', '$stateParams', function($api, $log, $q, $scope, $stateParams) {
 
@@ -71,6 +71,8 @@ angular.module('lair.parts.edit', [])
         $log.debug(res);
       });
     }
+
+    $scope.editedPart = {};
 
     $q.all($q.when().then(fetchPart).then(fetchItem), fetchEditions(), fetchFormats(), fetchLanguages(), fetchPublishers());
 

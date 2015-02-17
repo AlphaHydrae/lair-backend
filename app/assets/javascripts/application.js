@@ -26,6 +26,8 @@
 //= require angular-ui-sortable
 //= require angular-ui-select
 //= require satellizer
+//= require isbn
+//= require isbn-groups
 //= require bootstrap.js
 //= require ./lair
 //= require_tree ./modules

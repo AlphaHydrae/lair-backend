@@ -26,8 +26,8 @@ class CreateItems < ActiveRecord::Migration
       t.string :category, null: false, limit: 10
       t.integer :number_of_parts
       t.integer :original_title_id
-      t.integer :start_year, null: false
-      t.integer :end_year, null: false
+      t.integer :start_year
+      t.integer :end_year
       t.integer :language_id, null: false
       t.timestamps null: false
     end
@@ -57,6 +57,7 @@ class CreateItems < ActiveRecord::Migration
       t.string :type, null: false, limit: 5
       t.integer :item_id, null: false
       t.integer :title_id, null: false
+      t.integer :year
       t.integer :range_start
       t.integer :range_end
       t.integer :language_id, null: false

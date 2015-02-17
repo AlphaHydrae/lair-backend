@@ -3,8 +3,8 @@ class Person < ActiveRecord::Base
   before_create :set_identifier
 
   strip_attributes
-  validates :last_name, absence: { if: :pseudonym? }, presence: { unless: :pseudonym? }, length: { maximum: 255, allow_blank: true }, uniqueness: { scope: %i(first_names pseudonym) }
-  validates :first_names, absence: { if: :pseudonym? }, presence: { unless: :pseudonym? }, length: { maximum: 255, allow_blank: true }
+  validates :last_name, presence: { if: ->(p){ p.first_names.present? || p.pseudonym.blank? } }, length: { maximum: 255, allow_blank: true }, uniqueness: { scope: %i(first_names pseudonym) }
+  validates :first_names, presence: { if: ->(p){ p.last_name.present? || p.pseudonym.blank? } }, length: { maximum: 255, allow_blank: true }
   validates :pseudonym, presence: { allow_nil: true }, length: { maximum: 255, allow_blank: true }
   validate :name_present
 

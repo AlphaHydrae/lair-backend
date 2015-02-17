@@ -108,31 +108,69 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     }
   }])
 
-  .controller('ItemDialogController', ['ApiService', '$scope', function($api, $scope) {
+  .controller('ItemDialogController', ['ApiService', '$log', '$scope', function($api, $log, $scope) {
 
     // FIXME: close when state changes
 
-    $api.http({
-      method: 'GET',
-      url: '/api/parts',
-      params: {
-        itemId: $scope.item.id
-      }
-    }).then(function(response) {
+    function fetchLanguages() {
+      return $api.http({
+        url: '/api/languages'
+      }).then(function(res) {
+        $scope.languageNames = _.reduce(res.data, function(memo, language) {
+          memo[language.tag] = language.name;
+          return memo;
+        }, {});
+      }, function(res) {
+        $log.warn('Could not fetch languages');
+        $log.debug(res);
+      });
+    }
 
-      $scope.item.parts = _.reduce(response.data, function(memo, part) {
-
-        var tabName = part.publisher || 'Other';
-        if (!_.findWhere(memo, { name: tabName })) {
-          memo.push({ name: tabName, parts: [] });
+    function fetchParts() {
+      $api.http({
+        method: 'GET',
+        url: '/api/parts',
+        params: {
+          itemId: $scope.item.id
         }
+      }).then(function(response) {
 
-        var tabData = _.findWhere(memo, { name: tabName });
-        tabData.parts.push(part);
+        $scope.item.parts = _.reduce(response.data, function(memo, part) {
 
-        return memo;
-      }, []);
-    });
+          var parts = [ $scope.languageNames[part.language] ];
+
+          if (part.edition) {
+            parts.push(part.edition + ' Edition');
+          }
+
+          if (part.publisher) {
+            parts.push('(' + part.publisher + ')');
+          }
+
+          var tabName = _.compact(parts).join(' ');
+          tabName = tabName.length ? tabName : 'Other';
+
+          if (!_.findWhere(memo, { name: tabName })) {
+            memo.push({ name: tabName, parts: [] });
+          }
+
+          var tabData = _.findWhere(memo, { name: tabName });
+          tabData.parts.push(part);
+
+          return memo;
+        }, []);
+      });
+    }
+
+    fetchLanguages().then(fetchParts);
+
+    $scope.formatIsbn = function(isbn) {
+      return isbn ? ISBN.hyphenate(isbn) : '-';
+    };
+
+    $scope.languageName = function(languageTag) {
+      return $scope.languageNames ? $scope.languageNames[languageTag] : '-';
+    };
   }])
 
 ;

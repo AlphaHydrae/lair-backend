@@ -15,8 +15,8 @@ class Item < ActiveRecord::Base
   strip_attributes
   validates :category, presence: true, inclusion: { in: %w(anime book manga movie show), allow_blank: true }
   validates :number_of_parts, numericality: { only_integer: true, minimum: 1, allow_blank: true }
-  validates :start_year, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: -4000 }
-  validates :end_year, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: -4000 }
+  validates :start_year, numericality: { only_integer: true, greater_than_or_equal_to: -4000, allow_blank: true }
+  validates :end_year, presence: { if: :start_year }, numericality: { only_integer: true, greater_than_or_equal_to: -4000, allow_blank: true }
   validates :titles, presence: true
   validates :language, presence: true
   validate :year_range_valid

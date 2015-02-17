@@ -35,6 +35,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "type",        limit: 5,  null: false
     t.integer  "item_id",                null: false
     t.integer  "title_id",               null: false
+    t.integer  "year"
     t.integer  "range_start"
     t.integer  "range_end"
     t.integer  "language_id",            null: false
@@ -72,8 +73,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "category",          limit: 10, null: false
     t.integer  "number_of_parts"
     t.integer  "original_title_id"
-    t.integer  "start_year",                   null: false
-    t.integer  "end_year",                     null: false
+    t.integer  "start_year"
+    t.integer  "end_year"
     t.integer  "language_id",                  null: false
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false

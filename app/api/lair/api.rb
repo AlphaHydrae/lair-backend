@@ -60,10 +60,40 @@ module Lair
         authenticate!
 
         person = Person.new
-        %i(last_name first_names pseudonym).each{ |attr| person.send "#{attr}=", params[attr] if params.key? attr }
+        %i(last_name first_names pseudonym).each{ |attr| person.send "#{attr}=", params[attr.to_s.camelize(:lower)] if params.key? attr.to_s.camelize(:lower) }
 
         person.save!
         person.to_builder.attributes!
+      end
+
+      get do
+        authenticate!
+
+        limit = params[:pageSize].to_i
+        limit = 10 if limit < 1
+
+        page = params[:page].to_i
+        offset = (page - 1) * limit
+        if offset < 1
+          page = 1
+          offset = 0
+        end
+
+        header 'X-Pagination-Page', page.to_s
+        header 'X-Pagination-Page-Size', limit.to_s
+        header 'X-Pagination-Total', Person.count.to_s
+
+        rel = Person.order('last_name, first_names, pseudonym').offset(offset).limit(limit)
+
+        if params[:search].present?
+          base_condition = 'LOWER(people.last_name) LIKE ? OR LOWER(people.first_names) LIKE ? OR LOWER(people.pseudonym) LIKE ?'
+          terms = params[:search].to_s.split(/\s+/)
+          condition = ([ base_condition ] * terms.length).join ' '
+          rel = rel.where terms.inject([]){ |memo,t| memo << t << t << t }.collect{ |t| "%#{t}%" }.unshift(condition)
+          header 'X-Pagination-Filtered-Total', rel.count.to_s
+        end
+
+        rel.all.to_a.collect{ |person| person.to_builder.attributes! }
       end
     end
 
@@ -92,6 +122,7 @@ module Lair
           part.item = item
           part.title = title
           part.language = language
+          part.year = params[:year] if params.key?(:year)
           part.range_start = params[:start] if params.key?(:start)
           part.range_end = params[:end] if params.key?(:end)
           part.edition = params[:edition]
@@ -139,23 +170,23 @@ module Lair
             item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
           end
 
-          if params[:links].kind_of?(Array)
-            params[:links].each.with_index do |link,i|
-              options = { url: link[:url] }
-              options[:language] = language(link[:language]) if link.key? :language
-              link = item.links.build options
-            end
-          end
-
           if params[:decriptions].kind_of?(Array)
             params[:descriptions].each.with_index do |description,i|
-              description = item.descriptions.build contents: description[:text], language: language(description[:language])
+              item.descriptions.build contents: description[:text], language: language(description[:language])
             end
           end
 
           if params[:relationships].kind_of?(Array)
             params[:relationships].each do |p|
               item.relationships.build relationship: p[:relation], person: Person.where(api_id: p[:personId]).first!
+            end
+          end
+
+          if params[:links].kind_of?(Array)
+            params[:links].each.with_index do |link,i|
+              options = { url: link[:url] }
+              options[:language] = language(link[:language]) if link.key? :language
+              item.links.build options
             end
           end
 
@@ -233,7 +264,23 @@ module Lair
               end
 
               titles_to_add.each do |title|
-                item.titles << item.titles.build(contents: title[:text], language: language(title[:language]), display_position: params[:titles].index(title))
+                item.titles.build(contents: title[:text], language: language(title[:language]), display_position: params[:titles].index(title))
+              end
+            end
+
+            if params.key? :relationships
+              relationships_to_add = params[:relationships]
+
+              item.relationships.each do |relationship|
+                if relationship_data = params[:relationships].find{ |r| r[:relation] == relationship.relationship && r[:personId] == relationship.person.api_id }
+                  relationships_to_add.delete relationship_data
+                else
+                  relationship.mark_for_destruction
+                end
+              end
+
+              relationships_to_add.each do |relationship|
+                item.relationships.build(relationship: relationship[:relation], person: Person.where(api_id: relationship[:personId]).first!)
               end
             end
 
@@ -250,7 +297,7 @@ module Lair
               end
 
               links_to_add.each do |link|
-                item.links << item.links.build(url: link[:url], language: link[:language] ? language(link[:language]) : nil)
+                item.links.build(url: link[:url], language: link[:language] ? language(link[:language]) : nil)
               end
             end
 

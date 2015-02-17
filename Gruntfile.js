@@ -20,7 +20,6 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-local-storage/angular-local-storage.js', dest: 'vendor/assets/javascripts/angular-local-storage.js' },
           { nonull: true, src: 'bower_components/angular-gravatar/build/md5.js', dest: 'vendor/assets/javascripts/md5.js' },
           { nonull: true, src: 'bower_components/angular-gravatar/build/angular-gravatar.js', dest: 'vendor/assets/javascripts/angular-gravatar.js' },
-          { nonull: true, src: 'bower_components/ng-table/ng-table.js', dest: 'vendor/assets/javascripts/ng-table.js' },
           { nonull: true, src: 'bower_components/ngInfiniteScroll/build/ng-infinite-scroll.js', dest: 'vendor/assets/javascripts/angular-ng-infinite-scroll.js' },
           { nonull: true, src: 'bower_components/angular-ui-sortable/sortable.js', dest: 'vendor/assets/javascripts/angular-ui-sortable.js' },
           { nonull: true, src: 'bower_components/angular-ui-select/dist/select.js', dest: 'vendor/assets/javascripts/angular-ui-select.js' },

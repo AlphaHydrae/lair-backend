@@ -20,6 +20,7 @@ class Language < ActiveRecord::Base
 
   strip_attributes
   validates :tag, presence: true, uniqueness: true, format: { with: /\A[a-z]{2}(?:\-[A-Z]{2})?\Z/, allow_blank: true }
+  validate :tag_must_be_valid
 
   def name
     subtags = ISO::Tag.new(tag).subtags
@@ -36,5 +37,11 @@ class Language < ActiveRecord::Base
       json.name name
       json.used used?
     end
+  end
+
+  private
+
+  def tag_must_be_valid
+    errors.add :tag, :invalid_iso_code unless ISO::Tag.new(tag).valid?
   end
 end

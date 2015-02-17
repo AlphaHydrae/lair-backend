@@ -1,8 +1,9 @@
 # Blockers
 
-* update item form with relationships
+* part patch
 * item descriptions
-* generic properties
+* custom properties
+* add missing translations for custom validations
 
 # High Priority
 
@@ -11,5 +12,6 @@
 
 # Low Priority
 
+* allow greater precision than just the year for parts and items
 * api signature
 * facebook login

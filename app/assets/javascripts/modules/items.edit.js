@@ -1,8 +1,9 @@
-angular.module('lair.items.edit', ['ui.sortable'])
+angular.module('lair.items.edit', ['lair.forms', 'ui.sortable'])
 
-  .controller('EditItemController', ['ApiService', '$scope', '$stateParams', function($api, $scope, $stateParams) {
+  .controller('EditItemController', ['ApiService', '$log', '$scope', '$stateParams', function($api, $log, $scope, $stateParams) {
 
-    $scope.itemCategories = [ 'anime', 'manga', 'movie', 'show' ];
+    $scope.itemCategories = [ 'anime', 'book', 'manga', 'movie', 'show' ];
+    $scope.relationshipRelations = [ 'author' ];
 
     $scope.titleSortOptions = {
       handle: '.move',
@@ -22,6 +23,32 @@ angular.module('lair.items.edit', ['ui.sortable'])
       $scope.languages = response.data;
     });
 
+    $scope.relationshipPeople = [];
+
+    $scope.fetchRelationshipPeople = function(relationship, index, search) {
+      if (!search || !search.trim().length) {
+        if ($scope.item.relationships[index]) {
+          $scope.relationshipPeople[index] = _.compact([ $scope.item.relationships[index].person ]);
+        } else {
+          $scope.relationshipPeople[index] = [];
+        }
+        return;
+      }
+
+      $api.http({
+        url: '/api/people',
+        params: {
+          pageSize: 100,
+          search: search
+        }
+      }).then(function(res) {
+        $scope.relationshipPeople[index] = res.data;
+      }, function(res) {
+        $log.warn('Could not fetch items matching "' + search + '"');
+        $log.debug(res);
+      });
+    };
+
     $scope.save = function() {
       $api.http({
         method: 'PATCH',
@@ -39,6 +66,7 @@ angular.module('lair.items.edit', ['ui.sortable'])
 
     $scope.reset = function() {
       $scope.editedItem = angular.copy($scope.item);
+      $scope.relationshipPeople = [];
     };
 
     $scope.itemChanged = function() {
@@ -59,6 +87,15 @@ angular.module('lair.items.edit', ['ui.sortable'])
 
     $scope.removeLink = function(link) {
       $scope.editedItem.links.splice($scope.editedItem.links.indexOf(link), 1);
+    };
+
+    $scope.addRelationship = function() {
+      $scope.editedItem.relationships.push({ relation: 'author' });
+      $scope.relationshipPeople.push([]);
+    };
+
+    $scope.removeRelationship = function(relationship) {
+      $scope.editedItem.relationships.splice($scope.editedItem.relationships.indexOf(relationship), 1);
     };
   }])
 

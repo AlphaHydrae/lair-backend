@@ -68,6 +68,14 @@
         "projectPath": "vendor/assets/javascripts/satellizer.js"
       },
       {
+        "logicalPath": "isbn.js",
+        "projectPath": "vendor/assets/javascripts/isbn.js"
+      },
+      {
+        "logicalPath": "isbn-groups.js",
+        "projectPath": "vendor/assets/javascripts/isbn-groups.js"
+      },
+      {
         "logicalPath": "bootstrap.js",
         "projectPath": "vendor/assets/javascripts/bootstrap.js"
       },
@@ -88,6 +96,10 @@
         "projectPath": "app/assets/javascripts/modules/auth.token.js"
       },
       {
+        "logicalPath": "modules/forms.js",
+        "projectPath": "app/assets/javascripts/modules/forms.js"
+      },
+      {
         "logicalPath": "modules/home.js",
         "projectPath": "app/assets/javascripts/modules/home.js"
       },
@@ -98,6 +110,10 @@
       {
         "logicalPath": "modules/parts.edit.js",
         "projectPath": "app/assets/javascripts/modules/parts.edit.js"
+      },
+      {
+        "logicalPath": "modules/people.js",
+        "projectPath": "app/assets/javascripts/modules/people.js"
       },
       {
         "logicalPath": "modules/routes.js",

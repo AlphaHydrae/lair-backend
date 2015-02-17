@@ -26,11 +26,12 @@
           input#partEnd.form-control type='number' ng-model='editedPart.end' size=3
       .col-xs-4
         .form-group
+          label for='partYear' Year
+          input#partYear.form-control ng-model='editedPart.year' type='number' min='-4000'
+      .col-xs-4
+        .form-group
           label for='partLanguage' Language
-          ui-select#partLanguage ng-model='editedPart.language'
-            ui-select-match {{ $select.selected.name }}
-            ui-select-choices repeat='language.tag as language in languages | filter: $select.search'
-              span ng-bind-html='language.name | highlight: $select.search'
+          language-select#partLanguage ng-model='editedPart.language' languages='languages'
       .col-xs-4
         .length.form-group
           label for='partLength' Length

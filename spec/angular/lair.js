@@ -4,6 +4,7 @@ angular.module('lair', [
   'lair.state',
   'lair.auth',
   'lair.home',
+  'lair.people',
   'lair.routes',
   'lair.items.edit',
   'lair.parts.edit',

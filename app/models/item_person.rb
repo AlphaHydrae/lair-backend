@@ -1,4 +1,5 @@
 class ItemPerson < ActiveRecord::Base
+  # TODO: rename to ItemRelationship
 
   belongs_to :item
   belongs_to :person
@@ -6,6 +7,7 @@ class ItemPerson < ActiveRecord::Base
   strip_attributes
   validates :item, presence: true
   validates :person, presence: true
+  # TODO: rename to relation
   validates :relationship, presence: true, inclusion: { in: %w(author), allow_blank: true }
 
   def to_builder

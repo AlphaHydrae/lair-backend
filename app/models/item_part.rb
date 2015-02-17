@@ -9,6 +9,7 @@ class ItemPart < ActiveRecord::Base
   strip_attributes
   validates :item, presence: true
   validates :title, presence: true
+  validates :year, numericality: { only_integer: true, minimum: -4000, allow_blank: true }
   validates :range_start, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :range_end, presence: { if: Proc.new{ |ip| ip.range_start.present? } }, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :language, presence: true
@@ -18,7 +19,6 @@ class ItemPart < ActiveRecord::Base
   validates :length, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :publisher, length: { maximum: 255, allow_blank: true }
   validate :title_belongs_to_parent
-  # TODO: validate isbn
 
   def to_builder
     Jbuilder.new do |json|
@@ -26,6 +26,7 @@ class ItemPart < ActiveRecord::Base
       json.itemId item.api_id
       json.title title.to_builder
       json.titleId title.api_id
+      json.year year
       json.language language.tag
       json.start range_start if range_start
       json.end range_end if range_end

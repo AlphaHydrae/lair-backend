@@ -18,10 +18,7 @@
                       span.glyphicon.glyphicon-move
                   input.form-control type='text' ng-model='title.text' ng-attr-id='itemTitle-{{ title.id }}'
               .col-xs-4.col-sm-3.col-md-2
-                ui-select ng-model='title.language'
-                  ui-select-match {{ $select.selected.name }}
-                  ui-select-choices repeat='language.tag as language in languages | filter: $select.search'
-                    span ng-bind-html='language.name | highlight: $select.search'
+                language-select ng-model='title.language' languages='languages'
               .col-xs-1
                 button.btn.btn-default type='button' ng-click='removeTitle(title)'
                   span.glyphicon.glyphicon-remove
@@ -33,10 +30,7 @@
       .col-xs-6
         .form-group
           label for='itemLanguage' Main language
-          ui-select#itemLanguage ng-model='editedItem.language'
-            ui-select-match {{ $select.selected.name }}
-            ui-select-choices repeat='language.tag as language in languages | filter: $select.search'
-              span ng-bind-html='language.name | highlight: $select.search'
+          language-select#itemLanguage ng-model='editedItem.language' languages='languages'
     .row
       .col-xs-4
         .form-group
@@ -50,6 +44,26 @@
         .form-group
           label for='itemNumberOfParts' Number of parts
           input#itemNumberOfParts.form-control ng-model='editedItem.numberOfParts' type='text' size=5
+    .row
+      .col-xs-12
+        .form-group
+          button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addRelationship()'
+            span.glyphicon.glyphicon-plus
+          label for='itemRelationship-0' Relationships
+          p.text-muted ng-hide='editedItem.relationships.length' No relationships.
+          ul.list-group ng-show='editedItem.relationships.length'
+            li.list-group-item.clearfix ng-repeat='relationship in editedItem.relationships'
+              .col-xs-6.col-sm-7.col-md-8
+                ui-select ng-model='relationship.personId' ng-attr-id='itemRelationship-{{ $index }}'
+                  ui-select-match placeholder='Find an author...'
+                    person-name person='$select.selected'
+                  ui-select-choices repeat='person.id as person in relationshipPeople[$index]' refresh='fetchRelationshipPeople(relationship, $index, $select.search)' refresh-delay='1000'
+                    person-name person='person'
+              .col-xs-5.col-sm-4.col-md-3
+                select.form-control ng-model='relationship.relation' ng-options='relation for relation in relationshipRelations'
+              .col-xs-1
+                button.btn.btn-default type='button' ng-click='removeRelationship(relationship)'
+                  span.glyphicon.glyphicon-remove
     .row
       .col-xs-12
         .form-group
