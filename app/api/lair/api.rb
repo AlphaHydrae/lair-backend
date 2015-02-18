@@ -33,6 +33,13 @@ module Lair
       'pong'
     end
 
+    namespace :search do
+      get :images do
+        return [] if params[:query].blank?
+        BingSearch.images params[:query].to_s
+      end
+    end
+
     namespace :languages do
       get do
         Language.full_list.collect(&:to_builder).collect(&:attributes!)

@@ -29,7 +29,9 @@ module Lair
     config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
     config.assets.precompile << /\.(?:svg|eot|woff|ttf|otf)\z/
 
-    config.paths.add File.join('app', 'api'), glob: File.join('**', '*.rb')
-    config.autoload_paths += Dir[Rails.root.join('app', 'api', '*')]
+    %w(api search).each do |dir|
+      config.paths.add File.join('app', dir), glob: File.join('**', '*.rb')
+      config.autoload_paths += Dir[Rails.root.join('app', dir, '*')]
+    end
   end
 end

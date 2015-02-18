@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'rails', '4.2.0'
-gem 'dotenv-rails', groups: [:development, :test]
+gem 'dotenv-rails', groups: %i(development test)
 
 gem 'pg'
 gem 'strip_attributes'
