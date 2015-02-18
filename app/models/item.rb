@@ -32,6 +32,7 @@ class Item < ActiveRecord::Base
       json.titles titles.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
       json.relationships relationships.to_a.collect{ |r| r.to_builder.attributes! }
       json.links links.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }
+      json.tags tags || {}
     end
   end
 

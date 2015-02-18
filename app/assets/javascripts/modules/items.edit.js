@@ -2,6 +2,24 @@ angular.module('lair.items.edit', ['lair.forms', 'ui.sortable'])
 
   .controller('EditItemController', ['ApiService', '$log', '$scope', '$stateParams', function($api, $log, $scope, $stateParams) {
 
+    function parseItem(item) {
+      return _.extend({}, item, {
+        tags: _.reduce(_.keys(item.tags).sort(), function(memo, key) {
+          memo.push({ key: key, value: item.tags[key] });
+          return memo;
+        }, [])
+      });
+    }
+
+    function dumpItem(item) {
+      return _.extend({}, item, {
+        tags: _.reduce(item.tags, function(memo, tag) {
+          memo[tag.key] = tag.value;
+          return memo;
+        }, {})
+      });
+    }
+
     $scope.itemCategories = [ 'anime', 'book', 'manga', 'movie', 'show' ];
     $scope.relationshipRelations = [ 'author' ];
 
@@ -13,7 +31,7 @@ angular.module('lair.items.edit', ['lair.forms', 'ui.sortable'])
     $api.http({
       url: '/api/items/' + $stateParams.itemId
     }).then(function(response) {
-      $scope.item = response.data;
+      $scope.item = parseItem(response.data);
       $scope.reset();
     });
 
@@ -53,9 +71,9 @@ angular.module('lair.items.edit', ['lair.forms', 'ui.sortable'])
       $api.http({
         method: 'PATCH',
         url: '/api/items/' + $stateParams.itemId,
-        data: $scope.editedItem
+        data: dumpItem($scope.editedItem)
       }).then(function(response) {
-        $scope.item = response.data;
+        $scope.item = parseItem(response.data);
         $scope.reset();
       }, function(response) {
         // TODO: handle error
@@ -96,6 +114,14 @@ angular.module('lair.items.edit', ['lair.forms', 'ui.sortable'])
 
     $scope.removeRelationship = function(relationship) {
       $scope.editedItem.relationships.splice($scope.editedItem.relationships.indexOf(relationship), 1);
+    };
+
+    $scope.addTag = function() {
+      $scope.editedItem.tags.push({});
+    };
+
+    $scope.removeTag = function(tag) {
+      $scope.editedItem.tags.splice($scope.editedItem.tags.indexOf(tag), 1);
     };
   }])
 

@@ -39,7 +39,7 @@
               h5
                 | {{ part.title.text }}
                 |  
-                span.range
+                span.range ng-show='part.title.id'
                   | {{ part.start }}
                   span ng-if='part.end && part.end != part.start'
                     | -

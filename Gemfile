@@ -46,8 +46,10 @@ group :development, :test do
   gem 'spring'
 
   gem 'rspec-rails', '~> 3.0.0'
+  gem 'rspec-collection_matchers'
   gem 'shoulda-matchers'
   gem 'factory_girl_rails'
+  gem 'deep_merge', require: 'deep_merge/rails_compat'
 
   gem 'quiet_assets'
 

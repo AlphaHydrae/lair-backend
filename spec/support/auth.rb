@@ -1,9 +1,8 @@
-
 module SpecAuthHelper
-
-  def auth_token user = nil
-    user ||= create :user
-    user.generate_auth_token
+  def auth_token token_user = nil
+    token_user ||= user if respond_to?(:user)
+    token_user ||= create :user
+    token_user.generate_auth_token
   end
 
   def auth_headers user = nil

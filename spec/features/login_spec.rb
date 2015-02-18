@@ -1,6 +1,6 @@
 require 'rails_helper'
 
-RSpec.describe "login" do
+RSpec.describe "login", broken: true do
   let(:user){ create :user }
 
   it "should allow the user to sign in" do

@@ -14,6 +14,15 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     $scope.itemsLoading = false;
     $scope.noMoreItems = false;
 
+    $scope.searchItems = function() {
+      page = 1;
+      index = 0;
+      $scope.items = [];
+      $scope.itemsLoading = false;
+      $scope.noMoreItems = false;
+      $scope.getNextItems();
+    };
+
     function addItems(items) {
       // TODO: handle already fetched items
       _.each(items, function(item) {
@@ -37,11 +46,16 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
         url: '/api/items',
         params: {
           page: page,
-          pageSize: 12
+          pageSize: page == 1 ? 60 : 12,
+          search: $scope.itemSearch
         }
       }).then(function(response) {
         if (response.data.length) {
-          page++;
+          if (page == 1) {
+            page += 5;
+          } else {
+            page++;
+          }
           $scope.itemsLoading = false;
           addItems(response.data);
         } else {

@@ -66,6 +66,7 @@ GEM
     daemons (1.1.9)
     debug_inspector (0.0.2)
     debugger-linecache (1.2.0)
+    deep_merge (1.0.1)
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
     diff-lcs (1.2.5)
@@ -197,6 +198,8 @@ GEM
     rdoc (4.2.0)
       json (~> 1.4)
     ref (1.0.5)
+    rspec-collection_matchers (1.1.2)
+      rspec-expectations (>= 2.99.0.beta1)
     rspec-core (3.0.4)
       rspec-support (~> 3.0.0)
     rspec-expectations (3.0.4)
@@ -289,6 +292,7 @@ PLATFORMS
 DEPENDENCIES
   byebug
   capybara
+  deep_merge
   dotenv-rails
   factory_girl_rails
   grape
@@ -305,6 +309,7 @@ DEPENDENCIES
   rails (= 4.2.0)
   rails-html-sanitizer (~> 1.0)
   rake-version
+  rspec-collection_matchers
   rspec-rails (~> 3.0.0)
   sdoc (~> 0.4.0)
   selenium-webdriver

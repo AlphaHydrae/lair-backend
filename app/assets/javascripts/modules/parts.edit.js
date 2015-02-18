@@ -2,11 +2,29 @@ angular.module('lair.parts.edit', ['lair.forms'])
 
   .controller('EditPartController', ['ApiService', '$log', '$q', '$scope', '$stateParams', function($api, $log, $q, $scope, $stateParams) {
 
+    function parsePart(part) {
+      return _.extend({}, part, {
+        tags: _.reduce(_.keys(part.tags).sort(), function(memo, key) {
+          memo.push({ key: key, value: part.tags[key] });
+          return memo;
+        }, [])
+      });
+    }
+
+    function dumpPart(part) {
+      return _.extend({}, part, {
+        tags: _.reduce(part.tags, function(memo, tag) {
+          memo[tag.key] = tag.value;
+          return memo;
+        }, {})
+      });
+    }
+
     function fetchPart() {
       return $api.http({
         url: '/api/parts/' + $stateParams.partId
       }).then(function(res) {
-        $scope.part = res.data;
+        $scope.part = parsePart(res.data);
         $scope.reset();
       }, function(res) {
         // TODO: handle error
@@ -100,9 +118,9 @@ angular.module('lair.parts.edit', ['lair.forms'])
       $api.http({
         method: 'PATCH',
         url: '/api/parts/' + $stateParams.partId,
-        data: $scope.editedPart
+        data: dumpPart($scope.editedPart)
       }).then(function(res) {
-        $scope.part = res.data;
+        $scope.part = parsePart(res.data);
         $scope.reset();
       }, function(res) {
         // TODO: handle error
@@ -117,6 +135,14 @@ angular.module('lair.parts.edit', ['lair.forms'])
 
     $scope.partChanged = function() {
       return !angular.equals($scope.part, $scope.editedPart);
+    };
+
+    $scope.addTag = function() {
+      $scope.editedPart.tags.push({});
+    };
+
+    $scope.removeTag = function(tag) {
+      $scope.editedPart.tags.splice($scope.editedPart.tags.indexOf(tag), 1);
     };
   }])
 ;

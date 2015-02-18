@@ -5,7 +5,6 @@ class CreateItems < ActiveRecord::Migration
     create_table :users do |t|
       t.string :api_id, null: false, limit: 12
       t.string :email, null: false, limit: 255
-      #t.string :encrypted_password, null: false, default: ""
       t.integer :sign_in_count, default: 0, null: false
       t.timestamps null: false
     end
@@ -16,9 +15,9 @@ class CreateItems < ActiveRecord::Migration
 
     create_table :people do |t|
       t.string :api_id, null: false, limit: 12
-      t.string :last_name
-      t.string :first_names
-      t.string :pseudonym
+      t.string :last_name, limit: 50
+      t.string :first_names, limit: 100
+      t.string :pseudonym, limit: 50
     end
 
     create_table :items do |t|
@@ -29,11 +28,12 @@ class CreateItems < ActiveRecord::Migration
       t.integer :start_year
       t.integer :end_year
       t.integer :language_id, null: false
+      t.json :tags
       t.timestamps null: false
     end
 
     create_table :item_links do |t|
-      t.string :url, null: false
+      t.string :url, null: false, limit: 255
       t.integer :item_id, null: false
       t.integer :language_id
     end
@@ -42,11 +42,12 @@ class CreateItems < ActiveRecord::Migration
       t.string :api_id, null: false, limit: 12
       t.integer :item_id, null: false
       t.integer :language_id, null: false
-      t.string :contents, null: false
+      t.string :contents, null: false, limit: 150
       t.integer :display_position, null: false
     end
 
     create_table :item_descriptions do |t|
+      t.string :api_id, null: false, limit: 12
       t.integer :item_id, null: false
       t.integer :language_id, null: false
       t.text :contents, null: false
@@ -56,18 +57,21 @@ class CreateItems < ActiveRecord::Migration
       t.string :api_id, null: false, limit: 12
       t.string :type, null: false, limit: 5
       t.integer :item_id, null: false
-      t.integer :title_id, null: false
+      t.integer :title_id
+      t.string :custom_title, limit: 255
+      t.integer :custom_title_language_id
       t.integer :year
       t.integer :range_start
       t.integer :range_end
       t.integer :language_id, null: false
-      t.string :edition
-      t.string :version
-      t.string :format
+      t.string :edition, limit: 25
+      t.integer :version
+      t.string :format, limit: 25
       t.integer :length # minutes (video), pages (book)
+      t.json :tags
 
       # books
-      t.string :publisher
+      t.string :publisher, limit: 50
       t.string :isbn, limit: 13
 
       t.timestamps null: false
@@ -87,9 +91,11 @@ class CreateItems < ActiveRecord::Migration
     end
 
     add_index :users, :email, unique: true
+    add_index :users, :api_id, unique: true
     add_index :languages, :tag, unique: true
     add_index :items, :category
     add_index :items, :api_id, unique: true
+    add_index :item_descriptions, :api_id, unique: true
     add_index :item_titles, :api_id, unique: true
     add_index :item_parts, :api_id, unique: true
     add_index :item_parts, :isbn, unique: true
@@ -104,6 +110,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_parts, :items
     add_foreign_key :item_parts, :item_titles, column: :title_id
     add_foreign_key :item_parts, :languages
+    add_foreign_key :item_parts, :languages, column: :custom_title_language_id
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people
     add_foreign_key :ownerships, :item_parts

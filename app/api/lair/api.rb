@@ -98,14 +98,17 @@ module Lair
     end
 
     get :bookPublishers do
+      authenticate!
       Book.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
     end
 
     get :partEditions do
+      authenticate!
       ItemPart.order(:edition).pluck('distinct(edition)').compact.collect{ |edition| { name: edition } }
     end
 
     get :partFormats do
+      authenticate!
       ItemPart.order(:format).pluck('distinct(format)').compact.collect{ |format| { name: format } }
     end
 
@@ -114,13 +117,17 @@ module Lair
         authenticate!
 
         item = Item.where(api_id: params[:itemId]).first!
-        title = item.titles.where(api_id: params[:titleId]).first!
         language = language(params[:language])
 
+        part = Book.new
+
+        # TODO: update item number of parts & year if applicable
+
         ItemPart.transaction do
-          part = Book.new
           part.item = item
-          part.title = title
+          part.title = item.titles.where(api_id: params[:title][:id]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
+          part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
+          part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
           part.language = language
           part.year = params[:year] if params.key?(:year)
           part.range_start = params[:start] if params.key?(:start)
@@ -131,10 +138,11 @@ module Lair
           part.length = params[:length] if params.key?(:length)
           part.publisher = params[:publisher] if params.key?(:publisher)
           part.isbn = params[:isbn] if params.key?(:isbn)
+          part.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != part.tags
           part.save!
-
-          part.to_builder.attributes!
         end
+
+        part.to_builder.attributes!
       end
 
       get do
@@ -153,6 +161,28 @@ module Lair
         get do
           fetch_part.to_builder.attributes!
         end
+
+        patch do
+          authenticate!
+          part = fetch_part
+
+          ItemPart.transaction do
+            part.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
+            part.title = part.item.titles.where(api_id: params[:titleId]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
+            part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
+            part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
+            part.language = language params[:language] if params.key? :language
+            part.range_start = params[:start] if params.key? :start
+            part.range_end = params[:end] if params.key? :end
+            %i(year edition version format length publisher isbn).each do |attr|
+              part.send "#{attr}=", params[attr] if params.key? attr
+            end
+            part.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != part.tags
+            part.save!
+          end
+
+          part.to_builder.attributes!
+        end
       end
     end
 
@@ -165,12 +195,14 @@ module Lair
           item = Item.new category: params[:category], start_year: params[:startYear], language: language
           item.end_year = params[:endYear] if params.key?(:endYear)
           item.number_of_parts = params[:numberOfParts] if params.key?(:numberOfParts)
+          # TODO: check only strings in tags
+          item.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != item.tags
 
           params[:titles].each.with_index do |title,i|
             item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
           end
 
-          if params[:decriptions].kind_of?(Array)
+          if params[:descriptions].kind_of?(Array)
             params[:descriptions].each.with_index do |description,i|
               item.descriptions.build contents: description[:text], language: language(description[:language])
             end
@@ -237,7 +269,7 @@ module Lair
         end
 
         patch do
-
+          authenticate!
           item = fetch_item
 
           Item.transaction do
@@ -245,6 +277,7 @@ module Lair
               item.send "#{attr.to_s.underscore}=".to_sym, params[attr] if params.key? attr
             end
             item.language = language params[:language] if params.key? :language
+            item.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != item.tags
 
             if params.key? :titles
               titles_to_delete = []

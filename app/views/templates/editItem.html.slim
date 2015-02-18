@@ -76,10 +76,25 @@
               .col-xs-7.col-sm-8.col-md-9
                 input.form-control type='text' ng-model='link.url' ng-attr-id='itemLink-{{ $index }}'
               .col-xs-4.col-sm-3.col-md-2
-                select.form-control ng-model='link.language' ng-options='language.tag as language.name for language in languages' required='false'
-                  option value='' (language)
+                language-select ng-model='link.language' languages='languages'
               .col-xs-1
                 button.btn.btn-default type='button' ng-click='removeLink(link)'
+                  span.glyphicon.glyphicon-remove
+    .row
+      .col-xs-12
+        .form-group
+          button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTag()'
+            span.glyphicon.glyphicon-plus
+          label for='itemTag-0' Tags
+          p.text-muted ng-hide='editedItem.tags.length' No tags.
+          ul.list-group ng-show='editedItem.tags.length'
+            li.list-group-item.clearfix ng-repeat='tag in editedItem.tags'
+              .col-xs-5.col-sm-4.col-md-3
+                input.form-control type='text' ng-model='tag.key'
+              .col-xs-6.col-sm-7.col-md-8
+                input.form-control type='text' ng-model='tag.value' ng-attr-id='itemTag-{{ $index }}'
+              .col-xs-1
+                button.btn.btn-default type='button' ng-click='removeTag(tag)'
                   span.glyphicon.glyphicon-remove
     .btn-group.pull-right
       button.btn.btn-warning type='button' ng-disabled='!itemChanged()' ng-click='reset()' Reset

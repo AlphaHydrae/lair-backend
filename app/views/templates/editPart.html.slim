@@ -56,6 +56,22 @@
         .isbn.form-group
           label for='partIsbn' ISBN
           input#partIsbn.form-control ng-model='editedPart.isbn' type='text'
+    .row
+      .col-xs-12
+        .form-group
+          button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTag()'
+            span.glyphicon.glyphicon-plus
+          label for='partTag-0' Tags
+          p.text-muted ng-hide='editedPart.tags.length' No tags.
+          ul.list-group ng-show='editedPart.tags.length'
+            li.list-group-item.clearfix ng-repeat='tag in editedPart.tags'
+              .col-xs-5.col-sm-4.col-md-3
+                input.form-control type='text' ng-model='tag.key'
+              .col-xs-6.col-sm-7.col-md-8
+                input.form-control type='text' ng-model='tag.value' ng-attr-id='partTag-{{ $index }}'
+              .col-xs-1
+                button.btn.btn-default type='button' ng-click='removeTag(tag)'
+                  span.glyphicon.glyphicon-remove
     .btn-group.pull-right
       button.btn.btn-warning type='button' ng-disabled='!partChanged()' ng-click='reset()' Reset
       button.btn.btn-primary type='submit' ng-disabled='!partChanged()' ng-click='save()' Save
