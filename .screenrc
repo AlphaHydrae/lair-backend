@@ -2,19 +2,21 @@ source $HOME/.screenrc
 
 screen -t pgc 0
 stuff "psql new-lair\012"
-screen -t srv 1
+screen -t redis 1
+stuff "redis-cli\012"
+screen -t srv 2
 stuff "bundle exec rails server\012"
-screen -t spec 2
+screen -t spec 3
 stuff "bundle exec rspec"
-screen -t karma 3
+screen -t karma 4
 stuff "grunt test"
-screen -t vim 4
+screen -t vim 5
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
-screen -t zsh 5
-screen -t console 6
+screen -t zsh 6
+screen -t console 7
 stuff "bundle exec rails console\012"
-screen -t guard 7
+screen -t guard 8
 stuff "bundle exec guard\012"
-screen -t jshint 8
+screen -t jshint 9
 stuff "grunt watch:jshint\012"
 select vim

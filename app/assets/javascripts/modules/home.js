@@ -13,6 +13,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     $scope.items = [];
     $scope.itemsLoading = false;
     $scope.noMoreItems = false;
+    $scope.itemCategories = [ 'anime', 'book', 'manga', 'movie', 'show' ];
 
     $scope.searchItems = function() {
       page = 1;
@@ -26,9 +27,6 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     function addItems(items) {
       // TODO: handle already fetched items
       _.each(items, function(item) {
-        if (index !== 0 && index % 6 === 0) {
-          $scope.items.push({ separator: true });
-        }
         $scope.items.push(item);
         index++;
       });
@@ -47,7 +45,8 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
         params: {
           page: page,
           pageSize: page == 1 ? 60 : 12,
-          search: $scope.itemSearch
+          search: $scope.itemSearchQuery,
+          category: $scope.itemSearchCategory
         }
       }).then(function(response) {
         if (response.data.length) {

@@ -3,18 +3,27 @@ source 'https://rubygems.org'
 gem 'rails', '4.2.0'
 gem 'dotenv-rails', groups: %i(development test)
 
+# Database
 gem 'pg'
 gem 'strip_attributes'
 
+# Memory Database
+gem 'redis'
+gem 'hiredis'
+gem 'redis-namespace'
+
+# Templates & Assets
 gem 'slim-rails'
 gem 'less-rails'
 gem 'stylus'
 gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
 
+# Standards
 gem 'iso'
 gem 'isbn'
 
+# API & Services
 gem 'jwt'
 gem 'grape'
 gem 'jbuilder'
@@ -45,7 +54,7 @@ group :development, :test do
   # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
   gem 'spring'
 
-  gem 'rspec-rails', '~> 3.0.0'
+  gem 'rspec-rails', '~> 3.0'
   gem 'rspec-collection_matchers'
   gem 'shoulda-matchers'
   gem 'factory_girl_rails'

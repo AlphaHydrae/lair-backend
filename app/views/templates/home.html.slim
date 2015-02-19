@@ -1,15 +1,21 @@
 .container-fluid ng-controller='HomeController'
   .row
-    .itemSearch.col-xs-12.text-center
-      form.form-inline role='form'
+    .col-xs-12.text-center
+      form#itemSearch.form-inline role='form'
         .form-group
-          label.sr-only for='itemSearch' Search
-          input#itemSearch.form-control ng-model='itemSearch' ng-model-options='{ debounce: 1000 }' ng-change='searchItems()' type='text' placeholder='Search...'
-  .row infinite-scroll='getNextItems()' infinite-scroll-distance=1 infinite-scroll-disabled='itemsLoading'
-    div ng-repeat='item in items'
-      .col-xs-12.clearfix ng-if='item.separator'
-      .col-md-2 ng-if='!item.separator' ng-click='show(item)'
-        a.thumbnail href='#'
-          img src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Thumbnail'
-          .caption
-            h3 {{ item.titles[0].text }}
+          label.sr-only for='itemSearchCategory' Category
+          select#itemSearchCategory.form-control ng-model='itemSearchCategory' ng-change='searchItems()' ng-options='category for category in itemCategories'
+            option value='' any category
+        .form-group
+          label.sr-only for='itemSearchQuery' Search
+          input#itemSearchQuery.form-control ng-model='itemSearchQuery' ng-model-options='{ debounce: 1000 }' ng-change='searchItems()' type='text' placeholder='Search...'
+  #homeItems.row infinite-scroll='getNextItems()' infinite-scroll-distance=1 infinite-scroll-disabled='itemsLoading'
+    .col-lg-2.col-md-3.col-sm-6.col-xs-12 ng-repeat-start='item in items' ng-click='show(item)'
+      a.thumbnail href='#'
+        img ng-show='item.image' src='{{ item.image.thumbnail.url }}' alt='Thumbnail'
+        .caption ng-hide='item.image'
+          h3 {{ item.titles[0].text }}
+    .clearfix.visible-xs-block
+    .clearfix.visible-sm-block ng-if='$index % 2 == 1'
+    .clearfix.visible-md-block ng-if='$index % 4 == 3'
+    .clearfix.visible-lg-block ng-if='$index % 6 == 5' ng-repeat-end=true

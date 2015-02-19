@@ -13,6 +13,7 @@
 //= require underscore
 //= require jquery
 //= require jquery-ui
+//= require moment
 //= require angular
 //= require angular-sanitize
 //= require angular-ui-router
@@ -25,6 +26,7 @@
 //= require angular-gravatar
 //= require angular-ui-sortable
 //= require angular-ui-select
+//= require angular-moment
 //= require satellizer
 //= require isbn
 //= require isbn-groups

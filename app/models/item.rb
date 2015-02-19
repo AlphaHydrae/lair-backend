@@ -2,6 +2,8 @@ require 'random'
 
 class Item < ActiveRecord::Base
   include ResourceWithIdentifier
+  include ResourceWithImage
+
   before_create{ set_identifier :api_id, 6 }
   before_validation(on: :create){ complete_end_year }
 
@@ -21,6 +23,10 @@ class Item < ActiveRecord::Base
   validates :language, presence: true
   validate :year_range_valid
 
+  def default_image_search_query
+    "#{titles[0].contents} #{category}"
+  end
+
   def to_builder
     Jbuilder.new do |json|
       json.id api_id
@@ -28,6 +34,7 @@ class Item < ActiveRecord::Base
       json.startYear start_year
       json.endYear end_year
       json.language language.tag
+      json.image image.to_builder if image
       json.numberOfParts number_of_parts if number_of_parts
       json.titles titles.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
       json.relationships relationships.to_a.collect{ |r| r.to_builder.attributes! }

@@ -26,16 +26,17 @@
       ul ng-show='item.links.length'
         li ng-repeat='link in item.links'
           a href='{{ link.url }}' {{ link.url }}
-    .col-xs-5
-      img.center-block src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image' max-width='100%'
+    .col-xs-5 ng-show='item.image'
+      .image
+        img.center-block src='{{ item.image.url }}' alt='Image'
   tabset.clearfix ng-show='item.parts'
     tab ng-repeat='tab in item.parts' heading='{{ tab.name }}'
       table.table
         tbody
           tr.itemPartInfo ng-repeat='part in tab.parts'
-            td.partThumbnail
-              img src='http://icons.iconarchive.com/icons/custom-icon-design/pretty-social-media/256/Misterwong-icon.png' alt='Image'
-            td.title
+            td.partThumbnail ng-show='part.image'
+              img src='{{ part.image.thumbnail.url }}' alt='Image'
+            td.title colspan='{{ part.image ? 1 : 2 }}'
               h5
                 | {{ part.title.text }}
                 |  

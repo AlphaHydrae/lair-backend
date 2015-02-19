@@ -16,12 +16,42 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  create_table "image_searches", force: :cascade do |t|
+    t.string   "api_id",         limit: 12,  null: false
+    t.integer  "imageable_id",               null: false
+    t.string   "imageable_type", limit: 25,  null: false
+    t.string   "engine",         limit: 25,  null: false
+    t.string   "query",          limit: 255, null: false
+    t.json     "results",                    null: false
+    t.integer  "results_count",              null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+  end
+
+  create_table "images", force: :cascade do |t|
+    t.string   "api_id",                 limit: 12,  null: false
+    t.string   "url",                    limit: 255, null: false
+    t.string   "content_type",           limit: 50,  null: false
+    t.integer  "width"
+    t.integer  "height"
+    t.integer  "size"
+    t.string   "thumbnail_url",          limit: 255
+    t.string   "thumbnail_content_type", limit: 50
+    t.integer  "thumbnail_width"
+    t.integer  "thumbnail_height"
+    t.integer  "thumbnail_size"
+    t.datetime "created_at",                         null: false
+    t.datetime "updated_at",                         null: false
+  end
+
   create_table "item_descriptions", force: :cascade do |t|
     t.string  "api_id",      limit: 12, null: false
     t.integer "item_id",                null: false
     t.integer "language_id",            null: false
     t.text    "contents",               null: false
   end
+
+  add_index "item_descriptions", ["api_id"], name: "index_item_descriptions_on_api_id", unique: true, using: :btree
 
   create_table "item_links", force: :cascade do |t|
     t.string  "url",         limit: 255, null: false
@@ -36,6 +66,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "type",                     limit: 5,   null: false
     t.integer  "item_id",                              null: false
     t.integer  "title_id"
+    t.integer  "image_id"
     t.string   "custom_title",             limit: 255
     t.integer  "custom_title_language_id"
     t.integer  "year"
@@ -80,6 +111,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "start_year"
     t.integer  "end_year"
     t.integer  "language_id",                  null: false
+    t.integer  "image_id"
     t.json     "tags"
     t.datetime "created_at",                   null: false
     t.datetime "updated_at",                   null: false
@@ -122,6 +154,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_descriptions", "items"
   add_foreign_key "item_links", "items"
   add_foreign_key "item_links", "languages"
+  add_foreign_key "item_parts", "images"
   add_foreign_key "item_parts", "item_titles", column: "title_id"
   add_foreign_key "item_parts", "items"
   add_foreign_key "item_parts", "languages"
@@ -130,6 +163,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_people", "people"
   add_foreign_key "item_titles", "items"
   add_foreign_key "item_titles", "languages"
+  add_foreign_key "items", "images"
   add_foreign_key "items", "item_titles", column: "original_title_id"
   add_foreign_key "items", "languages"
   add_foreign_key "ownerships", "item_parts"

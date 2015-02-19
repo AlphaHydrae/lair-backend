@@ -1,7 +1,7 @@
 module Lair
 
   class API < Grape::API
-    version 'v1', using: :accept_version_header, vendor: 'lair'
+    version 'v1', using: :accept_version_header
     format :json
 
     cascade false
@@ -10,10 +10,27 @@ module Lair
         puts e.message
         puts e.backtrace.join("\n")
       end
-      Rack::Response.new([ JSON.dump({ errors: [ { message: e.message } ] }) ], 500, { "Content-type" => "application/json" }).finish
+
+      code = if e.kind_of? LairError
+        e.http_status_code
+      elsif e.kind_of? ActiveRecord::RecordNotFound
+        404
+      else
+        500
+      end
+
+      headers = { 'Content-Type' => 'application/json' }
+      if e.kind_of? LairError
+        headers.merge! e.headers
+      end
+
+      Rack::Response.new([ JSON.dump({ errors: [ { message: e.message } ] }) ], code, headers).finish
     end
 
-    helpers AuthenticationHelper
+    helpers ApiAuthenticationHelper
+    helpers ApiImageSearchHelper
+    helpers ApiImageableHelper
+
     helpers do
       def language tag
         Language.find_or_create_by(tag: tag)
@@ -31,13 +48,6 @@ module Lair
     get :ping do
       authenticate!
       'pong'
-    end
-
-    namespace :search do
-      get :images do
-        return [] if params[:query].blank?
-        BingSearch.images params[:query].to_s
-      end
     end
 
     namespace :languages do
@@ -123,19 +133,17 @@ module Lair
       post do
         authenticate!
 
-        item = Item.where(api_id: params[:itemId]).first!
-        language = language(params[:language])
-
         part = Book.new
 
         # TODO: update item number of parts & year if applicable
 
         ItemPart.transaction do
-          part.item = item
+          part.item = Item.where(api_id: params[:itemId]).first!
           part.title = item.titles.where(api_id: params[:title][:id]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
           part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
           part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
-          part.language = language
+          part.language = language params[:language]
+          set_image! part, params[:image] if params[:image].kind_of? Hash
           part.year = params[:year] if params.key?(:year)
           part.range_start = params[:start] if params.key?(:start)
           part.range_end = params[:end] if params.key?(:end)
@@ -169,6 +177,21 @@ module Lair
           fetch_part.to_builder.attributes!
         end
 
+        get :imageSearch do
+          authenticate!
+          fetch_part.last_image_search!.to_builder.attributes!
+        end
+
+        post :imageSearch do
+          authenticate!
+          search_images_for(fetch_part, force: true).to_builder.attributes!
+        end
+
+        patch :imageSearch do
+          authenticate!
+          search_images_for(fetch_part).to_builder.attributes!
+        end
+
         patch do
           authenticate!
           part = fetch_part
@@ -176,6 +199,7 @@ module Lair
           ItemPart.transaction do
             part.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
             part.title = part.item.titles.where(api_id: params[:titleId]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
+            set_image! part, params[:image] if params[:image].kind_of? Hash
             part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
             part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
             part.language = language params[:language] if params.key? :language
@@ -202,6 +226,7 @@ module Lair
           item = Item.new category: params[:category], start_year: params[:startYear], language: language
           item.end_year = params[:endYear] if params.key?(:endYear)
           item.number_of_parts = params[:numberOfParts] if params.key?(:numberOfParts)
+          set_image! item, params[:image] if params[:image].kind_of? Hash
           # TODO: check only strings in tags
           item.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != item.tags
 
@@ -254,11 +279,19 @@ module Lair
         header 'X-Pagination-Total', Item.count.to_s
 
         rel = Item.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc').offset(offset).limit(limit).includes([ :language, :links, { titles: :language } ])
+        filtered = false
+
+        if params[:category].present?
+          rel = rel.where category: params[:category].to_s
+          filtered = true
+        end
 
         if params[:search].present?
           rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
-          header 'X-Pagination-Filtered-Total', rel.count.to_s
+          filtered = true
         end
+
+        header 'X-Pagination-Filtered-Total', rel.count.to_s if filtered
 
         rel.all.to_a.collect{ |item| item.to_builder.attributes! }
       end
@@ -275,6 +308,21 @@ module Lair
           fetch_item.to_builder.attributes!
         end
 
+        get :imageSearch do
+          authenticate!
+          fetch_item.last_image_search!.to_builder.attributes!
+        end
+
+        post :imageSearch do
+          authenticate!
+          search_images_for(fetch_item, force: true).to_builder.attributes!
+        end
+
+        patch :imageSearch do
+          authenticate!
+          search_images_for(fetch_item).to_builder.attributes!
+        end
+
         patch do
           authenticate!
           item = fetch_item
@@ -284,6 +332,7 @@ module Lair
               item.send "#{attr.to_s.underscore}=".to_sym, params[attr] if params.key? attr
             end
             item.language = language params[:language] if params.key? :language
+            set_image! item, params[:image] if params[:image].kind_of? Hash
             item.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != item.tags
 
             if params.key? :titles

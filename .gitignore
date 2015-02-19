@@ -2,6 +2,9 @@
 /.bundle
 /.env
 /bower_components
+/config/database.yml
+/config/redis.yml
+/config/services.yml
 /lib/tasks/local*
 /local
 /log/*.log

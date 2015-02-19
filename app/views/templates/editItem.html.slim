@@ -4,7 +4,12 @@
     span ng-show='item'  {{ item.titles[0].text }}
   form#editItem role='form'
     .row
-      .col-xs-12
+      .col-xs-3
+        .image.text-center
+          span.glyphicon.glyphicon-picture ng-hide='editedItem.image' ng-click='selectImage()'
+          a.thumbnail href='#' ng-show='editedItem.image' ng-click='selectImage()'
+            img src='{{ editedItem.image.thumbnail.url }}'
+      .col-xs-9
         .titles.form-group
           button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTitle()'
             span.glyphicon.glyphicon-plus

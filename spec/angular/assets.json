@@ -16,6 +16,10 @@
         "projectPath": "vendor/assets/javascripts/jquery-ui.js"
       },
       {
+        "logicalPath": "moment.js",
+        "projectPath": "vendor/assets/javascripts/moment.js"
+      },
+      {
         "logicalPath": "angular.js",
         "projectPath": "vendor/assets/javascripts/angular.js"
       },
@@ -64,6 +68,10 @@
         "projectPath": "vendor/assets/javascripts/angular-ui-select.js"
       },
       {
+        "logicalPath": "angular-moment.js",
+        "projectPath": "vendor/assets/javascripts/angular-moment.js"
+      },
+      {
         "logicalPath": "satellizer.js",
         "projectPath": "vendor/assets/javascripts/satellizer.js"
       },
@@ -102,6 +110,10 @@
       {
         "logicalPath": "modules/home.js",
         "projectPath": "app/assets/javascripts/modules/home.js"
+      },
+      {
+        "logicalPath": "modules/images.js",
+        "projectPath": "app/assets/javascripts/modules/images.js"
       },
       {
         "logicalPath": "modules/items.edit.js",

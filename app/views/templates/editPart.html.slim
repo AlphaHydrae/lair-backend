@@ -4,14 +4,18 @@
     span ng-show='part'  {{ part.title.text }} {{ part.start }}
   form#editPart role='form'
     .row
-      .col-xs-6
+      .col-xs-4
+        .image.text-center
+          span.glyphicon.glyphicon-picture ng-hide='editedPart.image' ng-click='selectImage()'
+          a.thumbnail href='#' ng-show='editedPart.image' ng-click='selectImage()'
+            img src='{{ editedPart.image.thumbnail.url }}'
+      .col-xs-8
         .item.form-group
           label for='partItem' Item
           ui-select#partItem ng-model='editedPart.itemId'
             ui-select-match {{ $select.selected.titles[0].text }}
             ui-select-choices repeat='it.id as it in items' refresh='fetchItems($select.search)' refresh-delay='1000'
               span ng-bind-html='it.titles[0].text'
-      .col-xs-6
         .title.form-group
           label for='partTitle' Title
           ui-select#partTitle ng-model='editedPart.titleId'

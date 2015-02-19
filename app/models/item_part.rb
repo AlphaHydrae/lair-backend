@@ -1,5 +1,8 @@
 class ItemPart < ActiveRecord::Base
   include ResourceWithIdentifier
+  # TODO: set image of parent item automatically if not yet set
+  include ResourceWithImage
+
   before_create :set_identifier
 
   belongs_to :item
@@ -22,6 +25,25 @@ class ItemPart < ActiveRecord::Base
   validates :length, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validate :title_belongs_to_parent
 
+  def default_image_search_query
+    parts = []
+
+    if custom_title.present?
+      parts << custom_title
+    else
+      parts << title.contents
+      if range_start && range_end != range_start
+        parts << "#{range_start}-#{range_end}"
+      elsif range_start
+        parts << range_start.to_s
+      end
+    end
+
+    parts << edition if edition
+
+    parts.join ' '
+  end
+
   def to_builder
     Jbuilder.new do |json|
       json.id api_id
@@ -30,6 +52,7 @@ class ItemPart < ActiveRecord::Base
       json.titleId title.api_id if title
       json.year year
       json.language language.tag
+      json.image image.to_builder if image
       json.start range_start if range_start
       json.end range_end if range_end
       json.edition edition if edition

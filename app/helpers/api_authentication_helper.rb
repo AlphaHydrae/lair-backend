@@ -1,6 +1,6 @@
 require_dependency 'errors'
 
-module AuthenticationHelper
+module ApiAuthenticationHelper
 
   def authenticate_with_header authorization_header, options = {}
 

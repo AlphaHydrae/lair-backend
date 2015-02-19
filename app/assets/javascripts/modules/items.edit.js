@@ -1,6 +1,24 @@
-angular.module('lair.items.edit', ['lair.forms', 'ui.sortable'])
+angular.module('lair.items.edit', ['lair.forms', 'lair.images', 'ui.sortable'])
 
-  .controller('EditItemController', ['ApiService', '$log', '$scope', '$stateParams', function($api, $log, $scope, $stateParams) {
+  .controller('EditItemController', ['ApiService', '$log', '$modal', '$scope', '$stateParams', function($api, $log, $modal, $scope, $stateParams) {
+
+    var modal;
+
+    $scope.selectImage = function() {
+      $scope.imageSearchSubject = $scope.item;
+      $scope.imageSearchResource = '/api/items/' + $scope.item.id + '/imageSearch';
+
+      modal = $modal.open({
+        controller: 'SelectImageCtrl',
+        templateUrl: '/templates/selectImageDialog.html',
+        scope: $scope,
+        size: 'lg'
+      });
+
+      modal.result.then(function(image) {
+        $scope.editedItem.image = image;
+      });
+    };
 
     function parseItem(item) {
       return _.extend({}, item, {

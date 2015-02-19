@@ -8,8 +8,10 @@ angular.module('lair', [
   'lair.routes',
   'lair.items.edit',
   'lair.parts.edit',
+  'angularMoment',
   'ngSanitize',
   'satellizer',
+  'ui.bootstrap',
   'ui.select'
 ])
 

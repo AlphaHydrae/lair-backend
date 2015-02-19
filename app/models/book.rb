@@ -5,6 +5,12 @@ class Book < ItemPart
   validates :isbn, uniqueness: { if: ->(b){ b.isbn.present? } }
   validate :isbn_valid
 
+  def default_image_search_query
+    parts = [ super ]
+    parts << publisher if publisher
+    parts.join ' '
+  end
+
   def to_builder
     builder = super
     builder.publisher publisher if publisher

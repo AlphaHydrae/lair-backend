@@ -28,6 +28,7 @@ class CreateItems < ActiveRecord::Migration
       t.integer :start_year
       t.integer :end_year
       t.integer :language_id, null: false
+      t.integer :image_id
       t.json :tags
       t.timestamps null: false
     end
@@ -58,6 +59,7 @@ class CreateItems < ActiveRecord::Migration
       t.string :type, null: false, limit: 5
       t.integer :item_id, null: false
       t.integer :title_id
+      t.integer :image_id
       t.string :custom_title, limit: 255
       t.integer :custom_title_language_id
       t.integer :year
@@ -90,6 +92,32 @@ class CreateItems < ActiveRecord::Migration
       t.datetime :gotten_at, null: false
     end
 
+    create_table :image_searches do |t|
+      t.string :api_id, null: false, limit: 12
+      t.integer :imageable_id, null: false
+      t.string :imageable_type, null: false, limit: 25
+      t.string :engine, null: false, limit: 25
+      t.string :query, null: false, limit: 255
+      t.json :results, null: false
+      t.integer :results_count, null: false
+      t.timestamps null: false
+    end
+
+    create_table :images do |t|
+      t.string :api_id, null: false, limit: 12
+      t.string :url, null: false, limit: 255
+      t.string :content_type, null: false, limit: 50
+      t.integer :width
+      t.integer :height
+      t.integer :size
+      t.string :thumbnail_url, limit: 255
+      t.string :thumbnail_content_type, limit: 50
+      t.integer :thumbnail_width
+      t.integer :thumbnail_height
+      t.integer :thumbnail_size
+      t.timestamps null: false
+    end
+
     add_index :users, :email, unique: true
     add_index :users, :api_id, unique: true
     add_index :languages, :tag, unique: true
@@ -101,6 +129,7 @@ class CreateItems < ActiveRecord::Migration
     add_index :item_parts, :isbn, unique: true
     add_index :item_links, [ :item_id, :url ], unique: true
     add_foreign_key :items, :languages
+    add_foreign_key :items, :images
     add_foreign_key :items, :item_titles, column: :original_title_id
     add_foreign_key :item_links, :items
     add_foreign_key :item_links, :languages
@@ -111,6 +140,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_parts, :item_titles, column: :title_id
     add_foreign_key :item_parts, :languages
     add_foreign_key :item_parts, :languages, column: :custom_title_language_id
+    add_foreign_key :item_parts, :images
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people
     add_foreign_key :ownerships, :item_parts
@@ -119,12 +149,14 @@ class CreateItems < ActiveRecord::Migration
 
   def down
     remove_foreign_key :item_titles, :items
+    drop_table :image_searches
     drop_table :ownerships
     drop_table :item_people
     drop_table :item_parts
     drop_table :item_descriptions
     drop_table :item_links
     drop_table :items
+    drop_table :images
     drop_table :item_titles
     drop_table :people
     drop_table :languages

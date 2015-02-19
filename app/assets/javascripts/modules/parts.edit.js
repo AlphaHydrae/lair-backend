@@ -1,6 +1,22 @@
 angular.module('lair.parts.edit', ['lair.forms'])
 
-  .controller('EditPartController', ['ApiService', '$log', '$q', '$scope', '$stateParams', function($api, $log, $q, $scope, $stateParams) {
+  .controller('EditPartController', ['ApiService', '$log', '$modal', '$q', '$scope', '$stateParams', function($api, $log, $modal, $q, $scope, $stateParams) {
+
+    $scope.selectImage = function() {
+      $scope.imageSearchSubject = $scope.part;
+      $scope.imageSearchResource = '/api/parts/' + $scope.part.id + '/imageSearch';
+
+      modal = $modal.open({
+        controller: 'SelectImageCtrl',
+        templateUrl: '/templates/selectImageDialog.html',
+        scope: $scope,
+        size: 'lg'
+      });
+
+      modal.result.then(function(image) {
+        $scope.editedPart.image = image;
+      });
+    };
 
     function parsePart(part) {
       return _.extend({}, part, {
