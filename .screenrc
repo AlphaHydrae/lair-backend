@@ -4,19 +4,21 @@ screen -t pgc 0
 stuff "psql new-lair\012"
 screen -t redis 1
 stuff "redis-cli\012"
-screen -t srv 2
+screen -t resque 2
+stuff "TERM_CHILD=1 QUEUE=* rake resque:work\012"
+screen -t server 3
 stuff "bundle exec rails server\012"
-screen -t spec 3
+screen -t spec 4
 stuff "bundle exec rspec"
-screen -t karma 4
+screen -t karma 5
 stuff "grunt test"
-screen -t vim 5
+screen -t vim 6
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
-screen -t zsh 6
-screen -t console 7
+screen -t zsh 7
+screen -t console 8
 stuff "bundle exec rails console\012"
-screen -t guard 8
+screen -t guard 9
 stuff "bundle exec guard\012"
-screen -t jshint 9
+screen -t jshint 10
 stuff "grunt watch:jshint\012"
 select vim

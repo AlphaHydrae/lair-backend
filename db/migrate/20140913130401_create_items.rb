@@ -100,6 +100,7 @@ class CreateItems < ActiveRecord::Migration
       t.string :query, null: false, limit: 255
       t.json :results, null: false
       t.integer :results_count, null: false
+      t.integer :user_id
       t.timestamps null: false
     end
 
@@ -128,6 +129,7 @@ class CreateItems < ActiveRecord::Migration
     add_index :item_parts, :api_id, unique: true
     add_index :item_parts, :isbn, unique: true
     add_index :item_links, [ :item_id, :url ], unique: true
+    add_foreign_key :image_searches, :users
     add_foreign_key :items, :languages
     add_foreign_key :items, :images
     add_foreign_key :items, :item_titles, column: :original_title_id

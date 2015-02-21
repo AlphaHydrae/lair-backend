@@ -1,8 +1,6 @@
 # Blockers
 
 * add missing translations for custom validations
-* only one image search needs to be saved for each resource
-  * change link direction (orphan image searches will be needed)
 
 # High Priority
 

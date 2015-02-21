@@ -1,0 +1,14 @@
+development:
+  SearchForMissingImagesJob:
+    every:
+      - "5s"
+    args:
+      - n: 2
+        interval: 1
+production:
+  SearchForMissingImagesJob:
+    every:
+      - "5m"
+    args:
+      - n: 4
+        interval: 15

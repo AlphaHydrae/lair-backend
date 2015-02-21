@@ -1,15 +1,15 @@
 module BingSearch
-  def self.images query, options = {}
-    rate_limit = RateLimitStatus.new :bingSearch
-    search_result = ImageSearchResult.new :bing, rate_limit
+  def self.images! search
+    search.engine = :bing
+    search.rate_limit = RateLimit.new :bing
 
-    check_rate_limit! rate_limit
-    return search_result if rate_limit.exceeded?
+    check_rate_limit! search.rate_limit
+    return search if rate_limit.exceeded?
 
-    res = HTTParty.get image_search_url, query: { '$format' => 'json', 'Query' => "'#{query}'" }, headers: { 'Accept' => 'application/json', 'Authorization' => authorization }
+    res = HTTParty.get image_search_url, query: { '$format' => 'json', 'Query' => "'#{search.query}'" }, headers: { 'Accept' => 'application/json', 'Authorization' => authorization }
     res = JSON.parse res.body
 
-    search_result.results = res['d']['results'].collect do |result|
+    search.results = res['d']['results'].collect do |result|
       {
         url: result['MediaUrl'],
         contentType: result['ContentType'],
@@ -29,15 +29,15 @@ module BingSearch
       end
     end
 
-    search_result
+    search
   end
 
-  def self.rate_limit_status
-    rate_limit = RateLimitStatus.new :bingSearch
+  def self.rate_limit
+    rate_limit = RateLimit.new :bing
 
     res = $redis.multi do
-      $redis.get 'rateLimit:bingSearch'
-      $redis.ttl 'rateLimit:bingSearch'
+      $redis.get 'rateLimit:bing'
+      $redis.ttl 'rateLimit:bing'
     end
 
     rate_limit.total = config[:rate_limit_value].to_i
@@ -58,11 +58,11 @@ module BingSearch
 
     res = $redis.multi do
       # set rate limit to 0 with ttl (if it doesn't exist)
-      $redis.set 'rateLimit:bingSearch', 0, nx: true, ex: duration
+      $redis.set 'rateLimit:bing', 0, nx: true, ex: duration
       # increment rate limit by 1
-      $redis.incr 'rateLimit:bingSearch'
+      $redis.incr 'rateLimit:bing'
       # also get remaining ttl
-      $redis.ttl 'rateLimit:bingSearch'
+      $redis.ttl 'rateLimit:bing'
     end
 
     rate_limit.total = config[:rate_limit_value].to_i

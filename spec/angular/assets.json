@@ -116,6 +116,10 @@
         "projectPath": "app/assets/javascripts/modules/images.js"
       },
       {
+        "logicalPath": "modules/images.missing.js",
+        "projectPath": "app/assets/javascripts/modules/images.missing.js"
+      },
+      {
         "logicalPath": "modules/items.edit.js",
         "projectPath": "app/assets/javascripts/modules/items.edit.js"
       },

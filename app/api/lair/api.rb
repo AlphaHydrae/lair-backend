@@ -28,8 +28,9 @@ module Lair
     end
 
     helpers ApiAuthenticationHelper
-    helpers ApiImageSearchHelper
+    helpers ImageSearchHelper::Api
     helpers ApiImageableHelper
+    helpers ApiParamsHelper
 
     helpers do
       def language tag
@@ -97,7 +98,7 @@ module Lair
         end
 
         header 'X-Pagination-Page', page.to_s
-        header 'X-Pagination-Page-Size', limit.to_s
+        header 'X-Pagination-PageSize', limit.to_s
         header 'X-Pagination-Total', Person.count.to_s
 
         rel = Person.order('last_name, first_names, pseudonym').offset(offset).limit(limit)
@@ -107,7 +108,7 @@ module Lair
           terms = params[:search].to_s.split(/\s+/)
           condition = ([ base_condition ] * terms.length).join ' '
           rel = rel.where terms.inject([]){ |memo,t| memo << t << t << t }.collect{ |t| "%#{t}%" }.unshift(condition)
-          header 'X-Pagination-Filtered-Total', rel.count.to_s
+          header 'X-Pagination-FilteredTotal', rel.count.to_s
         end
 
         rel.all.to_a.collect{ |person| person.to_builder.attributes! }
@@ -138,7 +139,8 @@ module Lair
         # TODO: update item number of parts & year if applicable
 
         ItemPart.transaction do
-          part.item = Item.where(api_id: params[:itemId]).first!
+          item = Item.where(api_id: params[:itemId]).first!
+          part.item = item
           part.title = item.titles.where(api_id: params[:title][:id]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
           part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
           part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
@@ -160,9 +162,74 @@ module Lair
         part.to_builder.attributes!
       end
 
+      helpers do
+        def search_parts
+          limit = params[:pageSize].to_i
+          limit = 10 if limit < 1
+
+          page = params[:page].to_i
+          offset = (page - 1) * limit
+          if offset < 1
+            page = 1
+            offset = 0
+          end
+
+          header 'X-Pagination-Page', page.to_s
+          header 'X-Pagination-PageSize', limit.to_s
+          header 'X-Pagination-Total', ItemPart.count.to_s
+
+          rel = ItemPart
+          filtered = false
+
+          if true_flag? :image
+            rel = rel.where 'image_id is not null'
+            filtered = true
+          elsif false_flag? :image
+            rel = rel.where 'image_id is null'
+            filtered = true
+          end
+
+          if params[:itemId].present?
+            rel = rel.joins(:item).where('items.api_id = ?', params[:itemId].to_s)
+            filtered = true
+          end
+
+          if params[:search].present?
+            search = "%#{params[:search].to_s.downcase}%"
+            rel = rel.joins('LEFT OUTER JOIN item_titles ON item_parts.title_id = item_titles.id').where 'LOWER(item_titles.contents) LIKE ? OR LOWER(custom_title) LIKE ?', search, search
+            filtered = true
+          end
+
+          header 'X-Pagination-FilteredTotal', rel.count.to_s if filtered
+
+          rel.offset(offset).limit(limit)
+        end
+      end
+
+      head do
+        search_parts
+        nil
+      end
+
       get do
-        item = Item.where(api_id: params[:itemId]).first!
-        ItemPart.joins(:item).where('items.id = ?', item.id).order('item_parts.range_start asc').includes(:title, :language).all.to_a.collect{ |item| item.to_builder.attributes! }
+        rel = search_parts
+
+        if true_flag? :random
+          rel = rel.order 'RANDOM()'
+        else
+          rel = rel.order 'item_parts.range_start, item_parts.custom_title'
+        end
+
+        with_item = true_flag? :item
+
+        includes = [ :image, :language, { title: :language } ]
+        if with_item
+          includes << { item: [ :language, :links, { relationships: :person, titles: :language } ] }
+        else
+          includes << :item
+        end
+
+        rel.includes(includes).to_a.collect{ |part| part.to_builder(item: with_item).attributes! }
       end
 
       namespace '/:partId' do
@@ -263,37 +330,65 @@ module Lair
         end
       end
 
+      helpers do
+        def search_items
+          limit = params[:pageSize].to_i
+          limit = 10 if limit < 1
+
+          page = params[:page].to_i
+          offset = (page - 1) * limit
+          if offset < 1
+            page = 1
+            offset = 0
+          end
+
+          header 'X-Pagination-Page', page.to_s
+          header 'X-Pagination-PageSize', limit.to_s
+          header 'X-Pagination-Total', Item.count.to_s
+
+          rel = Item
+          filtered = false
+
+          if params[:image].to_s.match /\A(?:1|y|yes|t|true)\Z/i
+            rel = rel.where 'image_id is not null'
+            filtered = true
+          elsif params[:image].to_s.match /\A(?:0|n|no|f|false)\Z/i
+            rel = rel.where 'image_id is null'
+            filtered = true
+          end
+
+          if params[:category].present?
+            rel = rel.where category: params[:category].to_s
+            filtered = true
+          end
+
+          if params[:search].present?
+            rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
+            filtered = true
+          end
+
+          header 'X-Pagination-FilteredTotal', rel.count.to_s if filtered
+
+          rel.offset(offset).limit(limit)
+        end
+      end
+
+      head do
+        search_items
+        nil
+      end
+
       get do
-        limit = params[:pageSize].to_i
-        limit = 10 if limit < 1
+        rel = search_items
 
-        page = params[:page].to_i
-        offset = (page - 1) * limit
-        if offset < 1
-          page = 1
-          offset = 0
+        if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
+          rel = rel.order 'RANDOM()'
+        else
+          rel = rel.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc')
         end
 
-        header 'X-Pagination-Page', page.to_s
-        header 'X-Pagination-Page-Size', limit.to_s
-        header 'X-Pagination-Total', Item.count.to_s
-
-        rel = Item.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc').offset(offset).limit(limit).includes([ :language, :links, { titles: :language } ])
-        filtered = false
-
-        if params[:category].present?
-          rel = rel.where category: params[:category].to_s
-          filtered = true
-        end
-
-        if params[:search].present?
-          rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
-          filtered = true
-        end
-
-        header 'X-Pagination-Filtered-Total', rel.count.to_s if filtered
-
-        rel.all.to_a.collect{ |item| item.to_builder.attributes! }
+        rel = rel.includes([ :language, :links, { relationships: :person, titles: :language } ])
+        rel.to_a.collect{ |item| item.to_builder.attributes! }
       end
 
       namespace '/:itemId' do

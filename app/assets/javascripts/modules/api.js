@@ -17,11 +17,66 @@ angular.module('lair.api', ['lair.auth'])
       this.remaining = this.total;
     };
 
+    function parsePaginationHeader(response, header, required) {
+
+      var value = response.headers(header);
+      if (!value) {
+        if (required) {
+          throw new Error('Exected response to have the ' + header + ' header');
+        } else {
+          return null;
+        }
+      }
+
+      var number = parseInt(value, 10);
+      if (isNaN(number)) {
+        throw new Error('Expected response header ' + header + ' to contain an integer, got "' + value + '" (' + typeof(value) + ')');
+      }
+
+      return number;
+    }
+
+    function Pagination(response) {
+      this.page = parsePaginationHeader(response, 'X-Pagination-Page', true);
+      this.pageSize = parsePaginationHeader(response, 'X-Pagination-PageSize', true);
+      this.total = parsePaginationHeader(response, 'X-Pagination-Total', true);
+      this.filteredTotal = parsePaginationHeader(response, 'X-Pagination-FilteredTotal', false);
+      this.startNumber = (this.page - 1) * this.pageSize + 1;
+      this.endNumber = this.page * this.pageSize;
+    }
+
+    Pagination.hasPagination = function(response) {
+      return !!response.headers('X-Pagination-Total');
+    };
+
+    Pagination.prototype.hasMorePages = function() {
+      return this.page * this.pageSize < (this.filteredTotal !== undefined ? this.filteredTotal : this.total);
+    };
+
     return {
       http: function(options) {
-        return $http(options);
+        // TODO: automatically prepend /api to path
+        return $http(options).then(function(res) {
+
+          // enrich response with pagination function
+          res.pagination = function() {
+
+            if (!Pagination.hasPagination(res)) {
+              // throw an error if no pagination data is available
+              throw new Error('Expected response to have pagination headers');
+            } else if (!res.paginationData) {
+              // otherwise, parse the pagination data
+              res.paginationData = new Pagination(res);
+            }
+
+            return res.paginationData;
+          };
+
+          return res;
+        });
       },
 
+      // TODO: add as utility function on response (like pagination)
       rateLimit: function(response) {
 
         var total = response.headers('X-RateLimit-Total'),

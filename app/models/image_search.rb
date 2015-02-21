@@ -1,7 +1,10 @@
 class ImageSearch < ActiveRecord::Base
   include ResourceWithIdentifier
+  attr_accessor :rate_limit
+
   before_create :set_identifier
 
+  belongs_to :user
   belongs_to :imageable, polymorphic: true
 
   strip_attributes
@@ -10,7 +13,7 @@ class ImageSearch < ActiveRecord::Base
   validates :results_count, presence: true, numericality: { only_integer: true, minimum: 0 }
 
   def results= results
-    self.results_count = results.length
+    self.results_count = results.length if results
     super results
   end
 

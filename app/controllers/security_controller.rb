@@ -1,5 +1,5 @@
 class SecurityController < ApplicationController
-  include AuthenticationHelper
+  include ApiAuthenticationHelper
 
   def token
     authenticate_with_header request.headers['Authorization']

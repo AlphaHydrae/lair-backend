@@ -1,4 +1,3 @@
-
 angular.module('lair.auth', ['base64', 'lair.auth.token', 'LocalStorageModule', 'satellizer', 'ui.gravatar'])
 
   .factory('AuthService', ['$auth', 'localStorageService', '$log', '$rootScope', 'TokenAuthService', function($auth, $local, $log, $rootScope, $tokenAuth) {

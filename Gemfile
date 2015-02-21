@@ -12,6 +12,10 @@ gem 'redis'
 gem 'hiredis'
 gem 'redis-namespace'
 
+# Background Jobs
+gem 'resque'
+gem 'resque-scheduler'
+
 # Templates & Assets
 gem 'slim-rails'
 gem 'less-rails'

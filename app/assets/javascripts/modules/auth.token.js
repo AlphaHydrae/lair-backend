@@ -1,4 +1,3 @@
-
 angular.module('lair.auth.token', ['satellizer'])
 
   .factory('TokenAuthService', ['$auth', '$http', function($auth, $http) {

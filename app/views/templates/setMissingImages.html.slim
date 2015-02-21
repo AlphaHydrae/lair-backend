@@ -1,0 +1,13 @@
+.container ng-controller='MissingImagesCtrl'
+  h1 Missing Images
+  p
+    span.text-success ng-hide='itemsCount' All items have an image.
+    span.text-warning ng-show='itemsCount'
+      ng-pluralize count='itemsCount' when='{"one": "1 item does", "other": "{} items do"}'
+      |  not have an image.
+    |  
+    span.text-success ng-hide='partsCount' All item parts have an image.
+    span.text-warning ng-show='partsCount'
+      ng-pluralize count='partsCount' when='{"one": "1 item part does", "other": "{} item parts do"}'
+      |  not have an image.
+    strong.text-success ng-hide='itemsCount || partsCount'  Nothing to do!

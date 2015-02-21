@@ -62,6 +62,25 @@ angular.module('lair.routes', [ 'ui.router' ])
           }
         }
       })
+
+      .state('std.images', {
+        abstract: true,
+        url: '^/images',
+        views: {
+          'navbar@std': {
+            templateUrl: '/templates/navbar.html'
+          }
+        }
+      })
+
+      .state('std.images.missing', {
+        url: '/missing',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/setMissingImages.html'
+          }
+        }
+      })
     ;
 
   }])

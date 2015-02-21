@@ -1,4 +1,4 @@
-class RateLimitStatus
+class RateLimit
   attr_accessor :service
   attr_accessor :total
   attr_accessor :current

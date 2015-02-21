@@ -24,6 +24,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "query",          limit: 255, null: false
     t.json     "results",                    null: false
     t.integer  "results_count",              null: false
+    t.integer  "user_id"
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false
   end
@@ -151,6 +152,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "users", ["api_id"], name: "index_users_on_api_id", unique: true, using: :btree
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
 
+  add_foreign_key "image_searches", "users"
   add_foreign_key "item_descriptions", "items"
   add_foreign_key "item_links", "items"
   add_foreign_key "item_links", "languages"

@@ -1,3 +1,4 @@
+# TODO: add effective title column to order by
 class ItemPart < ActiveRecord::Base
   include ResourceWithIdentifier
   # TODO: set image of parent item automatically if not yet set
@@ -17,7 +18,7 @@ class ItemPart < ActiveRecord::Base
   validates :custom_title_language, presence: { if: :custom_title }
   validates :year, numericality: { only_integer: true, minimum: -4000, allow_blank: true }
   validates :range_start, numericality: { only_integer: true, minimum: 1, allow_blank: true }
-  validates :range_end, presence: { if: Proc.new{ |ip| ip.range_start.present? } }, numericality: { only_integer: true, minimum: 1, allow_blank: true }
+  validates :range_end, presence: { if: Proc.new{ |p| p.range_start.present? } }, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :language, presence: true
   validates :edition, length: { maximum: 25, allow_blank: true }
   validates :version, numericality: { only_integer: true, minimum: 1, allow_blank: true }
@@ -44,13 +45,14 @@ class ItemPart < ActiveRecord::Base
     parts.join ' '
   end
 
-  def to_builder
+  def to_builder options = {}
     Jbuilder.new do |json|
       json.id api_id
       json.itemId item.api_id
+      json.item item.to_builder if options[:item]
       json.title custom_title.present? ? { text: custom_title, language: custom_title_language.tag } : title.to_builder
       json.titleId title.api_id if title
-      json.year year
+      json.year year if year
       json.language language.tag
       json.image image.to_builder if image
       json.start range_start if range_start

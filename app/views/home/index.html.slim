@@ -9,6 +9,14 @@ script type='text/ng-template' id='/templates/navbar.html'
           span.icon-bar
         a.navbar-brand ui-sref='std.home' Lair
       #menu.collapse.navbar-collapse
+        ul.nav.navbar-nav
+          li dropdown=true
+            a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
+              | Admin
+              span.caret
+            ul.dropdown-menu role='menu'
+              li
+                a href='#' ui-sref='std.images.missing' Set Missing Images
         ul.nav.navbar-nav.navbar-right ng-controller='AuthController'
           li ng-hide='isAuthenticated()'
             a href='#' ng-click='showLoginDialog()' Sign in
@@ -16,7 +24,7 @@ script type='text/ng-template' id='/templates/navbar.html'
             a href='#'
               img gravatar-src='currentUser.email' gravatar-size=40
           li ng-show='isAuthenticated()' dropdown=true
-            a.dropdown-toggle href='#'
+            a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
               span ng-bind='currentUser.email'
               span.caret
             ul.dropdown-menu role='menu'

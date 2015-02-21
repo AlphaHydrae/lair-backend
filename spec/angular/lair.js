@@ -1,11 +1,10 @@
-
-
 angular.module('lair', [
   'lair.state',
   'lair.auth',
   'lair.home',
   'lair.people',
   'lair.routes',
+  'lair.images.missing',
   'lair.items.edit',
   'lair.parts.edit',
   'angularMoment',

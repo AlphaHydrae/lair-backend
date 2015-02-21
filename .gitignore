@@ -4,6 +4,7 @@
 /bower_components
 /config/database.yml
 /config/redis.yml
+/config/schedule.yml
 /config/services.yml
 /lib/tasks/local*
 /local
