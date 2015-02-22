@@ -17,6 +17,7 @@ class ItemPart < ActiveRecord::Base
   validates :custom_title, absence: { if: :title }, length: { maximum: 255 }
   validates :custom_title_language, presence: { if: :custom_title }
   validates :year, numericality: { only_integer: true, minimum: -4000, allow_blank: true }
+  validates :original_year, presence: true, numericality: { only_integer: true, minimum: -4000, allow_blank: true }
   validates :range_start, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :range_end, presence: { if: Proc.new{ |p| p.range_start.present? } }, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :language, presence: true
@@ -49,12 +50,12 @@ class ItemPart < ActiveRecord::Base
     Jbuilder.new do |json|
       json.id api_id
       json.itemId item.api_id
-      json.item item.to_builder if options[:item]
+      json.item item.to_builder(options.slice(:image_from_search)) if options[:item]
       json.title custom_title.present? ? { text: custom_title, language: custom_title_language.tag } : title.to_builder
       json.titleId title.api_id if title
       json.year year if year
+      json.originalYear original_year
       json.language language.tag
-      json.image image.to_builder if image
       json.start range_start if range_start
       json.end range_end if range_end
       json.edition edition if edition
@@ -62,6 +63,8 @@ class ItemPart < ActiveRecord::Base
       json.format format if format
       json.length length if length
       json.tags tags || {}
+
+      add_image_to_builder json, options
     end
   end
 

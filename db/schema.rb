@@ -68,9 +68,11 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "item_id",                              null: false
     t.integer  "title_id"
     t.integer  "image_id"
+    t.integer  "last_image_search_id"
     t.string   "custom_title",             limit: 255
     t.integer  "custom_title_language_id"
     t.integer  "year"
+    t.integer  "original_year",                        null: false
     t.integer  "range_start"
     t.integer  "range_end"
     t.integer  "language_id",                          null: false
@@ -105,17 +107,18 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "item_titles", ["api_id"], name: "index_item_titles_on_api_id", unique: true, using: :btree
 
   create_table "items", force: :cascade do |t|
-    t.string   "api_id",            limit: 6,  null: false
-    t.string   "category",          limit: 10, null: false
+    t.string   "api_id",               limit: 6,  null: false
+    t.string   "category",             limit: 10, null: false
     t.integer  "number_of_parts"
     t.integer  "original_title_id"
     t.integer  "start_year"
     t.integer  "end_year"
-    t.integer  "language_id",                  null: false
+    t.integer  "language_id",                     null: false
     t.integer  "image_id"
+    t.integer  "last_image_search_id"
     t.json     "tags"
-    t.datetime "created_at",                   null: false
-    t.datetime "updated_at",                   null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
   end
 
   add_index "items", ["api_id"], name: "index_items_on_api_id", unique: true, using: :btree
@@ -156,6 +159,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_descriptions", "items"
   add_foreign_key "item_links", "items"
   add_foreign_key "item_links", "languages"
+  add_foreign_key "item_parts", "image_searches", column: "last_image_search_id"
   add_foreign_key "item_parts", "images"
   add_foreign_key "item_parts", "item_titles", column: "title_id"
   add_foreign_key "item_parts", "items"
@@ -165,6 +169,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_people", "people"
   add_foreign_key "item_titles", "items"
   add_foreign_key "item_titles", "languages"
+  add_foreign_key "items", "image_searches", column: "last_image_search_id"
   add_foreign_key "items", "images"
   add_foreign_key "items", "item_titles", column: "original_title_id"
   add_foreign_key "items", "languages"

@@ -3,6 +3,7 @@ class ImageSearch < ActiveRecord::Base
   attr_accessor :rate_limit
 
   before_create :set_identifier
+  after_create :set_imageable_last_search
 
   belongs_to :user
   belongs_to :imageable, polymorphic: true
@@ -17,6 +18,10 @@ class ImageSearch < ActiveRecord::Base
     super results
   end
 
+  def results?
+    results_count > 0
+  end
+
   def to_builder
     Jbuilder.new do |json|
       json.id api_id
@@ -25,5 +30,11 @@ class ImageSearch < ActiveRecord::Base
       json.results results
       json.searchedAt created_at.iso8601(3)
     end
+  end
+
+  private
+
+  def set_imageable_last_search
+    imageable.class.where(id: imageable.id).update_all last_image_search_id: id
   end
 end

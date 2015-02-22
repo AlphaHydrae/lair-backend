@@ -29,6 +29,7 @@ class CreateItems < ActiveRecord::Migration
       t.integer :end_year
       t.integer :language_id, null: false
       t.integer :image_id
+      t.integer :last_image_search_id
       t.json :tags
       t.timestamps null: false
     end
@@ -60,9 +61,11 @@ class CreateItems < ActiveRecord::Migration
       t.integer :item_id, null: false
       t.integer :title_id
       t.integer :image_id
+      t.integer :last_image_search_id
       t.string :custom_title, limit: 255
       t.integer :custom_title_language_id
       t.integer :year
+      t.integer :original_year, null: false
       t.integer :range_start
       t.integer :range_end
       t.integer :language_id, null: false
@@ -132,6 +135,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :image_searches, :users
     add_foreign_key :items, :languages
     add_foreign_key :items, :images
+    add_foreign_key :items, :image_searches, column: :last_image_search_id
     add_foreign_key :items, :item_titles, column: :original_title_id
     add_foreign_key :item_links, :items
     add_foreign_key :item_links, :languages
@@ -143,6 +147,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_parts, :languages
     add_foreign_key :item_parts, :languages, column: :custom_title_language_id
     add_foreign_key :item_parts, :images
+    add_foreign_key :item_parts, :image_searches, column: :last_image_search_id
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people
     add_foreign_key :ownerships, :item_parts
@@ -151,7 +156,6 @@ class CreateItems < ActiveRecord::Migration
 
   def down
     remove_foreign_key :item_titles, :items
-    drop_table :image_searches
     drop_table :ownerships
     drop_table :item_people
     drop_table :item_parts
@@ -159,6 +163,7 @@ class CreateItems < ActiveRecord::Migration
     drop_table :item_links
     drop_table :items
     drop_table :images
+    drop_table :image_searches
     drop_table :item_titles
     drop_table :people
     drop_table :languages

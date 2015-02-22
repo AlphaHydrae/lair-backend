@@ -147,6 +147,7 @@ module Lair
           part.language = language params[:language]
           set_image! part, params[:image] if params[:image].kind_of? Hash
           part.year = params[:year] if params.key?(:year)
+          part.original_year = params[:originalYear] if params.key?(:originalYear)
           part.range_start = params[:start] if params.key?(:start)
           part.range_end = params[:end] if params.key?(:end)
           part.edition = params[:edition]
@@ -221,15 +222,19 @@ module Lair
         end
 
         with_item = true_flag? :item
+        image_from_search = true_flag? :imageFromSearch
 
         includes = [ :image, :language, { title: :language } ]
+        includes << :last_image_search if image_from_search
+
         if with_item
           includes << { item: [ :language, :links, { relationships: :person, titles: :language } ] }
+          includes.last[:item] << :last_image_search if image_from_search
         else
           includes << :item
         end
 
-        rel.includes(includes).to_a.collect{ |part| part.to_builder(item: with_item).attributes! }
+        rel.includes(includes).to_a.collect{ |part| part.to_builder(item: with_item, image_from_search: image_from_search).attributes! }
       end
 
       namespace '/:partId' do
@@ -272,8 +277,8 @@ module Lair
             part.language = language params[:language] if params.key? :language
             part.range_start = params[:start] if params.key? :start
             part.range_end = params[:end] if params.key? :end
-            %i(year edition version format length publisher isbn).each do |attr|
-              part.send "#{attr}=", params[attr] if params.key? attr
+            %i(year originalYear edition version format length publisher isbn).each do |attr|
+              part.send "#{attr.to_s.underscore}=", params[attr] if params.key? attr
             end
             part.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != part.tags
             part.save!
@@ -387,8 +392,12 @@ module Lair
           rel = rel.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc')
         end
 
-        rel = rel.includes([ :language, :links, { relationships: :person, titles: :language } ])
-        rel.to_a.collect{ |item| item.to_builder.attributes! }
+        includes = [ :language, :links, { relationships: :person, titles: :language } ]
+
+        image_from_search = true_flag? :imageFromSearch
+        includes << :last_image_search if image_from_search
+
+        rel.includes(includes).to_a.collect{ |item| item.to_builder(image_from_search: image_from_search).attributes! }
       end
 
       namespace '/:itemId' do

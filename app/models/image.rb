@@ -17,8 +17,15 @@ class Image < ActiveRecord::Base
   validates :thumbnail_height, absence: { unless: :thumbnail_url }, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :thumbnail_size, absence: { unless: :thumbnail_url }, numericality: { only_integer: true, minimum: 1, allow_blank: true }
 
+  def fill_from_api_data data
+    %i(url contentType width height size).each{ |attr| send "#{attr.to_s.underscore}=", data[attr] if data.key? attr }
+    %i(url contentType width height size).each{ |attr| send "thumbnail_#{attr.to_s.underscore}=", data[:thumbnail][attr] if data[:thumbnail].key?(attr) } if data[:thumbnail].kind_of?(Hash) && data[:thumbnail].key?(:url)
+    self
+  end
+
   def to_builder
     Jbuilder.new do |json|
+      json.id api_id unless new_record?
       json.url url
       json.contentType content_type if content_type
       json.width width if width

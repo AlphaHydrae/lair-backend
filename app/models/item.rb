@@ -27,19 +27,20 @@ class Item < ActiveRecord::Base
     "#{titles[0].contents} #{category}"
   end
 
-  def to_builder
+  def to_builder options = {}
     Jbuilder.new do |json|
       json.id api_id
       json.category category
       json.startYear start_year
       json.endYear end_year
       json.language language.tag
-      json.image image.to_builder if image
       json.numberOfParts number_of_parts if number_of_parts
       json.titles titles.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
       json.relationships relationships.to_a.collect{ |r| r.to_builder.attributes! }
       json.links links.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }
       json.tags tags || {}
+
+      add_image_to_builder json, options
     end
   end
 

@@ -5,6 +5,7 @@
 # High Priority
 
 * auditing
+* add alt attribute to all img tags
 * use sydcanem/bootstrap-contextmenu to preview images
 
 # Low Priority

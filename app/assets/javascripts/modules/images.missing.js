@@ -1,12 +1,55 @@
 angular.module('lair.images.missing', [])
 
-  .controller('MissingImagesCtrl', ['ApiService', '$log', '$q', '$scope', function($api, $log, $q, $scope) {
+  .filter('filterParts', function() {
+    return function(parts, scope) {
+      if (scope.showAllParts) {
+        return parts;
+      } else {
+        return _.filter(parts, function(part) {
+          return !part.image || !part.image.id;
+        });
+      }
+    };
+  })
+
+  .controller('MissingImagesCtrl', ['ApiService', '$log', '$modal', '$q', '$scope', function($api, $log, $modal, $q, $scope) {
 
     // TODO: find out why an "all" promise with the two countMissingImages requests doesn't resolve properly
     $q.when()
       .then(_.partial(countMissingImages, 'items'))
       .then(_.partial(countMissingImages, 'parts'))
       .then(fetchResourceWithMissingImage);
+
+    $scope.approveImage = function(subject, resource) {
+      $api.http({
+        method: 'PATCH',
+        url: '/api/' + resource + '/' + subject.id,
+        data: {
+          image: subject.image
+        }
+      }).then(function(res) {
+        subject.image = res.data.image;
+      }, function(res) {
+        $log.warn('Could not update image of ' + resource + ' ' + subject.id);
+        $log.debug(res);
+      });
+    };
+
+    $scope.selectImage = function(subject, resource) {
+      $scope.imageSearchSubject = subject;
+      $scope.imageSearchResource = '/api/' + resource + '/' + subject.id + '/imageSearch';
+
+      modal = $modal.open({
+        controller: 'SelectImageCtrl',
+        templateUrl: '/templates/selectImageDialog.html',
+        scope: $scope,
+        size: 'lg'
+      });
+
+      modal.result.then(function(image) {
+        subject.image = image;
+      });
+    };
 
     function fetchResourceWithMissingImage() {
       if (!$scope.itemsCount && !$scope.partsCount) {
@@ -17,6 +60,7 @@ angular.module('lair.images.missing', [])
       var resource = $scope.partsCount ? 'parts' : 'items',
           params = {
             image: 0,
+            imageFromSearch: 1,
             random: 1,
             pageSize: 1
           };
@@ -51,6 +95,7 @@ angular.module('lair.images.missing', [])
         url: '/api/parts',
         params: {
           itemId: $scope.item.id,
+          imageFromSearch: 1,
           page: page,
           pageSize: pageSize
         }

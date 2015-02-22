@@ -28,7 +28,11 @@
           input#partStart.form-control ng-model='editedPart.start' type='number' size=3
           |  - 
           input#partEnd.form-control type='number' ng-model='editedPart.end' size=3
-      .col-xs-4
+      .col-xs-2
+        .form-group
+          label for='partOriginalYear' Original Year
+          input#partOriginalYear.form-control ng-model='editedPart.originalYear' type='number' min='-4000'
+      .col-xs-2
         .form-group
           label for='partYear' Year
           input#partYear.form-control ng-model='editedPart.year' type='number' min='-4000'
