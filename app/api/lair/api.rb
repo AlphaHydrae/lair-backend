@@ -66,6 +66,7 @@ module Lair
 
         Ownership.transaction do
           ownership = Ownership.new item_part: part, user: user
+          ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
           ownership.gotten_at = Time.parse params[:gottenAt] if params[:gottenAt]
           ownership.save!
           ownership.to_builder.attributes!

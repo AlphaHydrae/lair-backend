@@ -35,6 +35,15 @@ angular.module('lair.routes', [ 'ui.router' ])
         }
       })
 
+      .state('std.items.create', {
+        url: '^/items',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/createItem.html'
+          }
+        }
+      })
+
       .state('std.items.edit', {
         url: '/:itemId/edit',
         views: {

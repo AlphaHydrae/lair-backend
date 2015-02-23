@@ -134,14 +134,19 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "api_id",       limit: 12, null: false
     t.integer  "item_part_id",            null: false
     t.integer  "user_id",                 null: false
+    t.json     "tags"
     t.datetime "gotten_at",               null: false
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
   end
 
   create_table "people", force: :cascade do |t|
-    t.string "api_id",      limit: 12,  null: false
-    t.string "last_name",   limit: 50
-    t.string "first_names", limit: 100
-    t.string "pseudonym",   limit: 50
+    t.string   "api_id",      limit: 12,  null: false
+    t.string   "last_name",   limit: 50
+    t.string   "first_names", limit: 100
+    t.string   "pseudonym",   limit: 50
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
   end
 
   create_table "users", force: :cascade do |t|

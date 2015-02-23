@@ -5,6 +5,7 @@ angular.module('lair', [
   'lair.people',
   'lair.routes',
   'lair.images.missing',
+  'lair.items.create',
   'lair.items.edit',
   'lair.parts.edit',
   'angularMoment',

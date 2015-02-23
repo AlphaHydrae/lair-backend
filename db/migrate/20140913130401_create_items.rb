@@ -18,6 +18,7 @@ class CreateItems < ActiveRecord::Migration
       t.string :last_name, limit: 50
       t.string :first_names, limit: 100
       t.string :pseudonym, limit: 50
+      t.timestamps null: false
     end
 
     create_table :items do |t|
@@ -92,7 +93,9 @@ class CreateItems < ActiveRecord::Migration
       t.string :api_id, null: false, limit: 12
       t.integer :item_part_id, null: false
       t.integer :user_id, null: false
+      t.json :tags
       t.datetime :gotten_at, null: false
+      t.timestamps null: false
     end
 
     create_table :image_searches do |t|

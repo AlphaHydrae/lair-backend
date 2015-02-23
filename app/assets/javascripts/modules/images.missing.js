@@ -1,6 +1,6 @@
 angular.module('lair.images.missing', [])
 
-  .filter('filterParts', function() {
+  .filter('onlyPartsWithImage', function() {
     return function(parts, scope) {
       if (scope.showAllParts) {
         return parts;
@@ -14,26 +14,85 @@ angular.module('lair.images.missing', [])
 
   .controller('MissingImagesCtrl', ['ApiService', '$log', '$modal', '$q', '$scope', function($api, $log, $modal, $q, $scope) {
 
+    $scope.showAllParts = false;
+    $scope.useSameImageForMainPartAndItem = true;
+
     // TODO: find out why an "all" promise with the two countMissingImages requests doesn't resolve properly
     $q.when()
       .then(_.partial(countMissingImages, 'items'))
       .then(_.partial(countMissingImages, 'parts'))
       .then(fetchResourceWithMissingImage);
 
+    $scope.approveAll = function() {
+
+      var promise = $q.when(),
+          mainPartHasSameImage = $scope.mainPart && $scope.mainPart.image && $scope.item.image == $scope.mainPart.image;
+
+      if ($scope.item.image && !$scope.item.image.id) {
+        promise = promise.then(_.partial(approveImage, $scope.item, 'items', $scope.item.image));
+      }
+
+      if (mainPartHasSameImage) {
+        promise = promise.then(function(image) {
+          return approveImage($scope.mainPart, 'parts', { id: image.id });
+        });
+      }
+
+      _.each($scope.item.parts, function(part) {
+        if (part.image && !part.image.id && (!mainPartHasSameImage || part != $scope.mainPart)) {
+          promise = promise.then(_.partial(approveImage, part, 'parts', part.image));
+        }
+      });
+
+      promise = promise.then(function() {
+        if (!countCurrentMissingImages()) {
+          fetchResourceWithMissingImage();
+        }
+      });
+    };
+
+    $scope.nextRandomItem = function() {
+      fetchResourceWithMissingImage();
+    };
+
+    $scope.countOutstandingApprovals = function() {
+      var n = 0;
+
+      if ($scope.item) {
+        if ($scope.item.image && !$scope.item.image.id) {
+          n++;
+        }
+
+        if ($scope.item.parts) {
+          n += _.reduce($scope.item.parts, function(memo, part) {
+            return memo + (part.image && !part.image.id ? 1 : 0);
+          }, 0);
+        }
+      }
+
+      return n;
+    };
+
     $scope.approveImage = function(subject, resource) {
-      $api.http({
+      approveImage(subject, resource, subject.image);
+    };
+
+    function approveImage(subject, resource, imageData) {
+      return $api.http({
         method: 'PATCH',
         url: '/api/' + resource + '/' + subject.id,
         data: {
-          image: subject.image
+          image: imageData
         }
       }).then(function(res) {
         subject.image = res.data.image;
+        $scope[resource + 'Count'] -= 1;
+        return subject.image;
       }, function(res) {
         $log.warn('Could not update image of ' + resource + ' ' + subject.id);
         $log.debug(res);
       });
-    };
+    }
 
     $scope.selectImage = function(subject, resource) {
       $scope.imageSearchSubject = subject;
@@ -48,14 +107,29 @@ angular.module('lair.images.missing', [])
 
       modal.result.then(function(image) {
         subject.image = image;
+        if ($scope.useSameImageForMainPartAndItem && resource == 'items' && $scope.mainPart) {
+          $scope.mainPart.image = image;
+        } else if ($scope.useSameImageForMainPartAndItem && resource == 'parts' && subject == $scope.mainPart) {
+          $scope.item.image = image;
+        }
       });
     };
+
+    function setMainPart() {
+      if ($scope.item.parts.length == 1) {
+        $scope.mainPart = $scope.item.parts[0];
+      } else {
+        $scope.mainPart = _.findWhere($scope.item.parts, { start: 1 });
+      }
+    }
 
     function fetchResourceWithMissingImage() {
       if (!$scope.itemsCount && !$scope.partsCount) {
         $log.debug('No item or part is missing an image; nothing to do');
         return;
       }
+
+      delete $scope.item;
 
       var resource = $scope.partsCount ? 'parts' : 'items',
           params = {
@@ -104,6 +178,8 @@ angular.module('lair.images.missing', [])
         $log.debug('Fetched parts ' + res.pagination().startNumber + '-' + res.pagination().endNumber + ' for item ' + $scope.item.id);
         if (res.pagination().hasMorePages()) {
           return fetchItemParts(page + 1);
+        } else {
+          setMainPart();
         }
       }, function(res) {
         $log.warn('Could not fetch parts for item ' + $scope.item.id);
@@ -111,8 +187,26 @@ angular.module('lair.images.missing', [])
       });
     }
 
+    function countCurrentMissingImages() {
+      var n = 0;
+
+      if ($scope.item) {
+        if (!$scope.item.image || !$scope.item.image.id) {
+          n++;
+        }
+
+        if ($scope.item.parts) {
+          n += _.reduce($scope.item.parts, function(memo, part) {
+            return memo + (!part.image || !part.image.id ? 1 : 0);
+          }, 0);
+        }
+      }
+
+      return n;
+    }
+
     function countMissingImages(resource) {
-      var promise = $api.http({
+      return $api.http({
         method: 'HEAD',
         url: '/api/' + resource,
         params: {
@@ -120,9 +214,7 @@ angular.module('lair.images.missing', [])
           random: 1,
           pageSize: 1
         }
-      });
-
-      promise = promise.then(function(res) {
+      }).then(function(res) {
 
         var count = parseInt(res.headers('X-Pagination-FilteredTotal'), 10);
         $scope[resource + 'Count'] = count;
@@ -132,8 +224,6 @@ angular.module('lair.images.missing', [])
         $log.warn('Could not count ' + resource + ' that do not have an image');
         $log.debug(res);
       });
-
-      return promise;
     }
   }])
 ;

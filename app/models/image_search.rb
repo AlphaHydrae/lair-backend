@@ -1,6 +1,7 @@
 class ImageSearch < ActiveRecord::Base
   include ResourceWithIdentifier
   attr_accessor :rate_limit
+  # TODO: delete previous unattached image searches
 
   before_create :set_identifier
   after_create :set_imageable_last_search
@@ -24,7 +25,7 @@ class ImageSearch < ActiveRecord::Base
 
   def to_builder
     Jbuilder.new do |json|
-      json.id api_id
+      json.id api_id # TODO: unused?
       json.query query
       json.engine engine
       json.results results

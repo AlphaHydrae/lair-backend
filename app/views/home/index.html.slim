@@ -16,6 +16,8 @@ script type='text/ng-template' id='/templates/navbar.html'
               span.caret
             ul.dropdown-menu role='menu'
               li
+                a href='#' ui-sref='std.items.create' Create Item
+              li
                 a href='#' ui-sref='std.images.missing' Set Missing Images
         ul.nav.navbar-nav.navbar-right ng-controller='AuthController'
           li ng-hide='isAuthenticated()'

@@ -1,5 +1,5 @@
 .modal-header
-  button.btn.btn-sm.btn-warning.pull-right type='button' ng-click='edit(item)'
+  button.btn.btn-sm.btn-warning.pull-right type='button' ng-click='edit(item)' tooltip='Edit'
     span.glyphicon.glyphicon-edit
   h3.modal-title {{ item.titles[0].text }}
 .modal-body.itemInfo
@@ -50,7 +50,7 @@
                 span ng-if='!part.year'
                   |  ({{ part.originalYear }})
             td.description
-              button.btn.btn-sm.btn-warning.pull-right type='button' ng-click='editPart(part)'
+              button.btn.btn-sm.btn-warning.pull-right type='button' ng-click='editPart(part)' tooltip='Edit'
                 span.glyphicon.glyphicon-edit
               dl
                 dt ng-show='part.format' Format

@@ -120,8 +120,16 @@
         "projectPath": "app/assets/javascripts/modules/images.missing.js"
       },
       {
+        "logicalPath": "modules/items.create.js",
+        "projectPath": "app/assets/javascripts/modules/items.create.js"
+      },
+      {
         "logicalPath": "modules/items.edit.js",
         "projectPath": "app/assets/javascripts/modules/items.edit.js"
+      },
+      {
+        "logicalPath": "modules/items.form.js",
+        "projectPath": "app/assets/javascripts/modules/items.form.js"
       },
       {
         "logicalPath": "modules/parts.edit.js",

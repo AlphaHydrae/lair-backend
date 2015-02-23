@@ -1,6 +1,9 @@
 #setMissingImages.container ng-controller='MissingImagesCtrl'
   .page-header
     h1 Missing Images
+  .btn-group.btn-group-lg.pull-right role='group' ng-if='itemsCount || partsCount'
+    button.btn.btn-success ng-click='approveAll()' ng-disabled='countOutstandingApprovals() <= 0' Approve all images
+    button.btn.btn-default ng-click='nextRandomItem()' Next random item
   p
     span.text-success ng-hide='itemsCount' All items have an image.
     span.text-warning ng-show='itemsCount'
@@ -12,7 +15,7 @@
       ng-pluralize count='partsCount' when='{"one": "1 item part does", "other": "{} item parts do"}'
       |  not have an image.
     strong.text-success ng-hide='itemsCount || partsCount'  Nothing to do!
-  .row
+  .selection.row.clear
     .col-lg-3
       a.thumbnail.text-center href='#' ng-click='selectImage(item, "items")'
         img ng-if='item.image' src='{{ item.image.thumbnail.url }}'
@@ -23,7 +26,7 @@
         small ng-if='item.titles.length >= 2'
           span ng-repeat='title in item.titles.slice(1)' {{ title.text }}
       p.text-success ng-show='item.image.id'
-        strong This item already has an image.
+        strong This item has an image.
         |  Click the image if you want to find another one.
       .btn-group role='group' ng-hide='item.image.id'
         button.btn.btn-success ng-click='approveImage(item, "items")' ng-show='item.image && !item.image.id' Approve
@@ -32,19 +35,26 @@
           span ng-hide='item.image' Find an image
     .clearfix
     .col-xs-12
-      form.form-inline role='form'
+      form.partsSettings.form-inline role='form'
         .checkbox
           label
-            input type='checkbox' ng-model='showAllParts'
-            |  Show all parts
-    .col-lg-2 ng-repeat-start='part in item.parts | filterParts: this'
+            input type='checkbox' ng-model='showAllParts' ng-indeterminate='item.parts.length == (item.parts | onlyPartsWithImage: this).length'
+            |  show all parts
+        .checkbox
+          label
+            input type='checkbox' ng-model='useSameImageForMainPartAndItem'
+            |  use the same image for the main/first part and the item
+    .col-xs-12
+      p ng-if='!(item.parts | onlyPartsWithImage: this).length'
+        strong.text-success All parts have an image.
+    .col-lg-2 ng-repeat-start='part in item.parts | onlyPartsWithImage: this'
       a.thumbnail.text-center href='#' ng-click='selectImage(part, "parts")'
         img ng-if='part.image' src='{{ part.image.thumbnail.url }}'
         span.glyphicon.glyphicon-picture ng-if='!part.image'
     .col-lg-4
       h3 {{ part.title.text }} {{ part.start }}
       p.text-success ng-show='part.image.id'
-        strong This part already has an image.
+        strong This part has an image.
         |  Click the image if you want to find another one.
       .btn-group role='group' ng-hide='part.image.id'
         button.btn.btn-success ng-click='approveImage(part, "parts")' ng-show='part.image && !part.image.id' Approve

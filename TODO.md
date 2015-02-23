@@ -1,6 +1,10 @@
 # Blockers
 
 * add missing translations for custom validations
+* update item years when parts are created/updated
+* ownership edition
+* people edition
+* manual image selection from url
 
 # High Priority
 
@@ -10,6 +14,7 @@
 
 # Low Priority
 
+* replace all "Controller" by "Ctrl"
 * in item search, show rate limit reset duration updating in real time
 * item descriptions
 * allow greater precision than just the year for parts and items

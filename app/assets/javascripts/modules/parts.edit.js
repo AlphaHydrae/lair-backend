@@ -1,6 +1,6 @@
 angular.module('lair.parts.edit', ['lair.forms'])
 
-  .controller('EditPartController', ['ApiService', '$log', '$modal', '$q', '$scope', '$stateParams', function($api, $log, $modal, $q, $scope, $stateParams) {
+  .controller('EditPartController', ['ApiService', '$log', '$modal', '$q', '$scope', '$state', '$stateParams', function($api, $log, $modal, $q, $scope, $state, $stateParams) {
 
     $scope.selectImage = function() {
       $scope.imageSearchSubject = $scope.part;
@@ -147,6 +147,10 @@ angular.module('lair.parts.edit', ['lair.forms'])
 
     $scope.reset = function() {
       $scope.editedPart = angular.copy($scope.part);
+    };
+
+    $scope.cancel = function() {
+      $state.go('std.home.item', { itemId: $scope.item.id });
     };
 
     $scope.partChanged = function() {

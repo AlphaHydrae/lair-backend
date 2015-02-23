@@ -17,7 +17,7 @@ angular.module('lair.images', ['lair.api'])
     ];
 
     $api.http({
-      method: 'PATCH',
+      method: $scope.imageSearchSubject ? 'PATCH' : 'POST',
       url: $scope.imageSearchResource
     }).then(function(res) {
       $scope.imageSearch = res.data;

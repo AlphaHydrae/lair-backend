@@ -15,6 +15,7 @@ class Ownership < ActiveRecord::Base
       json.id api_id
       json.partId item_part.api_id
       json.userId user.api_id
+      json.tags tags || {}
       json.gottenAt gotten_at.iso8601(3)
     end
   end
