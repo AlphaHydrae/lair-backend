@@ -2,10 +2,10 @@ angular.module('lair.parts.edit', ['lair.forms'])
 
   .controller('EditPartController', ['ApiService', '$log', '$modal', '$q', '$scope', '$state', '$stateParams', function($api, $log, $modal, $q, $scope, $state, $stateParams) {
 
-    $scope.selectImage = function() {
-      $scope.imageSearchSubject = $scope.part;
-      $scope.imageSearchResource = '/api/parts/' + $scope.part.id + '/imageSearch';
+    $scope.imageSearchesResource = '/api/parts/' + $stateParams.partId + '/image-searches';
+    $scope.mainImageSearchResource = '/api/parts/' + $stateParams.partId + '/main-image-search';
 
+    $scope.selectImage = function() {
       modal = $modal.open({
         controller: 'SelectImageCtrl',
         templateUrl: '/templates/selectImageDialog.html',
@@ -82,6 +82,7 @@ angular.module('lair.parts.edit', ['lair.forms'])
       });
     }
 
+    // TODO: item can be fetched with part in one request
     function fetchItem() {
       return $api.http({
         url: '/api/items/' + $scope.part.itemId

@@ -1,5 +1,6 @@
 module Lair
 
+  # TODO: use hyphenation rather than camel-case for multi-word resource paths
   class API < Grape::API
     version 'v1', using: :accept_version_header
     format :json
@@ -30,6 +31,7 @@ module Lair
     helpers ApiAuthenticationHelper
     helpers ImageSearchHelper::Api
     helpers ApiImageableHelper
+    helpers ApiPaginationHelper
     helpers ApiParamsHelper
 
     helpers do
@@ -38,7 +40,7 @@ module Lair
       end
 
       def authenticate!
-        authenticate_with_header headers['Authorization'], required: false
+        authenticate_with_header headers['Authorization'], required: true
       end
 
       def current_user
@@ -241,33 +243,25 @@ module Lair
       namespace '/:partId' do
 
         helpers do
-          def fetch_part
+          def fetch_part!
             ItemPart.where(api_id: params[:partId]).includes([ :title, :language ]).first!
+          end
+
+          def current_imageable
+            fetch_part!
           end
         end
 
         get do
-          fetch_part.to_builder.attributes!
+          fetch_part!.to_builder.attributes!
         end
 
-        get :imageSearch do
-          authenticate!
-          fetch_part.last_image_search!.to_builder.attributes!
-        end
-
-        post :imageSearch do
-          authenticate!
-          search_images_for(fetch_part, force: true).to_builder.attributes!
-        end
-
-        patch :imageSearch do
-          authenticate!
-          search_images_for(fetch_part).to_builder.attributes!
-        end
+        include ImageSearchesApi
+        include MainImageSearchApi
 
         patch do
           authenticate!
-          part = fetch_part
+          part = fetch_part!
 
           ItemPart.transaction do
             part.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
@@ -404,33 +398,33 @@ module Lair
       namespace '/:itemId' do
 
         helpers do
-          def fetch_item
-            Item.where(api_id: params[:itemId]).includes([ :language, { links: [ :language ], titles: [ :language ] } ]).first!
+          def fetch_item! options = {}
+            rel = Item.where(api_id: params[:itemId])
+
+            if options[:includes] == true
+              rel = rel.includes([ :language, { links: [ :language ], relationships: [ :person ], titles: [ :language ] } ])
+            elsif options[:includes]
+              rel = rel.includes options[:includes]
+            end
+
+            rel.first!
+          end
+
+          def current_imageable
+            fetch_item!
           end
         end
 
         get do
-          fetch_item.to_builder.attributes!
+          fetch_item!(includes: true).to_builder.attributes!
         end
 
-        get :imageSearch do
-          authenticate!
-          fetch_item.last_image_search!.to_builder.attributes!
-        end
-
-        post :imageSearch do
-          authenticate!
-          search_images_for(fetch_item, force: true).to_builder.attributes!
-        end
-
-        patch :imageSearch do
-          authenticate!
-          search_images_for(fetch_item).to_builder.attributes!
-        end
+        include ImageSearchesApi
+        include MainImageSearchApi
 
         patch do
           authenticate!
-          item = fetch_item
+          item = fetch_item! includes: true
 
           Item.transaction do
             %i(startYear endYear numberOfParts).each do |attr|

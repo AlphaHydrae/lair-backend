@@ -99,5 +99,5 @@ form#itemForm role='form' ng-controller='ItemFormCtrl'
                 span.glyphicon.glyphicon-remove
   .btn-group.pull-right
     button.btn.btn-default type='button' ng-click='cancel()' Cancel
-    button.btn.btn-warning type='button' ng-disabled='!itemChanged()' ng-click='reset()' Reset
-    button.btn.btn-primary type='submit' ng-disabled='!itemChanged()' ng-click='save()' Save
+    button.btn.btn-warning type='button' ng-click='reset()' ng-if='item.id' ng-disabled='!itemChanged()' Reset
+    button.btn.btn-primary type='submit' ng-click='save()' ng-disabled='!itemChanged()' Save

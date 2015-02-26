@@ -28,9 +28,10 @@ angular.module('lair.items.create', ['lair.items.form'])
       tags: []
     });
 
-    $scope.imageSearchResource = '/api/imageSearches';
+    $scope.imageSearchesResource = '/api/image-searches';
 
-    reset();
+    $scope.modifiedItem = angular.copy($scope.item);
+    $scope.$broadcast('item', $scope.item);
 
     $scope.save = function() {
       $api.http({
@@ -44,13 +45,6 @@ angular.module('lair.items.create', ['lair.items.form'])
         $log.debug(response);
       });
     };
-
-    $scope.reset = reset;
-
-    function reset() {
-      $scope.modifiedItem = angular.copy($scope.item);
-      $scope.$broadcast('item', $scope.item);
-    }
 
     $scope.cancel = function() {
       $state.go('std.home');

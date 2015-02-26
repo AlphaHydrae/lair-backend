@@ -4,7 +4,7 @@ module BingSearch
     search.rate_limit = RateLimit.new :bing
 
     check_rate_limit! search.rate_limit
-    return search if rate_limit.exceeded?
+    return search if search.rate_limit.exceeded?
 
     res = HTTParty.get image_search_url, query: { '$format' => 'json', 'Query' => "'#{search.query}'" }, headers: { 'Accept' => 'application/json', 'Authorization' => authorization }
     res = JSON.parse res.body
@@ -33,27 +33,27 @@ module BingSearch
   end
 
   def self.rate_limit
-    rate_limit = RateLimit.new :bing
+    limit = RateLimit.new :bing
 
     res = $redis.multi do
       $redis.get 'rateLimit:bing'
       $redis.ttl 'rateLimit:bing'
     end
 
-    rate_limit.total = config[:rate_limit_value].to_i
-    rate_limit.current = res[0].try(:to_i) || 0
-    rate_limit.duration = config[:rate_limit_duration].to_i
+    limit.total = config[:rate_limit_value].to_i
+    limit.current = res[0].try(:to_i) || 0
+    limit.duration = config[:rate_limit_duration].to_i
 
     # ttl will be either a number of seconds or negative if the key doesn't exist or is not set to expire
-    rate_limit.ttl = res[1].to_i
-    rate_limit.ttl = rate_limit.duration if rate_limit.ttl < 0
+    limit.ttl = res[1].to_i
+    limit.ttl = limit.duration if limit.ttl < 0
 
-    rate_limit
+    limit
   end
 
   private
 
-  def self.check_rate_limit! rate_limit
+  def self.check_rate_limit! limit
     duration = config[:rate_limit_duration].to_i
 
     res = $redis.multi do
@@ -65,10 +65,10 @@ module BingSearch
       $redis.ttl 'rateLimit:bing'
     end
 
-    rate_limit.total = config[:rate_limit_value].to_i
-    rate_limit.current = res[1]
-    rate_limit.duration = duration
-    rate_limit.ttl = res[2]
+    limit.total = config[:rate_limit_value].to_i
+    limit.current = res[1]
+    limit.duration = duration
+    limit.ttl = res[2]
   end
 
   def self.image_search_url

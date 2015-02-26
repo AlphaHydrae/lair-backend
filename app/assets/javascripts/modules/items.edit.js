@@ -20,10 +20,14 @@ angular.module('lair.items.edit', ['lair.items.form'])
       });
     }
 
+    $scope.imageSearchesResource = '/api/items/' + $stateParams.itemId + '/image-searches';
+    $scope.mainImageSearchResource = '/api/items/' + $stateParams.itemId + '/main-image-search';
+
     $api.http({
       url: '/api/items/' + $stateParams.itemId
     }).then(function(response) {
       $scope.item = parseItem(response.data);
+      reset();
       $scope.$broadcast('item', $scope.item);
     });
 
@@ -34,12 +38,20 @@ angular.module('lair.items.edit', ['lair.items.form'])
         data: dumpItem($scope.modifiedItem)
       }).then(function(response) {
         $scope.item = parseItem(response.data);
+        reset();
         $scope.$broadcast('item', $scope.item);
       }, function(response) {
         $log.warn('Could not update item ' + $stateParams.itemId);
         $log.debug(response);
       });
     };
+
+    $scope.reset = reset;
+
+    function reset() {
+      $scope.modifiedItem = angular.copy($scope.item);
+      $scope.$broadcast('item', $scope.item);
+    }
 
     $scope.cancel = function() {
       $state.go('std.home.item', { itemId: $stateParams.itemId });

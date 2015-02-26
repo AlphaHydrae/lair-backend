@@ -1,5 +1,6 @@
 require 'random'
 
+# TODO: touch item when title, link or relationship is modified
 class Item < ActiveRecord::Base
   include ResourceWithIdentifier
   include ResourceWithImage

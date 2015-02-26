@@ -1,4 +1,4 @@
-angular.module('lair.images', ['lair.api'])
+angular.module('lair.images.select', ['lair.api'])
 
   .controller('SelectImageCtrl', ['ApiService', '$log', '$modalInstance', '$scope', '$timeout', function($api, $log, $modalInstance, $scope, $timeout) {
 
@@ -16,9 +16,17 @@ angular.module('lair.images', ['lair.api'])
       { name: 'bing', label: 'Bing' }
     ];
 
+    var method = 'POST',
+        url = $scope.imageSearchesResource;
+
+    if ($scope.mainImageSearchResource) {
+      method = 'PATCH';
+      url = $scope.mainImageSearchResource;
+    }
+
     $api.http({
-      method: $scope.imageSearchSubject ? 'PATCH' : 'POST',
-      url: $scope.imageSearchResource
+      method: method,
+      url: url
     }).then(function(res) {
       $scope.imageSearch = res.data;
       $scope.query = $scope.imageSearch.query;
@@ -46,7 +54,7 @@ angular.module('lair.images', ['lair.api'])
 
       $api.http({
         method: 'POST',
-        url: $scope.imageSearchResource,
+        url: $scope.imageSearchesResource,
         data: {
           query: $scope.query,
           engine: $scope.engine
