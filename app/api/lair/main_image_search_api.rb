@@ -5,7 +5,7 @@ module Lair
         namespace 'main-image-search' do
           get do
             authenticate!
-            current_imageable.last_image_search!.to_builder.attributes!
+            current_imageable.main_image_search!.to_builder.attributes!
           end
 
           patch do

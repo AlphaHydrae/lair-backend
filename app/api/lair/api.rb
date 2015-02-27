@@ -48,6 +48,8 @@ module Lair
       end
     end
 
+    include ImageSearchesApi
+
     get :ping do
       authenticate!
       'pong'
@@ -228,11 +230,11 @@ module Lair
         image_from_search = true_flag? :imageFromSearch
 
         includes = [ :image, :language, { title: :language } ]
-        includes << :last_image_search if image_from_search
+        includes << :main_image_search if image_from_search
 
         if with_item
           includes << { item: [ :language, :links, { relationships: :person, titles: :language } ] }
-          includes.last[:item] << :last_image_search if image_from_search
+          includes.last[:item] << :main_image_search if image_from_search
         else
           includes << :item
         end
@@ -390,7 +392,7 @@ module Lair
         includes = [ :language, :links, { relationships: :person, titles: :language } ]
 
         image_from_search = true_flag? :imageFromSearch
-        includes << :last_image_search if image_from_search
+        includes << :main_image_search if image_from_search
 
         rel.includes(includes).to_a.collect{ |item| item.to_builder(image_from_search: image_from_search).attributes! }
       end

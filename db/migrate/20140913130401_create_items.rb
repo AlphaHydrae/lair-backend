@@ -30,7 +30,7 @@ class CreateItems < ActiveRecord::Migration
       t.integer :end_year
       t.integer :language_id, null: false
       t.integer :image_id
-      t.integer :last_image_search_id
+      t.integer :main_image_search_id
       t.json :tags
       t.timestamps null: false
     end
@@ -62,7 +62,7 @@ class CreateItems < ActiveRecord::Migration
       t.integer :item_id, null: false
       t.integer :title_id
       t.integer :image_id
-      t.integer :last_image_search_id
+      t.integer :main_image_search_id
       t.string :custom_title, limit: 255
       t.integer :custom_title_language_id
       t.integer :year
@@ -100,8 +100,8 @@ class CreateItems < ActiveRecord::Migration
 
     create_table :image_searches do |t|
       t.string :api_id, null: false, limit: 12
-      t.integer :imageable_id, null: false
-      t.string :imageable_type, null: false, limit: 25
+      t.integer :imageable_id
+      t.string :imageable_type, limit: 25
       t.string :engine, null: false, limit: 25
       t.string :query, null: false, limit: 255
       t.json :results, null: false
@@ -138,7 +138,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :image_searches, :users
     add_foreign_key :items, :languages
     add_foreign_key :items, :images
-    add_foreign_key :items, :image_searches, column: :last_image_search_id
+    add_foreign_key :items, :image_searches, column: :main_image_search_id
     add_foreign_key :items, :item_titles, column: :original_title_id
     add_foreign_key :item_links, :items
     add_foreign_key :item_links, :languages
@@ -150,7 +150,7 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_parts, :languages
     add_foreign_key :item_parts, :languages, column: :custom_title_language_id
     add_foreign_key :item_parts, :images
-    add_foreign_key :item_parts, :image_searches, column: :last_image_search_id
+    add_foreign_key :item_parts, :image_searches, column: :main_image_search_id
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people
     add_foreign_key :ownerships, :item_parts

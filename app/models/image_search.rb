@@ -4,7 +4,7 @@ class ImageSearch < ActiveRecord::Base
   # TODO: delete previous unattached image searches
 
   before_create :set_identifier
-  after_create :set_imageable_last_search
+  after_create :set_imageable_main_search
 
   belongs_to :user
   belongs_to :imageable, polymorphic: true
@@ -35,7 +35,7 @@ class ImageSearch < ActiveRecord::Base
 
   private
 
-  def set_imageable_last_search
-    imageable.class.where(id: imageable.id).update_all last_image_search_id: id
+  def set_imageable_main_search
+    imageable.class.where(id: imageable.id).update_all main_image_search_id: id if imageable.present?
   end
 end

@@ -16,39 +16,35 @@ angular.module('lair.images.select', ['lair.api'])
       { name: 'bing', label: 'Bing' }
     ];
 
-    var method = 'POST',
-        url = $scope.imageSearchesResource;
+    $scope.engine = $scope.engines[0].name;
 
     if ($scope.mainImageSearchResource) {
-      method = 'PATCH';
-      url = $scope.mainImageSearchResource;
-    }
-
-    $api.http({
-      method: method,
-      url: url
-    }).then(function(res) {
-      $scope.imageSearch = res.data;
-      $scope.query = $scope.imageSearch.query;
-      $scope.engine = $scope.imageSearch.engine;
-      updateRateLimit(res);
-    }, function(res) {
-      if (res.status == 429) {
+      $api.http({
+        method: 'PATCH',
+        url: $scope.mainImageSearchResource
+      }).then(function(res) {
+        $scope.imageSearch = res.data;
         $scope.query = $scope.imageSearch.query;
         $scope.engine = $scope.imageSearch.engine;
         updateRateLimit(res);
-      } else {
-        $log.warn('Could not perform image search');
-        $log.debug(res);
-      }
-    });
+      }, function(res) {
+        if (res.status == 429) {
+          $scope.query = $scope.imageSearch.query;
+          $scope.engine = $scope.imageSearch.engine;
+          updateRateLimit(res);
+        } else {
+          $log.warn('Could not perform image search');
+          $log.debug(res);
+        }
+      });
+    }
 
     $scope.select = function(image) {
       $modalInstance.close(image);
     };
 
     $scope.searchImages = function() {
-      if ($scope.query == $scope.imageSearch.query && $scope.engine == $scope.imageSearch.engine && !confirm('Are you sure you want to perform the same search for "' + $scope.query + '" again?')) {
+      if ($scope.imageSearch && $scope.query == $scope.imageSearch.query && $scope.engine == $scope.imageSearch.engine && !confirm('Are you sure you want to perform the same search for "' + $scope.query + '" again?')) {
         return;
       }
 

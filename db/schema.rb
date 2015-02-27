@@ -18,8 +18,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
 
   create_table "image_searches", force: :cascade do |t|
     t.string   "api_id",         limit: 12,  null: false
-    t.integer  "imageable_id",               null: false
-    t.string   "imageable_type", limit: 25,  null: false
+    t.integer  "imageable_id"
+    t.string   "imageable_type", limit: 25
     t.string   "engine",         limit: 25,  null: false
     t.string   "query",          limit: 255, null: false
     t.json     "results",                    null: false
@@ -68,7 +68,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "item_id",                              null: false
     t.integer  "title_id"
     t.integer  "image_id"
-    t.integer  "last_image_search_id"
+    t.integer  "main_image_search_id"
     t.string   "custom_title",             limit: 255
     t.integer  "custom_title_language_id"
     t.integer  "year"
@@ -115,7 +115,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "end_year"
     t.integer  "language_id",                     null: false
     t.integer  "image_id"
-    t.integer  "last_image_search_id"
+    t.integer  "main_image_search_id"
     t.json     "tags"
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
@@ -164,7 +164,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_descriptions", "items"
   add_foreign_key "item_links", "items"
   add_foreign_key "item_links", "languages"
-  add_foreign_key "item_parts", "image_searches", column: "last_image_search_id"
+  add_foreign_key "item_parts", "image_searches", column: "main_image_search_id"
   add_foreign_key "item_parts", "images"
   add_foreign_key "item_parts", "item_titles", column: "title_id"
   add_foreign_key "item_parts", "items"
@@ -174,7 +174,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_people", "people"
   add_foreign_key "item_titles", "items"
   add_foreign_key "item_titles", "languages"
-  add_foreign_key "items", "image_searches", column: "last_image_search_id"
+  add_foreign_key "items", "image_searches", column: "main_image_search_id"
   add_foreign_key "items", "images"
   add_foreign_key "items", "item_titles", column: "original_title_id"
   add_foreign_key "items", "languages"
