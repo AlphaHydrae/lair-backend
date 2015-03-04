@@ -1,0 +1,82 @@
+form#editPart role='form' ng-controller='PartFormCtrl'
+  .row
+    .col-xs-4
+      .image.text-center
+        span.glyphicon.glyphicon-picture ng-hide='modifiedPart.image' ng-click='selectImage()'
+        a.thumbnail href='#' ng-show='modifiedPart.image' ng-click='selectImage()'
+          img src='{{ modifiedPart.image.thumbnail.url }}'
+    .col-xs-8
+      .item.form-group
+        label for='partItem' Item
+        ui-select#partItem ng-model='modifiedPart.itemId'
+          ui-select-match {{ $select.selected.titles[0].text }}
+          ui-select-choices repeat='it.id as it in items' refresh='fetchItems($select.search)' refresh-delay='1000'
+            span ng-bind-html='it.titles[0].text'
+      .title.form-group
+        label for='partTitle' Title
+        ui-select#partTitle ng-model='modifiedPart.titleId' ng-disabled='!modifiedPart.item'
+          ui-select-match {{ $select.selected.text }}
+          ui-select-choices repeat='title.id as title in modifiedPart.item.titles | filter: $select.search'
+            span ng-bind-html='title.text | highlight: $select.search'
+    .col-xs-4
+      .range.form-group
+        label for='partStart' Range
+        input#partStart.form-control ng-model='modifiedPart.start' type='number' size=3
+        |  - 
+        input#partEnd.form-control type='number' ng-model='modifiedPart.end' size=3
+    .col-xs-2
+      .form-group
+        label for='partOriginalYear' Original Year
+        input#partOriginalYear.form-control ng-model='modifiedPart.originalYear' type='number' min='-4000'
+    .col-xs-2
+      .form-group
+        label for='partYear' Year
+        input#partYear.form-control ng-model='modifiedPart.year' type='number' min='-4000'
+    .col-xs-4
+      .form-group
+        label for='partLanguage' Language
+        language-select#partLanguage ng-model='modifiedPart.language' languages='languages'
+    .col-xs-4
+      .length.form-group
+        label for='partLength' Length
+        input#partLength.form-control ng-model='modifiedPart.length' type='number' min='1'
+    .col-xs-4
+      .publisher.form-group
+        label for='partPublisher' Publisher
+        input#partPublisher.form-control ng-model='modifiedPart.publisher' type='text' typeahead='publisher.name for publisher in publishers'
+    .col-xs-4
+      .edition.form-group
+        label for='partEdition' Edition
+        input#partEdition.form-control ng-model='modifiedPart.edition' type='text' typeahead='edition.name for edition in editions'
+    .col-xs-4
+      .version.form-group
+        label for='partVersion' Version
+        input#partVersion.form-control ng-model='modifiedPart.version' type='number' min='1'
+    .col-xs-4
+      .format.form-group
+        label for='partFormat' Format
+        input#partFormat.form-control ng-model='modifiedPart.format' type='text' typeahead='format.name for format in formats'
+    .col-xs-4
+      .isbn.form-group
+        label for='partIsbn' ISBN
+        input#partIsbn.form-control ng-model='modifiedPart.isbn' type='text'
+  .row
+    .col-xs-12
+      .form-group
+        button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTag()'
+          span.glyphicon.glyphicon-plus
+        label for='partTag-0' Tags
+        p.text-muted ng-hide='modifiedPart.tags.length' No tags.
+        ul.list-group ng-show='modifiedPart.tags.length'
+          li.list-group-item.clearfix ng-repeat='tag in modifiedPart.tags'
+            .col-xs-5.col-sm-4.col-md-3
+              input.form-control type='text' ng-model='tag.key'
+            .col-xs-6.col-sm-7.col-md-8
+              input.form-control type='text' ng-model='tag.value' ng-attr-id='partTag-{{ $index }}'
+            .col-xs-1
+              button.btn.btn-default type='button' ng-click='removeTag(tag)'
+                span.glyphicon.glyphicon-remove
+  .btn-group.pull-right
+    button.btn.btn-default type='button' ng-click='cancel()' Cancel
+    button.btn.btn-warning type='button' ng-disabled='!partChanged()' ng-click='reset()' Reset
+    button.btn.btn-primary type='submit' ng-disabled='!partChanged()' ng-click='save()' Save

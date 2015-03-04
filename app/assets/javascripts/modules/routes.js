@@ -36,7 +36,7 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('std.items.create', {
-        url: '^/items',
+        url: '^/items/new',
         views: {
           'content@std': {
             templateUrl: '/templates/createItem.html'
@@ -59,6 +59,15 @@ angular.module('lair.routes', [ 'ui.router' ])
         views: {
           'navbar@std': {
             templateUrl: '/templates/navbar.html'
+          }
+        }
+      })
+
+      .state('std.parts.create', {
+        url: '^/parts/new?itemId',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/createPart.html'
           }
         }
       })

@@ -24,6 +24,7 @@
 //= require angular-ng-infinite-scroll
 //= require md5
 //= require angular-gravatar
+//= require angular-ui-date
 //= require angular-ui-sortable
 //= require angular-ui-select
 //= require angular-moment

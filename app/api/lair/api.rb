@@ -39,12 +39,16 @@ module Lair
         Language.find_or_create_by(tag: tag)
       end
 
+      def authenticate
+        authenticate_with_header headers['Authorization'], required: false
+      end
+
       def authenticate!
         authenticate_with_header headers['Authorization'], required: true
       end
 
       def current_user
-        User.where(email: @auth_token['iss']).first!
+        @auth_token ? User.where(email: @auth_token['iss']).first! : nil
       end
     end
 
@@ -218,6 +222,8 @@ module Lair
       end
 
       get do
+        authenticate
+
         rel = search_parts
 
         if true_flag? :random
@@ -227,6 +233,7 @@ module Lair
         end
 
         with_item = true_flag? :item
+        with_ownerships = true_flag? :ownerships
         image_from_search = true_flag? :imageFromSearch
 
         includes = [ :image, :language, { title: :language } ]
@@ -239,7 +246,15 @@ module Lair
           includes << :item
         end
 
-        rel.includes(includes).to_a.collect{ |part| part.to_builder(item: with_item, image_from_search: image_from_search).attributes! }
+        parts = rel.includes(includes).to_a
+
+        ownerships = if current_user
+          Ownership.joins(:item_part).where(item_parts: { id: parts.collect(&:id) }, ownerships: { user_id: current_user.id }).to_a
+        else
+          nil
+        end
+
+        parts.collect{ |part| part.to_builder(current_user: current_user, item: with_item, ownerships: ownerships, image_from_search: image_from_search).attributes! }
       end
 
       namespace '/:partId' do
@@ -255,7 +270,20 @@ module Lair
         end
 
         get do
-          fetch_part!.to_builder.attributes!
+          authenticate
+
+          part = fetch_part!
+
+          # TODO: handle includes
+          with_item = true_flag? :item
+
+          ownerships = if current_user
+            Ownership.joins(:item_part).where(item_parts: { id: part }, ownerships: { user_id: current_user.id }).to_a
+          else
+            nil
+          end
+
+          part.to_builder(current_user: current_user, item: with_item, ownerships: ownerships).attributes!
         end
 
         include ImageSearchesApi

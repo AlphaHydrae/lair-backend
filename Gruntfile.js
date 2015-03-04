@@ -25,6 +25,7 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-ui-sortable/sortable.js', dest: 'vendor/assets/javascripts/angular-ui-sortable.js' },
           { nonull: true, src: 'bower_components/angular-ui-select/dist/select.js', dest: 'vendor/assets/javascripts/angular-ui-select.js' },
           { nonull: true, src: 'bower_components/angular-moment/angular-moment.js', dest: 'vendor/assets/javascripts/angular-moment.js' },
+          { nonull: true, src: 'bower_components/angular-ui-date/src/date.js', dest: 'vendor/assets/javascripts/angular-ui-date.js' },
           { nonull: true, src: 'bower_components/satellizer/satellizer.js', dest: 'vendor/assets/javascripts/satellizer.js' },
           { nonull: true, src: 'bower_components/bootstrap/dist/js/bootstrap.js', dest: 'vendor/assets/javascripts/bootstrap.js' },
           // Stylesheets
@@ -33,7 +34,9 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-ui-select/dist/select.css', dest: 'vendor/assets/stylesheets/angular-ui-select.css' },
           // Fonts
           { nonull: true, cwd: 'bower_components/font-awesome/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true },
-          { nonull: true, cwd: 'bower_components/bootstrap/dist/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true }
+          { nonull: true, cwd: 'bower_components/bootstrap/dist/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true },
+          // Images
+          { nonull: true, cwd: 'bower_components/jquery-ui/themes/smoothness/images/', src: '**', dest: 'vendor/assets/images/', flatten: true, expand: true }
         ]
       },
 
@@ -69,6 +72,16 @@ module.exports = function(grunt) {
         options: {
           process: function(content) {
             return content.replace(/url\('\.\.\/fonts\//g, 'asset-url(\'');
+          }
+        }
+      },
+
+      jqueryUi: {
+        src: 'bower_components/jquery-ui/themes/smoothness/jquery-ui.css',
+        dest: 'vendor/assets/stylesheets/jquery-ui.css.less',
+        options: {
+          process: function(content) {
+            return content.replace(/url\("images\//g, 'asset-url("');
           }
         }
       }
@@ -113,5 +126,5 @@ module.exports = function(grunt) {
 
   grunt.registerTask('default', ['jshint', 'karma:unitSingleRun']);
   grunt.registerTask('test', ['watch:test']);
-  grunt.registerTask('vendor', ['copy:assets', 'copy:testAssets', 'copy:bootstrap', 'copy:bootstrapTheme', 'copy:fontawesome']);
+  grunt.registerTask('vendor', ['copy:assets', 'copy:testAssets', 'copy:bootstrap', 'copy:bootstrapTheme', 'copy:fontawesome', 'copy:jqueryUi']);
 };

@@ -3,6 +3,7 @@ class ItemPart < ActiveRecord::Base
   include ResourceWithIdentifier
   # TODO: set image of parent item automatically if not yet set
   include ResourceWithImage
+  include ResourceWithTags
 
   before_create :set_identifier
 
@@ -10,6 +11,7 @@ class ItemPart < ActiveRecord::Base
   belongs_to :title, class_name: 'ItemTitle'
   belongs_to :language
   belongs_to :custom_title_language, class_name: 'Language'
+  has_many :ownerships
 
   strip_attributes
   validates :item, presence: true
@@ -62,7 +64,11 @@ class ItemPart < ActiveRecord::Base
       json.version version if version
       json.format format if format
       json.length length if length
-      json.tags tags || {}
+      json.tags
+
+      if options[:current_user] && options[:ownerships]
+        json.ownedByMe options[:ownerships].any?{ |o| o.item_part_id == id && o.user_id == options[:current_user].id }
+      end
 
       add_image_to_builder json, options
     end

@@ -60,6 +60,10 @@
         "projectPath": "vendor/assets/javascripts/angular-gravatar.js"
       },
       {
+        "logicalPath": "angular-ui-date.js",
+        "projectPath": "vendor/assets/javascripts/angular-ui-date.js"
+      },
+      {
         "logicalPath": "angular-ui-sortable.js",
         "projectPath": "vendor/assets/javascripts/angular-ui-sortable.js"
       },
@@ -132,8 +136,16 @@
         "projectPath": "app/assets/javascripts/modules/items.form.js"
       },
       {
+        "logicalPath": "modules/parts.create.js",
+        "projectPath": "app/assets/javascripts/modules/parts.create.js"
+      },
+      {
         "logicalPath": "modules/parts.edit.js",
         "projectPath": "app/assets/javascripts/modules/parts.edit.js"
+      },
+      {
+        "logicalPath": "modules/parts.form.js",
+        "projectPath": "app/assets/javascripts/modules/parts.form.js"
       },
       {
         "logicalPath": "modules/people.js",

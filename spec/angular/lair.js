@@ -7,11 +7,13 @@ angular.module('lair', [
   'lair.images.missing',
   'lair.items.create',
   'lair.items.edit',
+  'lair.parts.create',
   'lair.parts.edit',
   'angularMoment',
   'ngSanitize',
   'satellizer',
   'ui.bootstrap',
+  'ui.date',
   'ui.select'
 ])
 

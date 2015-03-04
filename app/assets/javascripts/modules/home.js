@@ -103,6 +103,13 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
       });
     };
 
+    $scope.createPart = function(item) {
+      modal.dismiss('edit');
+      $state.go('std.parts.create', {
+        itemId: item.id
+      });
+    };
+
     function showModal() {
 
       modal = $modal.open({
@@ -184,6 +191,77 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     $scope.languageName = function(languageTag) {
       return $scope.languageNames ? $scope.languageNames[languageTag] : '-';
     };
+
+    $scope.$on('ownership', function(event, ownership, part) {
+      $api.http({
+        method: 'POST',
+        url: '/api/ownerships',
+        data: ownership
+      }).then(function() {
+        part.ownedByMe = true;
+      }, function(err) {
+        $log.warn('Could not create ownership for part ' + part.id);
+        $log.debug(err);
+      });
+    });
   }])
 
+  .controller('OwnDialogCtrl', ['$scope', function($scope) {
+
+    $scope.dateOptions = {
+      dateFormat: 'yy-mm-dd'
+    };
+
+    $scope.ownership = {
+      partId: $scope.part.id,
+      gottenAt: new Date()
+    };
+
+    $scope.create = function() {
+      $scope.$emit('ownership', $scope.ownership, $scope.part);
+    };
+  }])
+
+  .directive('ownDialog', ['$compile', function ($compile) {
+    return function(scope, element, attrs) {
+
+      var shown = false,
+          titleTemplate = _.template('<strong><%- title %></strong>'),
+          contentTemplate = _.template('<form ng-controller="OwnDialogCtrl" ng-submit="create()" class="ownDialog"><div class="form-group"><label>Owned since</label><input class="form-control" ui-date="dateOptions" ng-model="ownership.gottenAt" /></div><button type="submit" class="btn btn-primary btn-block">Add</button></form>');
+
+      element.on('mouseenter', function() {
+        if (!shown) {
+          element.tooltip('show');
+        }
+      });
+
+      element.on('mouseleave', function() {
+        element.tooltip('hide');
+      });
+
+      scope.$on('ownership', function() {
+        element.popover('hide');
+        shown = false;
+      });
+
+      element.on('click', function() {
+        element.popover(shown ? 'hide' : 'show');
+        element.tooltip(shown ? 'show' : 'hide');
+        shown = !shown;
+      });
+
+      element.tooltip({
+        trigger: 'manual',
+        title: 'I own this'
+      });
+
+      element.popover({
+        trigger: 'manual',
+        placement: 'auto',
+        content: $compile(contentTemplate({}))(scope),
+        html: true,
+        template: '<div class="popover ownDialogPopover" role="tooltip"><div class="arrow"></div><h3 class="popover-title"></h3><div class="popover-content"></div></div>'
+      });
+    };
+  }])
 ;
