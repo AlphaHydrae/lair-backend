@@ -95,8 +95,7 @@ angular.module('lair.images.missing', [])
     }
 
     $scope.selectImage = function(subject, resource) {
-      $scope.imageSearchSubject = subject;
-      $scope.imageSearchResource = '/api/' + resource + '/' + subject.id + '/imageSearch';
+      $scope.mainImageSearchResource = '/api/' + resource + '/' + subject.id + '/main-image-search';
 
       modal = $modal.open({
         controller: 'SelectImageCtrl',

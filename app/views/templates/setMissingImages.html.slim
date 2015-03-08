@@ -52,7 +52,7 @@
         img ng-if='part.image' src='{{ part.image.thumbnail.url }}'
         span.glyphicon.glyphicon-picture ng-if='!part.image'
     .col-lg-4
-      h3 {{ part.title.text }} {{ part.start }}
+      h3 {{ part.title.text }}
       p.text-success ng-show='part.image.id'
         strong This part has an image.
         |  Click the image if you want to find another one.

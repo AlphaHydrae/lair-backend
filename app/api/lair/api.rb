@@ -77,7 +77,86 @@ module Lair
           ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
           ownership.gotten_at = Time.parse params[:gottenAt] if params[:gottenAt]
           ownership.save!
-          ownership.to_builder.attributes!
+
+          options = {
+            with_part: true_flag?(:withPart),
+            with_user: true_flag?(:withUser)
+          }
+
+          ownership.to_builder(options).attributes!
+        end
+      end
+
+      get do
+        authenticate!
+
+        rel = Ownership.joins(:item_part).joins(:user).order('item_parts.effective_title ASC, users.email ASC')
+
+        relation = paginated rel do |rel|
+
+          item_part_joined = false
+          if params[:partId].present?
+            item_part_joined = true
+            rel = rel.joins(:item_part).where item_parts: { api_id: params[:partId].to_s }
+          end
+
+          user_joined = false
+          if params[:userId].present?
+            user_joined = true
+            rel = rel.joins(:user).where users: { api_id: params[:userId].to_s }
+          end
+
+          if params[:search].present?
+            rel = rel.joins :item_part unless item_part_joined
+            rel = rel.joins :user unless user_joined
+            term = "%#{params[:search]}%"
+            rel = rel.where 'item_parts.effective_title LIKE ? OR users.email LIKE ?', term, term
+          end
+
+          rel
+        end
+
+        options = {
+          with_part: true_flag?(:withPart),
+          with_user: true_flag?(:withUser)
+        }
+
+        includes = []
+        includes << :user if options[:with_user]
+        includes << { item_part: [ :item, { title: :language }, :language, :custom_title_language ] } if options[:with_part]
+
+        relation.includes(includes).to_a.collect{ |o| o.to_builder(options).attributes! }
+      end
+
+      namespace '/:ownershipId' do
+
+        helpers do
+          def fetch_ownership!
+            Ownership.where(api_id: params[:ownershipId]).first!
+          end
+        end
+
+        patch do
+          authenticate!
+          ownership = fetch_ownership!
+          ownership.item_part = ItemPart.where(api_id: params[:partId]).first! if params.key? :partId
+          ownership.user = User.where(api_id: params[:userId]).first! if params.key? :userId
+          ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
+          ownership.gotten_at = Time.parse params[:gottenAt] if params.key? :gottenAt
+          ownership.save!
+
+          options = {
+            with_part: true_flag?(:withPart),
+            with_user: true_flag?(:withUser)
+          }
+
+          ownership.to_builder(options).attributes!
+        end
+
+        delete do
+          fetch_ownership!.destroy
+          status 204
+          nil
         end
       end
     end
@@ -150,9 +229,17 @@ module Lair
         ItemPart.transaction do
           item = Item.where(api_id: params[:itemId]).first!
           part.item = item
-          part.title = item.titles.where(api_id: params[:title][:id]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
-          part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
-          part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
+
+          if params.key? :titleId
+            part.title = item.titles.where(api_id: params[:titleId]).first!
+            part.custom_title_language = nil unless params.key? :customTitle
+          end
+
+          if params.key? :customTitle
+            part.custom_title = params[:customTitle]
+            part.custom_title_language = language params[:customTitleLanguage] if params[:customTitleLanguage]
+          end
+
           part.language = language params[:language]
           set_image! part, params[:image] if params[:image].kind_of? Hash
           part.year = params[:year] if params.key?(:year)
@@ -206,7 +293,7 @@ module Lair
 
           if params[:search].present?
             search = "%#{params[:search].to_s.downcase}%"
-            rel = rel.joins('LEFT OUTER JOIN item_titles ON item_parts.title_id = item_titles.id').where 'LOWER(item_titles.contents) LIKE ? OR LOWER(custom_title) LIKE ?', search, search
+            rel = rel.where 'LOWER(item_parts.effective_title) LIKE ?', search
             filtered = true
           end
 
@@ -295,10 +382,18 @@ module Lair
 
           ItemPart.transaction do
             part.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
-            part.title = part.item.titles.where(api_id: params[:titleId]).first! if params[:title].kind_of?(Hash) && params[:title].key?(:id)
+
+            if params.key? :titleId
+              part.title = item.titles.where(api_id: params[:titleId]).first!
+              part.custom_title_language = nil unless params.key? :customTitle
+            end
+
+            if params.key? :customTitle
+              part.custom_title = params[:customTitle]
+              part.custom_title_language = language params[:customTitleLanguage] if params[:customTitleLanguage]
+            end
+
             set_image! part, params[:image] if params[:image].kind_of? Hash
-            part.custom_title = params[:title][:text] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:text)
-            part.custom_title_language = language params[:title][:language] if params[:title].kind_of?(Hash) && !params[:title].key?(:id) && params[:title].key?(:language)
             part.language = language params[:language] if params.key? :language
             part.range_start = params[:start] if params.key? :start
             part.range_end = params[:end] if params.key? :end
@@ -525,6 +620,17 @@ module Lair
 
           item.to_builder.attributes!
         end
+      end
+    end
+
+    namespace :users do
+      get do
+        relation = paginated(User) do |rel|
+          rel = rel.where('email LIKE ?', "%#{params[:search].to_s.downcase}%") if params[:search].present?
+          rel
+        end
+
+        relation.order('email ASC').to_a.collect{ |u| u.to_builder.attributes! }
       end
     end
   end

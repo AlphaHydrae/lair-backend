@@ -81,6 +81,25 @@ angular.module('lair.routes', [ 'ui.router' ])
         }
       })
 
+      .state('std.ownerships', {
+        abstract: true,
+        url: '^/ownerships',
+        views: {
+          'navbar@std': {
+            templateUrl: '/templates/navbar.html'
+          }
+        }
+      })
+
+      .state('std.ownerships.list', {
+        url: '^/ownerships',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/listOwnerships.html'
+          }
+        }
+      })
+
       .state('std.images', {
         abstract: true,
         url: '^/images',

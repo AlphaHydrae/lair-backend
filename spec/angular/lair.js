@@ -1,4 +1,11 @@
 angular.module('lair', [
+  'angularMoment',
+  'ngSanitize',
+  'satellizer',
+  'smart-table',
+  'ui.bootstrap',
+  'ui.date',
+  'ui.select',
   'lair.state',
   'lair.auth',
   'lair.home',
@@ -9,12 +16,7 @@ angular.module('lair', [
   'lair.items.edit',
   'lair.parts.create',
   'lair.parts.edit',
-  'angularMoment',
-  'ngSanitize',
-  'satellizer',
-  'ui.bootstrap',
-  'ui.date',
-  'ui.select'
+  'lair.ownerships'
 ])
 
   // configuration

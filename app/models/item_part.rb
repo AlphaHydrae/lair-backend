@@ -6,6 +6,7 @@ class ItemPart < ActiveRecord::Base
   include ResourceWithTags
 
   before_create :set_identifier
+  before_save :set_effective_title
 
   belongs_to :item
   belongs_to :title, class_name: 'ItemTitle'
@@ -17,7 +18,7 @@ class ItemPart < ActiveRecord::Base
   validates :item, presence: true
   validates :title, presence: { unless: :custom_title }
   validates :custom_title, absence: { if: :title }, length: { maximum: 255 }
-  validates :custom_title_language, presence: { if: :custom_title }
+  validates :custom_title_language, presence: { if: :custom_title }, absence: { unless: :custom_title }
   validates :year, numericality: { only_integer: true, minimum: -4000, allow_blank: true }
   validates :original_year, presence: true, numericality: { only_integer: true, minimum: -4000, allow_blank: true }
   validates :range_start, numericality: { only_integer: true, minimum: 1, allow_blank: true }
@@ -28,6 +29,7 @@ class ItemPart < ActiveRecord::Base
   validates :format, length: { maximum: 25, allow_blank: true }
   validates :length, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validate :title_belongs_to_parent
+  validate :only_one_title
 
   def default_image_search_query
     parts = []
@@ -53,7 +55,10 @@ class ItemPart < ActiveRecord::Base
       json.id api_id
       json.itemId item.api_id
       json.item item.to_builder(options.slice(:image_from_search)) if options[:item]
-      json.title custom_title.present? ? { text: custom_title, language: custom_title_language.tag } : title.to_builder
+      json.title do
+        json.text effective_title
+        json.language custom_title.present? ? custom_title_language.tag : title.language.tag
+      end
       json.titleId title.api_id if title
       json.year year if year
       json.originalYear original_year
@@ -76,7 +81,23 @@ class ItemPart < ActiveRecord::Base
 
   private
 
+  def range
+    range_end != range_start ? "#{range_start}-#{range_end}" : range_start.to_s
+  end
+
   def title_belongs_to_parent
     errors.add :title, :must_belong_to_parent if item.present? && title.present? && title.item != item
+  end
+
+  def only_one_title
+    errors.add :custom_title, :cannot_be_combined_with_title if title.present? && custom_title.present?
+  end
+
+  def set_effective_title
+    self.effective_title = if custom_title.present?
+      custom_title
+    else
+      "#{title.contents} #{range}"
+    end
   end
 end

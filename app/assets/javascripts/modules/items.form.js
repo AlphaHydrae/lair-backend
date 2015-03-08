@@ -1,4 +1,4 @@
-angular.module('lair.items.form', ['lair.forms', 'lair.images.select', 'ui.sortable'])
+angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
 
   .controller('ItemFormCtrl', ['ApiService', '$log', '$modal', '$scope', '$state', '$stateParams', function($api, $log, $modal, $scope, $state, $stateParams) {
 

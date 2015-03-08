@@ -42,12 +42,6 @@
             td.title colspan='{{ part.image ? 1 : 2 }}'
               h5
                 | {{ part.title.text }}
-                |  
-                span.range ng-show='part.title.id'
-                  | {{ part.start }}
-                  span ng-if='part.end && part.end != part.start'
-                    | -
-                    | {{ part.end }}
                 span ng-if='part.year'
                   |  ({{ part.year }})
                 span ng-if='!part.year'

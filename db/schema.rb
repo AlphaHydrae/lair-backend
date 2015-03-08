@@ -69,8 +69,9 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "title_id"
     t.integer  "image_id"
     t.integer  "main_image_search_id"
-    t.string   "custom_title",             limit: 255
+    t.string   "custom_title",             limit: 150
     t.integer  "custom_title_language_id"
+    t.string   "effective_title",          limit: 200, null: false
     t.integer  "year"
     t.integer  "original_year",                        null: false
     t.integer  "range_start"

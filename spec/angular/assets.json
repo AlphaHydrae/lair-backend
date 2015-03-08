@@ -76,6 +76,10 @@
         "projectPath": "vendor/assets/javascripts/angular-moment.js"
       },
       {
+        "logicalPath": "angular-smart-table.js",
+        "projectPath": "vendor/assets/javascripts/angular-smart-table.js"
+      },
+      {
         "logicalPath": "satellizer.js",
         "projectPath": "vendor/assets/javascripts/satellizer.js"
       },
@@ -94,6 +98,10 @@
       {
         "logicalPath": "lair.js",
         "projectPath": "app/assets/javascripts/lair.js.erb"
+      },
+      {
+        "logicalPath": "routes.js",
+        "projectPath": "app/assets/javascripts/routes.js"
       },
       {
         "logicalPath": "modules/api.js",
@@ -136,6 +144,10 @@
         "projectPath": "app/assets/javascripts/modules/items.form.js"
       },
       {
+        "logicalPath": "modules/ownerships.js",
+        "projectPath": "app/assets/javascripts/modules/ownerships.js"
+      },
+      {
         "logicalPath": "modules/parts.create.js",
         "projectPath": "app/assets/javascripts/modules/parts.create.js"
       },
@@ -150,10 +162,6 @@
       {
         "logicalPath": "modules/people.js",
         "projectPath": "app/assets/javascripts/modules/people.js"
-      },
-      {
-        "logicalPath": "modules/routes.js",
-        "projectPath": "app/assets/javascripts/modules/routes.js"
       },
       {
         "logicalPath": "modules/state.js",

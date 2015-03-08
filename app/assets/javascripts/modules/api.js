@@ -43,6 +43,7 @@ angular.module('lair.api', ['lair.auth'])
       this.filteredTotal = parsePaginationHeader(response, 'X-Pagination-FilteredTotal', false);
       this.startNumber = (this.page - 1) * this.pageSize + 1;
       this.endNumber = this.page * this.pageSize;
+      this.numberOfPages = Math.ceil((this.filteredTotal || this.total) / this.pageSize);
     }
 
     Pagination.hasPagination = function(response) {

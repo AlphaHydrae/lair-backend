@@ -28,9 +28,11 @@
 //= require angular-ui-sortable
 //= require angular-ui-select
 //= require angular-moment
+//= require angular-smart-table
 //= require satellizer
 //= require isbn
 //= require isbn-groups
 //= require bootstrap.js
 //= require ./lair
+//= require ./routes
 //= require_tree ./modules

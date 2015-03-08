@@ -12,13 +12,16 @@ class Ownership < ActiveRecord::Base
   validates :user, presence: true
   validates :gotten_at, presence: true
 
-  def to_builder
+  def to_builder options = {}
     Jbuilder.new do |json|
       json.id api_id
       json.partId item_part.api_id
       json.userId user.api_id
       json.tags tags
       json.gottenAt gotten_at.iso8601(3)
+
+      json.part item_part.to_builder.attributes! if options[:with_part]
+      json.user user.to_builder.attributes! if options[:with_user]
     end
   end
 end

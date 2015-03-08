@@ -193,6 +193,7 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     };
 
     $scope.$on('ownership', function(event, ownership, part) {
+      // FIXME: move this to OwnDialogCtrl
       $api.http({
         method: 'POST',
         url: '/api/ownerships',
@@ -226,7 +227,6 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
     return function(scope, element, attrs) {
 
       var shown = false,
-          titleTemplate = _.template('<strong><%- title %></strong>'),
           contentTemplate = _.template('<form ng-controller="OwnDialogCtrl" ng-submit="create()" class="ownDialog"><div class="form-group"><label>Owned since</label><input class="form-control" ui-date="dateOptions" ng-model="ownership.gottenAt" /></div><button type="submit" class="btn btn-primary btn-block">Add</button></form>');
 
       element.on('mouseenter', function() {

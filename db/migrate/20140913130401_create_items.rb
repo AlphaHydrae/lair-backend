@@ -63,8 +63,9 @@ class CreateItems < ActiveRecord::Migration
       t.integer :title_id
       t.integer :image_id
       t.integer :main_image_search_id
-      t.string :custom_title, limit: 255
+      t.string :custom_title, limit: 150
       t.integer :custom_title_language_id
+      t.string :effective_title, null: false, limit: 200
       t.integer :year
       t.integer :original_year, null: false
       t.integer :range_start

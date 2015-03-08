@@ -26,6 +26,7 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-ui-select/dist/select.js', dest: 'vendor/assets/javascripts/angular-ui-select.js' },
           { nonull: true, src: 'bower_components/angular-moment/angular-moment.js', dest: 'vendor/assets/javascripts/angular-moment.js' },
           { nonull: true, src: 'bower_components/angular-ui-date/src/date.js', dest: 'vendor/assets/javascripts/angular-ui-date.js' },
+          { nonull: true, src: 'bower_components/angular-smart-table/dist/smart-table.js', dest: 'vendor/assets/javascripts/angular-smart-table.js' },
           { nonull: true, src: 'bower_components/satellizer/satellizer.js', dest: 'vendor/assets/javascripts/satellizer.js' },
           { nonull: true, src: 'bower_components/bootstrap/dist/js/bootstrap.js', dest: 'vendor/assets/javascripts/bootstrap.js' },
           // Stylesheets
