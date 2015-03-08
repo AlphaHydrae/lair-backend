@@ -8,6 +8,9 @@
 
 # High Priority
 
+* optimize queries
+* add form validations
+* check responsiveness
 * auditing
 * add alt attribute to all img tags
 * use sydcanem/bootstrap-contextmenu to preview images

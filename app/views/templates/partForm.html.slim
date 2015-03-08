@@ -18,6 +18,14 @@ form#editPart role='form' ng-controller='PartFormCtrl'
           ui-select-match {{ $select.selected.text }}
           ui-select-choices repeat='title.id as title in modifiedPart.item.titles | filter: $select.search'
             span ng-bind-html='title.text | highlight: $select.search'
+      .col-xs-8
+        .customTitle.form-group
+          label for='partCustomTitle' Custom Title
+          input#partCustomTitle.form-control ng-model='modifiedPart.customTitle'
+      .col-xs-4
+        .customTitleLanguage.form-group
+          label for='partCustomTitleLanguage' Title Language
+          language-select#partCustomTitleLanguage ng-model='modifiedPart.customTitleLanguage' languages='languages'
     .col-xs-4
       .range.form-group
         label for='partStart' Range

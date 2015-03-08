@@ -26,7 +26,7 @@ angular.module('lair.parts.edit', ['lair.parts.form'])
     $api.http({
       url: '/api/parts/' + $stateParams.partId,
       params: {
-        item: 1
+        withItem: 1
       }
     }).then(function(res) {
       $scope.part = parsePart(res.data);
@@ -41,7 +41,10 @@ angular.module('lair.parts.edit', ['lair.parts.form'])
       $api.http({
         method: 'PATCH',
         url: '/api/parts/' + $stateParams.partId,
-        data: dumpPart($scope.modifiedPart)
+        data: dumpPart($scope.modifiedPart),
+        params: {
+          withItem: 1
+        }
       }).then(function(res) {
         $scope.part = parsePart(res.data);
         reset();

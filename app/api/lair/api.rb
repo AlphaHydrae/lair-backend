@@ -230,15 +230,9 @@ module Lair
           item = Item.where(api_id: params[:itemId]).first!
           part.item = item
 
-          if params.key? :titleId
-            part.title = item.titles.where(api_id: params[:titleId]).first!
-            part.custom_title_language = nil unless params.key? :customTitle
-          end
-
-          if params.key? :customTitle
-            part.custom_title = params[:customTitle]
-            part.custom_title_language = language params[:customTitleLanguage] if params[:customTitleLanguage]
-          end
+          part.title = params[:titleId].present? ? item.titles.where(api_id: params[:titleId]).first! : nil if params.key? :titleId
+          part.custom_title = params[:customTitle] if params.key? :customTitle
+          part.custom_title_language = params[:customTitleLanguage].present? ? language(params[:customTitleLanguage]) : nil if params.key? :customTitleLanguage
 
           part.language = language params[:language]
           set_image! part, params[:image] if params[:image].kind_of? Hash
@@ -319,7 +313,7 @@ module Lair
           rel = rel.order 'item_parts.range_start, item_parts.custom_title'
         end
 
-        with_item = true_flag? :item
+        with_item = true_flag? :withItem
         with_ownerships = true_flag? :ownerships
         image_from_search = true_flag? :imageFromSearch
 
@@ -341,7 +335,7 @@ module Lair
           nil
         end
 
-        parts.collect{ |part| part.to_builder(current_user: current_user, item: with_item, ownerships: ownerships, image_from_search: image_from_search).attributes! }
+        parts.collect{ |part| part.to_builder(current_user: current_user, with_item: with_item, ownerships: ownerships, image_from_search: image_from_search).attributes! }
       end
 
       namespace '/:partId' do
@@ -362,7 +356,7 @@ module Lair
           part = fetch_part!
 
           # TODO: handle includes
-          with_item = true_flag? :item
+          with_item = true_flag? :withItem
 
           ownerships = if current_user
             Ownership.joins(:item_part).where(item_parts: { id: part }, ownerships: { user_id: current_user.id }).to_a
@@ -370,7 +364,7 @@ module Lair
             nil
           end
 
-          part.to_builder(current_user: current_user, item: with_item, ownerships: ownerships).attributes!
+          part.to_builder(current_user: current_user, with_item: with_item, ownerships: ownerships).attributes!
         end
 
         include ImageSearchesApi
@@ -383,15 +377,9 @@ module Lair
           ItemPart.transaction do
             part.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
 
-            if params.key? :titleId
-              part.title = item.titles.where(api_id: params[:titleId]).first!
-              part.custom_title_language = nil unless params.key? :customTitle
-            end
-
-            if params.key? :customTitle
-              part.custom_title = params[:customTitle]
-              part.custom_title_language = language params[:customTitleLanguage] if params[:customTitleLanguage]
-            end
+            part.title = params[:titleId].present? ? part.item.titles.where(api_id: params[:titleId]).first! : nil if params.key? :titleId
+            part.custom_title = params[:customTitle] if params.key? :customTitle
+            part.custom_title_language = params[:customTitleLanguage].present? ? language(params[:customTitleLanguage]) : nil if params.key? :customTitleLanguage
 
             set_image! part, params[:image] if params[:image].kind_of? Hash
             part.language = language params[:language] if params.key? :language
@@ -404,7 +392,8 @@ module Lair
             part.save!
           end
 
-          part.to_builder.attributes!
+          with_item = true_flag? :withItem
+          part.to_builder(with_item: with_item).attributes!
         end
       end
     end

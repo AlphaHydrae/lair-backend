@@ -54,12 +54,14 @@ class ItemPart < ActiveRecord::Base
     Jbuilder.new do |json|
       json.id api_id
       json.itemId item.api_id
-      json.item item.to_builder(options.slice(:image_from_search)) if options[:item]
+      json.item item.to_builder(options.slice(:image_from_search)) if options[:with_item]
       json.title do
         json.text effective_title
         json.language custom_title.present? ? custom_title_language.tag : title.language.tag
       end
       json.titleId title.api_id if title
+      json.customTitle custom_title if custom_title
+      json.customTitleLanguage custom_title_language.tag if custom_title_language
       json.year year if year
       json.originalYear original_year
       json.language language.tag

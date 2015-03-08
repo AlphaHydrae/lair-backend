@@ -12,8 +12,23 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
 
     $scope.$watch('modifiedPart.itemId', function() {
       $scope.modifiedPart.item = _.findWhere($scope.items, { id: $scope.modifiedPart.itemId });
-      if ($scope.modifiedPart.item) {
+      if ($scope.modifiedPart.item && !$scope.part.id) {
         $scope.modifiedPart.titleId = $scope.modifiedPart.item.titles[0].id;
+      }
+    });
+
+    $scope.$watch('modifiedPart.titleId', function(newValue) {
+      if (newValue && newValue.trim().length) {
+        $scope.modifiedPart.customTitle = null;
+        $scope.modifiedPart.customTitleLanguage = null;
+      }
+    });
+
+    $scope.$watch('modifiedPart.customTitle', function(newValue) {
+      if (newValue && newValue.trim().length) {
+        $scope.modifiedPart.titleId = null;
+      } else if ($scope.part.titleId) {
+        $scope.modifiedPart.titleId = $scope.part.titleId;
       }
     });
 
