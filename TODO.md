@@ -1,14 +1,12 @@
 # Blockers
 
-* add missing translations for custom validations
 * update item years when parts are created/updated
-* ownership edition
-* people edition
 * google image search
 * manual image selection from url
 
 # High Priority
 
+* people edition
 * optimize queries
 * add form validations
 * check responsiveness
@@ -18,6 +16,9 @@
 
 # Low Priority
 
+* delete parts
+* delete items
+* add missing translations for custom validations
 * use https://github.com/kikonen/ngannotate-rails
 * replace all "Controller" by "Ctrl"
 * in item search, show rate limit reset duration updating in real time
