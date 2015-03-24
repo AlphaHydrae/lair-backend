@@ -21,10 +21,6 @@ angular.module('lair.routes', [ 'ui.router' ])
         }
       })
 
-      .state('std.home.item', {
-        url: '^/items/:itemId'
-      })
-
       .state('std.items', {
         abstract: true,
         url: '^/items',
@@ -51,6 +47,10 @@ angular.module('lair.routes', [ 'ui.router' ])
             templateUrl: '/templates/editItem.html'
           }
         }
+      })
+
+      .state('std.home.item', {
+        url: '^/items/:itemId'
       })
 
       .state('std.parts', {

@@ -53,13 +53,19 @@ form#itemForm role='form' ng-controller='ItemFormCtrl'
         label for='itemRelationship-0' Relationships
         p.text-muted ng-hide='modifiedItem.relationships.length' No relationships.
         ul.list-group ng-show='modifiedItem.relationships.length'
-          li.list-group-item.clearfix ng-repeat='relationship in modifiedItem.relationships'
+          li.list-group-item.clearfix ng-repeat='relationship in modifiedItem.relationships' ng-controller='ItemRelationshipCtrl'
             .col-xs-6.col-sm-7.col-md-8
               ui-select ng-model='relationship.personId' ng-attr-id='itemRelationship-{{ $index }}'
                 ui-select-match placeholder='Find an author...'
-                  person-name person='$select.selected'
+                  div ng-if='$select.selected.id !== -1'
+                    person-name person='$select.selected'
+                  div ng-if='$select.selected.id === -1'
+                    em Creating a new person...
                 ui-select-choices repeat='person.id as person in relationshipPeople[$index]' refresh='fetchRelationshipPeople(relationship, $index, $select.search)' refresh-delay='1000'
-                  person-name person='person'
+                  div ng-if='person.id !== -1'
+                    person-name person='person'
+                  div ng-if='person.id === -1'
+                    em Create a new person
             .col-xs-5.col-sm-4.col-md-3
               select.form-control ng-model='relationship.relation' ng-options='relation for relation in relationshipRelations'
             .col-xs-1

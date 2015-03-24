@@ -4,6 +4,7 @@
 * update item years when parts are created/updated
 * ownership edition
 * people edition
+* google image search
 * manual image selection from url
 
 # High Priority
@@ -17,6 +18,7 @@
 
 # Low Priority
 
+* use https://github.com/kikonen/ngannotate-rails
 * replace all "Controller" by "Ctrl"
 * in item search, show rate limit reset duration updating in real time
 * item descriptions

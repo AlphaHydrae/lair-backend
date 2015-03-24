@@ -6,6 +6,7 @@ angular.module('lair', [
   'ui.bootstrap',
   'ui.date',
   'ui.select',
+  'ui.sortable',
   'lair.state',
   'lair.auth',
   'lair.home',
