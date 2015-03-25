@@ -1,10 +1,11 @@
 require 'random'
 
-# TODO: touch item when title, link or relationship is modified
+# TODO: update part effective titles when title is modified
 class Item < ActiveRecord::Base
   include ResourceWithIdentifier
   include ResourceWithImage
   include ResourceWithTags
+  include TrackedMutableResource
 
   before_create{ set_identifier :api_id, 6 }
   before_validation(on: :create){ complete_end_year }

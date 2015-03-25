@@ -9,9 +9,14 @@ Bundler.require(*Rails.groups)
 module Lair
   class Application < Rails::Application
     VERSION = File.read Rails.root.join('VERSION')
+    API_VERSION = 1
 
     def version
       VERSION
+    end
+
+    def api_version
+      API_VERSION
     end
 
     def service_config service

@@ -4,6 +4,7 @@ class ItemPart < ActiveRecord::Base
   # TODO: set image of parent item automatically if not yet set
   include ResourceWithImage
   include ResourceWithTags
+  include TrackedMutableResource
 
   before_create :set_identifier
   before_save :set_effective_title

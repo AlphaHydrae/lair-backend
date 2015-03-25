@@ -2,7 +2,7 @@ class ItemDescription < ActiveRecord::Base
   include ResourceWithIdentifier
   before_create :set_identifier
 
-  belongs_to :item
+  belongs_to :item, touch: true
   belongs_to :language
 
   strip_attributes

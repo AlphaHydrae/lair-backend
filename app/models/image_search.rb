@@ -1,12 +1,14 @@
 class ImageSearch < ActiveRecord::Base
   include ResourceWithIdentifier
+  include TrackedImmutableResource
+
   attr_accessor :rate_limit
   # TODO: delete previous unattached image searches
 
   before_create :set_identifier
   after_create :set_imageable_main_search
 
-  belongs_to :user
+  belongs_to :creator, class_name: 'User'
   belongs_to :imageable, polymorphic: true
 
   strip_attributes

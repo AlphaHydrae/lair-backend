@@ -16,6 +16,19 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
+  create_table "events", force: :cascade do |t|
+    t.string   "api_id",           limit: 36, null: false
+    t.integer  "api_version",                 null: false
+    t.string   "event_type",       limit: 12, null: false
+    t.string   "event_subject",    limit: 50
+    t.string   "trackable_type",   limit: 50
+    t.integer  "trackable_id"
+    t.json     "previous_version"
+    t.integer  "cause_id"
+    t.integer  "user_id"
+    t.datetime "created_at",                  null: false
+  end
+
   create_table "image_searches", force: :cascade do |t|
     t.string   "api_id",         limit: 12,  null: false
     t.integer  "imageable_id"
@@ -25,6 +38,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.json     "results",                    null: false
     t.integer  "results_count",              null: false
     t.integer  "user_id"
+    t.integer  "creator_id",                 null: false
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false
   end
@@ -32,7 +46,7 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   create_table "images", force: :cascade do |t|
     t.string   "api_id",                 limit: 12,  null: false
     t.string   "url",                    limit: 255, null: false
-    t.string   "content_type",           limit: 50,  null: false
+    t.string   "content_type",           limit: 50
     t.integer  "width"
     t.integer  "height"
     t.integer  "size"
@@ -84,6 +98,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.json     "tags"
     t.string   "publisher",                limit: 50
     t.string   "isbn",                     limit: 13
+    t.integer  "creator_id",                           null: false
+    t.integer  "updater_id",                           null: false
     t.datetime "created_at",                           null: false
     t.datetime "updated_at",                           null: false
   end
@@ -118,6 +134,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "image_id"
     t.integer  "main_image_search_id"
     t.json     "tags"
+    t.integer  "creator_id",                      null: false
+    t.integer  "updater_id",                      null: false
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
   end
@@ -137,6 +155,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.integer  "user_id",                 null: false
     t.json     "tags"
     t.datetime "gotten_at",               null: false
+    t.integer  "creator_id",              null: false
+    t.integer  "updater_id",              null: false
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
   end
@@ -146,6 +166,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "last_name",   limit: 50
     t.string   "first_names", limit: 100
     t.string   "pseudonym",   limit: 50
+    t.integer  "creator_id",              null: false
+    t.integer  "updater_id",              null: false
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
   end
@@ -161,7 +183,9 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_index "users", ["api_id"], name: "index_users_on_api_id", unique: true, using: :btree
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
 
-  add_foreign_key "image_searches", "users"
+  add_foreign_key "events", "events", column: "cause_id"
+  add_foreign_key "events", "users"
+  add_foreign_key "image_searches", "users", column: "creator_id"
   add_foreign_key "item_descriptions", "items"
   add_foreign_key "item_links", "items"
   add_foreign_key "item_links", "languages"
@@ -171,6 +195,8 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "item_parts", "items"
   add_foreign_key "item_parts", "languages"
   add_foreign_key "item_parts", "languages", column: "custom_title_language_id"
+  add_foreign_key "item_parts", "users", column: "creator_id"
+  add_foreign_key "item_parts", "users", column: "updater_id"
   add_foreign_key "item_people", "items"
   add_foreign_key "item_people", "people"
   add_foreign_key "item_titles", "items"
@@ -179,6 +205,12 @@ ActiveRecord::Schema.define(version: 20140913130401) do
   add_foreign_key "items", "images"
   add_foreign_key "items", "item_titles", column: "original_title_id"
   add_foreign_key "items", "languages"
+  add_foreign_key "items", "users", column: "creator_id"
+  add_foreign_key "items", "users", column: "updater_id"
   add_foreign_key "ownerships", "item_parts"
   add_foreign_key "ownerships", "users"
+  add_foreign_key "ownerships", "users", column: "creator_id"
+  add_foreign_key "ownerships", "users", column: "updater_id"
+  add_foreign_key "people", "users", column: "creator_id"
+  add_foreign_key "people", "users", column: "updater_id"
 end

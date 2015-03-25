@@ -3,14 +3,14 @@ require_dependency 'random'
 module ResourceWithIdentifier
   extend ActiveSupport::Concern
 
-  def set_identifier attr = :api_id, size = 12
-    self[attr] ||= self.class.generate_unused_identifier attr, size
+  def set_identifier attr = :api_id, size = 12, &block
+    self[attr] ||= self.class.generate_unused_identifier attr, size, &block
   end
 
   module ClassMethods
 
-    def generate_unused_identifier attr, size = 12
-      next while exists?(attr => id = generate_random_identifier(size))
+    def generate_unused_identifier attr, size = 12, &block
+      next while exists?(attr => id = (block.try(:call) || generate_random_identifier(size)))
       id
     end
 

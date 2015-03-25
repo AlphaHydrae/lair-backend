@@ -1,6 +1,6 @@
 class ItemLink < ActiveRecord::Base
 
-  belongs_to :item
+  belongs_to :item, touch: true
   belongs_to :language
 
   strip_attributes

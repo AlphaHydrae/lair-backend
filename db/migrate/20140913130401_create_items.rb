@@ -18,6 +18,8 @@ class CreateItems < ActiveRecord::Migration
       t.string :last_name, limit: 50
       t.string :first_names, limit: 100
       t.string :pseudonym, limit: 50
+      t.integer :creator_id, null: false
+      t.integer :updater_id, null: false
       t.timestamps null: false
     end
 
@@ -32,6 +34,8 @@ class CreateItems < ActiveRecord::Migration
       t.integer :image_id
       t.integer :main_image_search_id
       t.json :tags
+      t.integer :creator_id, null: false
+      t.integer :updater_id, null: false
       t.timestamps null: false
     end
 
@@ -81,6 +85,8 @@ class CreateItems < ActiveRecord::Migration
       t.string :publisher, limit: 50
       t.string :isbn, limit: 13
 
+      t.integer :creator_id, null: false
+      t.integer :updater_id, null: false
       t.timestamps null: false
     end
 
@@ -96,6 +102,8 @@ class CreateItems < ActiveRecord::Migration
       t.integer :user_id, null: false
       t.json :tags
       t.datetime :gotten_at, null: false
+      t.integer :creator_id, null: false
+      t.integer :updater_id, null: false
       t.timestamps null: false
     end
 
@@ -107,7 +115,7 @@ class CreateItems < ActiveRecord::Migration
       t.string :query, null: false, limit: 255
       t.json :results, null: false
       t.integer :results_count, null: false
-      t.integer :user_id
+      t.integer :creator_id, null: false
       t.timestamps null: false
     end
 
@@ -126,6 +134,19 @@ class CreateItems < ActiveRecord::Migration
       t.timestamps null: false
     end
 
+    create_table :events do |t|
+      t.string :api_id, null: false, limit: 36
+      t.integer :api_version, null: false
+      t.string :event_type, null: false, limit: 12
+      t.string :event_subject, limit: 50
+      t.string :trackable_type, limit: 50
+      t.integer :trackable_id
+      t.json :previous_version
+      t.integer :cause_id
+      t.integer :user_id
+      t.datetime :created_at, null: false
+    end
+
     add_index :users, :email, unique: true
     add_index :users, :api_id, unique: true
     add_index :languages, :tag, unique: true
@@ -136,11 +157,13 @@ class CreateItems < ActiveRecord::Migration
     add_index :item_parts, :api_id, unique: true
     add_index :item_parts, :isbn, unique: true
     add_index :item_links, [ :item_id, :url ], unique: true
-    add_foreign_key :image_searches, :users
+    add_foreign_key :image_searches, :users, column: :creator_id
     add_foreign_key :items, :languages
     add_foreign_key :items, :images
     add_foreign_key :items, :image_searches, column: :main_image_search_id
     add_foreign_key :items, :item_titles, column: :original_title_id
+    add_foreign_key :items, :users, column: :creator_id
+    add_foreign_key :items, :users, column: :updater_id
     add_foreign_key :item_links, :items
     add_foreign_key :item_links, :languages
     add_foreign_key :item_titles, :languages
@@ -152,14 +175,23 @@ class CreateItems < ActiveRecord::Migration
     add_foreign_key :item_parts, :languages, column: :custom_title_language_id
     add_foreign_key :item_parts, :images
     add_foreign_key :item_parts, :image_searches, column: :main_image_search_id
+    add_foreign_key :item_parts, :users, column: :creator_id
+    add_foreign_key :item_parts, :users, column: :updater_id
     add_foreign_key :item_people, :items
     add_foreign_key :item_people, :people
     add_foreign_key :ownerships, :item_parts
     add_foreign_key :ownerships, :users
+    add_foreign_key :ownerships, :users, column: :creator_id
+    add_foreign_key :ownerships, :users, column: :updater_id
+    add_foreign_key :people, :users, column: :creator_id
+    add_foreign_key :people, :users, column: :updater_id
+    add_foreign_key :events, :events, column: :cause_id
+    add_foreign_key :events, :users
   end
 
   def down
     remove_foreign_key :item_titles, :items
+    drop_table :events
     drop_table :ownerships
     drop_table :item_people
     drop_table :item_parts

@@ -1,6 +1,6 @@
 module ImageSearchHelper
   def self.search_images options = {}
-    search = ImageSearch.new user: options[:user], query: options[:query].to_s
+    search = ImageSearch.new creator: options[:user], query: options[:query].to_s
     Search.engine(options[:engine]).images! search
     search.save! unless search.rate_limit.exceeded?
     search
@@ -16,7 +16,7 @@ module ImageSearchHelper
 
       # perform search
       query = options[:query].present? ? options[:query].to_s : main_search.try(:query) || imageable.default_image_search_query
-      search = ImageSearch.new imageable: imageable, user: options[:user], query: query
+      search = ImageSearch.new imageable: imageable, creator: options[:user], query: query
       Search.engine(options[:engine]).images! search
 
       # save results

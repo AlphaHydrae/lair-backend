@@ -75,7 +75,7 @@ module Lair
         user = params.key?(:userId) ? User.where(api_id: params[:userId]).first! : current_user
 
         Ownership.transaction do
-          ownership = Ownership.new item_part: part, user: user
+          ownership = Ownership.new item_part: part, user: user, creator: current_user
           ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
           ownership.gotten_at = Time.parse params[:gottenAt] if params[:gottenAt]
           ownership.save!
@@ -141,6 +141,9 @@ module Lair
         patch do
           authenticate!
           ownership = fetch_ownership!
+          ownership.cache_previous_version
+          ownership.updater = current_user
+
           ownership.item_part = ItemPart.where(api_id: params[:partId]).first! if params.key? :partId
           ownership.user = User.where(api_id: params[:userId]).first! if params.key? :userId
           ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
@@ -156,7 +159,13 @@ module Lair
         end
 
         delete do
-          fetch_ownership!.destroy
+          authenticate!
+
+          ownership = fetch_ownership!
+          ownership.cache_previous_version
+          ownership.deleter = current_user
+          ownership.destroy
+
           status 204
           nil
         end
@@ -167,7 +176,7 @@ module Lair
       post do
         authenticate!
 
-        person = Person.new
+        person = Person.new creator: current_user
         %i(last_name first_names pseudonym).each{ |attr| person.send "#{attr}=", params[attr.to_s.camelize(:lower)] if params.key? attr.to_s.camelize(:lower) }
 
         person.save!
@@ -242,7 +251,7 @@ module Lair
       post do
         authenticate!
 
-        part = Book.new
+        part = Book.new creator: current_user
 
         # TODO: update item number of parts & year if applicable
 
@@ -393,6 +402,8 @@ module Lair
         patch do
           authenticate!
           part = fetch_part!
+          part.cache_previous_version
+          part.updater = current_user
 
           ItemPart.transaction do
             part.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
@@ -424,7 +435,7 @@ module Lair
         language = language(params[:language])
 
         Item.transaction do
-          item = Item.new category: params[:category], start_year: params[:startYear], language: language
+          item = Item.new category: params[:category], start_year: params[:startYear], language: language, creator: current_user
           item.end_year = params[:endYear] if params.key?(:endYear)
           item.number_of_parts = params[:numberOfParts] if params.key?(:numberOfParts)
           set_image! item, params[:image] if params[:image].kind_of? Hash
@@ -456,9 +467,7 @@ module Lair
           end
 
           item.save!
-
-          item.original_title = item.titles.first
-          item.save!
+          item.update_columns original_title_id: item.titles.first.id
 
           item.to_builder.attributes!
         end
@@ -559,6 +568,8 @@ module Lair
         patch do
           authenticate!
           item = fetch_item! includes: true
+          item.cache_previous_version
+          item.updater = current_user
 
           Item.transaction do
             %i(startYear endYear numberOfParts).each do |attr|

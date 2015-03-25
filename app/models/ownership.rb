@@ -1,6 +1,7 @@
 class Ownership < ActiveRecord::Base
   include ResourceWithIdentifier
   include ResourceWithTags
+  include TrackedMutableResource
 
   before_create :set_identifier
 

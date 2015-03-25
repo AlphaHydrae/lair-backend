@@ -148,7 +148,7 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
           pseudonym: ''
         }, _.pick($scope.newPerson, 'firstNames', 'lastName', 'pseudonym'))
       }).then(function(res) {
-        $scope.alreadyExistingPerson = res.data.length ? res.data[0] : res.data;
+        $scope.alreadyExistingPerson = res.data.length ? res.data[0] : null;
         $scope.personAlreadyExists = !!$scope.alreadyExistingPerson;
       }, function(err) {
         $log.warn('Could not find people for ' + JSON.stringify(newValues));

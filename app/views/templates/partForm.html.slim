@@ -86,5 +86,5 @@ form#editPart role='form' ng-controller='PartFormCtrl'
                 span.glyphicon.glyphicon-remove
   .btn-group.pull-right
     button.btn.btn-default type='button' ng-click='cancel()' Cancel
-    button.btn.btn-warning type='button' ng-disabled='!partChanged()' ng-click='reset()' Reset
+    button.btn.btn-warning type='button' ng-if='part.id' ng-disabled='!partChanged()' ng-click='reset()' Reset
     button.btn.btn-primary type='submit' ng-disabled='!partChanged()' ng-click='save()' Save

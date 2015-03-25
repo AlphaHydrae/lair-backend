@@ -199,11 +199,11 @@ angular.module('lair.ownerships', [])
     };
 
     function resetParts() {
-      $scope.parts = $scope.ownership.partId ? [ $scope.ownership.part ] : [];
+      $scope.parts = $scope.ownership && $scope.ownership.partId ? [ $scope.ownership.part ] : [];
     }
 
     function resetUsers() {
-      $scope.users = $scope.ownership.userId ? [ $scope.ownership.user ] : [];
+      $scope.users = $scope.ownership && $scope.ownership.userId ? [ $scope.ownership.user ] : [];
     }
   }])
 ;

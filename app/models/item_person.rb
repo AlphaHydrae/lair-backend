@@ -1,7 +1,7 @@
 class ItemPerson < ActiveRecord::Base
   # TODO: rename to ItemRelationship
 
-  belongs_to :item
+  belongs_to :item, touch: true
   belongs_to :person
 
   strip_attributes
