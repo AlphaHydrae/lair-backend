@@ -23,7 +23,7 @@
   .row
     .col-lg-3.col-md-4.col-sm-6.col-xs-12 ng-repeat-start='image in imageSearch.results'
       a.thumbnail href='#' ng-click='select(image)'
-        img src='{{ image.thumbnail.url }}'
+        img ng-src='{{ image.thumbnail.url }}'
     .clearfix.visible-xs-block
     .clearfix.visible-sm-block ng-if='$index % 2 == 1'
     .clearfix.visible-md-block ng-if='$index % 3 == 2'

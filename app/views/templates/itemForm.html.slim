@@ -4,7 +4,7 @@ form#itemForm role='form' ng-controller='ItemFormCtrl'
       .image.text-center
         span.glyphicon.glyphicon-picture ng-hide='modifiedItem.image' ng-click='selectImage()'
         a.thumbnail href='#' ng-show='modifiedItem.image' ng-click='selectImage()'
-          img src='{{ modifiedItem.image.thumbnail.url }}'
+          img ng-src='{{ modifiedItem.image.thumbnail.url }}'
     .col-xs-9
       .titles.form-group
         button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTitle()'

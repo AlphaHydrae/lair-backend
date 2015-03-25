@@ -12,7 +12,7 @@
   #homeItems.row infinite-scroll='getNextItems()' infinite-scroll-distance=1 infinite-scroll-disabled='itemsLoading'
     .col-lg-2.col-md-3.col-sm-6.col-xs-12 ng-repeat-start='item in items' ng-click='show(item)'
       a.thumbnail href='#'
-        img ng-show='item.image' src='{{ item.image.url }}' alt='Thumbnail'
+        img ng-show='item.image' ng-src='{{ item.image.url }}' alt='Thumbnail'
         .caption ng-hide='item.image'
           h3 {{ item.titles[0].text }}
     .clearfix.visible-xs-block

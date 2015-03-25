@@ -18,7 +18,7 @@
   .selection.row.clear
     .col-lg-3
       a.thumbnail.text-center href='#' ng-click='selectImage(item, "items")'
-        img ng-if='item.image' src='{{ item.image.thumbnail.url }}'
+        img ng-if='item.image' ng-src='{{ item.image.thumbnail.url }}'
         span.glyphicon.glyphicon-picture ng-if='!item.image'
     .col-lg-9
       h2
@@ -49,7 +49,7 @@
         strong.text-success All parts have an image.
     .col-lg-2 ng-repeat-start='part in item.parts | onlyPartsWithImage: this'
       a.thumbnail.text-center href='#' ng-click='selectImage(part, "parts")'
-        img ng-if='part.image' src='{{ part.image.thumbnail.url }}'
+        img ng-if='part.image' ng-src='{{ part.image.thumbnail.url }}'
         span.glyphicon.glyphicon-picture ng-if='!part.image'
     .col-lg-4
       h3 {{ part.title.text }}

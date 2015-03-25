@@ -31,14 +31,14 @@
           a href='{{ link.url }}' {{ link.url }}
     .col-xs-5 ng-show='item.image'
       .image
-        img.center-block src='{{ item.image.url }}' alt='Image'
+        img.center-block ng-src='{{ item.image.url }}' alt='Image'
   tabset.clearfix ng-show='item.parts'
     tab ng-repeat='tab in item.parts' heading='{{ tab.name }}'
       table.table
         tbody
           tr.itemPartInfo ng-repeat='part in tab.parts'
             td.partThumbnail ng-show='part.image'
-              img src='{{ part.image.thumbnail.url }}' alt='Image'
+              img ng-src='{{ part.image.thumbnail.url }}' alt='Image'
             td.title colspan='{{ part.image ? 1 : 2 }}'
               h5
                 | {{ part.title.text }}

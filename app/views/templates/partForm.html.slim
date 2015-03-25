@@ -4,7 +4,7 @@ form#editPart role='form' ng-controller='PartFormCtrl'
       .image.text-center
         span.glyphicon.glyphicon-picture ng-hide='modifiedPart.image' ng-click='selectImage()'
         a.thumbnail href='#' ng-show='modifiedPart.image' ng-click='selectImage()'
-          img src='{{ modifiedPart.image.thumbnail.url }}'
+          img ng-src='{{ modifiedPart.image.thumbnail.url }}'
     .col-xs-8
       .item.form-group
         label for='partItem' Item
