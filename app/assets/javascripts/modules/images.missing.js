@@ -141,7 +141,7 @@ angular.module('lair.images.missing', [])
       if (resource == 'items') {
         $log.debug('No part is missing an image; fetching a random item');
       } else if (resource == 'parts') {
-        params.item = 1;
+        params.withItem = 1;
         $log.debug('Fetching a random item part missing an image');
       }
 
