@@ -32,6 +32,7 @@ gem 'jwt'
 gem 'grape'
 gem 'jbuilder'
 gem 'httparty'
+gem 'google-api-client'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0', group: :doc

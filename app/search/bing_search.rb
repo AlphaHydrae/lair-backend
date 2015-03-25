@@ -1,29 +1,31 @@
 module BingSearch
   def self.images! search
-    search.engine = :bing
-    search.rate_limit = RateLimit.new :bing
-
-    check_rate_limit! search.rate_limit
+    search.engine = :bingSearch
+    search.check_rate_limit!
     return search if search.rate_limit.exceeded?
 
     res = HTTParty.get image_search_url, query: { '$format' => 'json', 'Query' => "'#{search.query}'" }, headers: { 'Accept' => 'application/json', 'Authorization' => authorization }
+
+    # TODO: use custom exception
+    raise "Image search failed with status code #{res.code}: #{res.body}" unless res.code == 200
+
     res = JSON.parse res.body
 
     search.results = res['d']['results'].collect do |result|
       {
         url: result['MediaUrl'],
         contentType: result['ContentType'],
-        width: result['Width'],
-        height: result['Height'],
-        size: result['FileSize']
+        width: result['Width'].try(:to_i),
+        height: result['Height'].try(:to_i),
+        size: result['FileSize'].try(:to_i)
       }.select{ |k,v| v.present? }.tap do |h|
         if result['Thumbnail'].present?
           h[:thumbnail] = {
             url: result['Thumbnail']['MediaUrl'],
             contentType: result['Thumbnail']['ContentType'],
-            width: result['Thumbnail']['Width'],
-            height: result['Thumbnail']['Height'],
-            size: result['Thumbnail']['FileSize']
+            width: result['Thumbnail']['Width'].try(:to_i),
+            height: result['Thumbnail']['Height'].try(:to_i),
+            size: result['Thumbnail']['FileSize'].try(:to_i)
           }.select{ |k,v| v.present? }
         end
       end
@@ -32,44 +34,7 @@ module BingSearch
     search
   end
 
-  def self.rate_limit
-    limit = RateLimit.new :bing
-
-    res = $redis.multi do
-      $redis.get 'rateLimit:bing'
-      $redis.ttl 'rateLimit:bing'
-    end
-
-    limit.total = config[:rate_limit_value].to_i
-    limit.current = res[0].try(:to_i) || 0
-    limit.duration = config[:rate_limit_duration].to_i
-
-    # ttl will be either a number of seconds or negative if the key doesn't exist or is not set to expire
-    limit.ttl = res[1].to_i
-    limit.ttl = limit.duration if limit.ttl < 0
-
-    limit
-  end
-
   private
-
-  def self.check_rate_limit! limit
-    duration = config[:rate_limit_duration].to_i
-
-    res = $redis.multi do
-      # set rate limit to 0 with ttl (if it doesn't exist)
-      $redis.set 'rateLimit:bing', 0, nx: true, ex: duration
-      # increment rate limit by 1
-      $redis.incr 'rateLimit:bing'
-      # also get remaining ttl
-      $redis.ttl 'rateLimit:bing'
-    end
-
-    limit.total = config[:rate_limit_value].to_i
-    limit.current = res[1]
-    limit.duration = duration
-    limit.ttl = res[2]
-  end
 
   def self.image_search_url
     base_url = config[:url]
@@ -83,6 +48,6 @@ module BingSearch
   end
 
   def self.config
-    @config ||= HashWithIndifferentAccess.new(Rails.application.config_for(:services)['bing_search'])
+    Rails.application.service_config :bingSearch
   end
 end

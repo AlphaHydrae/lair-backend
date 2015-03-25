@@ -10,6 +10,17 @@ module Lair
   class Application < Rails::Application
     VERSION = File.read Rails.root.join('VERSION')
 
+    def version
+      VERSION
+    end
+
+    def service_config service
+      # TODO: cache
+      config = config_for :services
+      raise "Missing configuration for service #{service}" unless config[service.to_s]
+      config[service.to_s].with_indifferent_access
+    end
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.

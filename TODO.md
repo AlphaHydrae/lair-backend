@@ -16,6 +16,9 @@
 
 # Low Priority
 
+* add list of search engines to api
+* use https://github.com/rcullito/searchbing
+* allow to search for more results
 * delete parts
 * delete items
 * add missing translations for custom validations

@@ -2,6 +2,20 @@ angular.module('lair.images.select', ['lair.api'])
 
   .controller('SelectImageCtrl', ['ApiService', '$log', '$modalInstance', '$scope', '$timeout', function($api, $log, $modalInstance, $scope, $timeout) {
 
+    $scope.manualImage = {};
+    $scope.manualImageNotFound = false;
+
+    $scope.onManualImageNotFound = function() {
+      $scope.manualImageNotFound = true;
+    };
+
+    $scope.$watch('manualImage.url', function() {
+      $scope.manualImageNotFound = false;
+      $scope.manualImage.thumbnail = {
+        url: $scope.manualImage.url
+      };
+    });
+
     function updateRateLimit(response) {
       $scope.rateLimit = $api.rateLimit(response);
 
@@ -13,7 +27,8 @@ angular.module('lair.images.select', ['lair.api'])
     }
 
     $scope.engines = [
-      { name: 'bing', label: 'Bing' }
+      { name: 'bingSearch', label: 'Bing' },
+      { name: 'googleCustomSearch', label: 'Google' }
     ];
 
     $scope.engine = $scope.engines[0].name;

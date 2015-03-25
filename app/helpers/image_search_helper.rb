@@ -1,7 +1,7 @@
 module ImageSearchHelper
   def self.search_images options = {}
     search = ImageSearch.new user: options[:user], query: options[:query].to_s
-    BingSearch.images! search
+    Search.engine(options[:engine]).images! search
     search.save! unless search.rate_limit.exceeded?
     search
   end
@@ -17,7 +17,7 @@ module ImageSearchHelper
       # perform search
       query = options[:query].present? ? options[:query].to_s : main_search.try(:query) || imageable.default_image_search_query
       search = ImageSearch.new imageable: imageable, user: options[:user], query: query
-      BingSearch.images! search
+      Search.engine(options[:engine]).images! search
 
       # save results
       search.save! unless search.rate_limit.exceeded?
@@ -25,13 +25,13 @@ module ImageSearchHelper
     else
 
       # otherwise, return the results from the previous search with rate limit information
-      main_search.tap{ |s| s.rate_limit = BingSearch.rate_limit }
+      main_search.tap(&:check_rate_limit)
     end
   end
 
   module Api
     def search_images_for imageable, options = {}
-      options.reverse_merge! params.slice(:query).merge(user: current_user)
+      options.reverse_merge! params.slice(:query, :engine).merge(user: current_user)
       search = ImageSearchHelper.search_images_for imageable, options.with_indifferent_access
       search.rate_limit.enforce! if search.results.nil?
       set_image_search_rate_limit_headers search.rate_limit
@@ -39,7 +39,7 @@ module ImageSearchHelper
     end
 
     def search_images options = {}
-      options.reverse_merge! params.slice(:query).merge(user: current_user)
+      options.reverse_merge! params.slice(:query, :engine).merge(user: current_user)
       search = ImageSearchHelper.search_images options.with_indifferent_access
       search.rate_limit.enforce! if search.results.nil?
       set_image_search_rate_limit_headers search.rate_limit

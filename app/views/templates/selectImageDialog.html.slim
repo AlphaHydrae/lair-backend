@@ -28,5 +28,20 @@
     .clearfix.visible-sm-block ng-if='$index % 2 == 1'
     .clearfix.visible-md-block ng-if='$index % 3 == 2'
     .clearfix.visible-lg-block ng-if='$index % 4 == 3' ng-repeat-end=true
+  .row
+    .col-xs-12
+      form role='form'
+        .form-group
+          label for='manualImageUrl' Or paste an image URL here
+          input#manualImageUrl.form-control type='text' ng-model='manualImage.url' ng-model-options='{debounce: 1000}' placeholder='Image URL'
+  .row ng-if='manualImageNotFound'
+    .col-xs-12
+      .alert.alert-warning
+        strong Oops.
+        |  This image seems not to be available.
+  .row ng-if='manualImage.url && !manualImageNotFound'
+    .col-lg-3.col-md-4.col-sm-6.col-xs-12
+      a.thumbnail href='#' ng-click='select(manualImage)'
+        img ng-src='{{ manualImage.url }}' on-err='onManualImageNotFound()'
 .modal-footer
   button.btn.btn-default ng-click='$dismiss()' Cancel

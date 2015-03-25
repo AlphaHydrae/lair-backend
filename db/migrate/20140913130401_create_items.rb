@@ -114,7 +114,7 @@ class CreateItems < ActiveRecord::Migration
     create_table :images do |t|
       t.string :api_id, null: false, limit: 12
       t.string :url, null: false, limit: 255
-      t.string :content_type, null: false, limit: 50
+      t.string :content_type, limit: 50
       t.integer :width
       t.integer :height
       t.integer :size

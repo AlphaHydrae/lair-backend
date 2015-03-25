@@ -1,15 +1,18 @@
 development:
-  bing_search:
+  bingSearch:
     url: https://api.datamarket.azure.com/Bing/Search
     rate_limit_value: 5000
     rate_limit_duration: 86400 # 1 day (in seconds)
+  googleCustomSearch:
+    search_engine_id: foo
+    rate_limit_value: 100
+    rate_limit_duration: 86400 # 1 day (in seconds)
 test:
-  bing_search:
+  bingSearch:
     url: http://localhost/bingSearch
     rate_limit_value: 5000
     rate_limit_duration: 86400 # 1 day (in seconds)
-production:
-  bing_search:
-    url: https://api.datamarket.azure.com/Bing/Search
-    rate_limit_value: 5000
+  googleCustomSearch:
+    search_engine_id: foo
+    rate_limit_value: 100
     rate_limit_duration: 86400 # 1 day (in seconds)

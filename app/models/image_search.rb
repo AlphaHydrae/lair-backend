@@ -11,7 +11,7 @@ class ImageSearch < ActiveRecord::Base
 
   strip_attributes
   validates :query, presence: true, length: { maximum: 255 }
-  validates :engine, presence: true, inclusion: { in: %w(bing), allow_blank: true }
+  validates :engine, presence: true, inclusion: { in: %w(bingSearch googleCustomSearch), allow_blank: true }
   validates :results_count, presence: true, numericality: { only_integer: true, minimum: 0 }
 
   def results= results
@@ -31,6 +31,14 @@ class ImageSearch < ActiveRecord::Base
       json.results results
       json.searchedAt created_at.iso8601(3)
     end
+  end
+
+  def check_rate_limit
+    self.rate_limit = RateLimit.check_rate_limit engine
+  end
+
+  def check_rate_limit!
+    self.rate_limit = RateLimit.check_rate_limit! engine
   end
 
   private
