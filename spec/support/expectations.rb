@@ -32,7 +32,7 @@ module SpecExpectationsHelper
     if expectation.kind_of? Array
       expectation.collect{ |e| with_api_id e, length }
     elsif expectation.kind_of? Hash
-      expectation.merge(id: /\A[a-z0-9]{#{length}}\Z/)
+      expectation.reverse_merge id: /\A[a-z0-9]{#{length}}\Z/
     else
       raise "Array or Hash required"
     end
@@ -40,17 +40,27 @@ module SpecExpectationsHelper
 
   def expect_changes changes = {}, &block
 
-    before_counts = MODELS.collect &:count
+    before_counts = model_counts
     block.call
-    after_counts = MODELS.collect &:count
+    after_counts = model_counts
 
-    MODELS.each.with_index do |model,i|
+    errors = []
+
+    MODELS.each do |model|
       expected_change = changes[model] || changes[model.name.underscore.pluralize.to_sym] || changes[model.name.underscore.to_sym] || 0
-      expect(after_counts[i]).to eq(before_counts[i] + expected_change), ->{ "expected #{model} count to change by #{expected_change}, but it changed by #{after_counts[i] - before_counts[i]}" }
+      errors << "expected #{model} count to change by #{expected_change}, but it changed by #{after_counts[model] - before_counts[model]}" unless after_counts[model] == before_counts[model] + expected_change
     end
+
+    expect(errors).to be_empty, ->{ errors.join '; ' }
   end
 
   def expect_no_changes &block
     expect_changes &block
+  end
+
+  private
+
+  def model_counts
+    MODELS.inject({}){ |memo,model| memo[model] = model.count; memo }
   end
 end

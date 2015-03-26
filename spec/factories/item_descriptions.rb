@@ -2,5 +2,8 @@
 
 FactoryGirl.define do
   factory :item_description do
+    contents 'Foo Bar Baz'
+    language
+    item
   end
 end

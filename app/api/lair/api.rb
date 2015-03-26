@@ -38,7 +38,7 @@ module Lair
 
     helpers do
       def language tag
-        Language.find_or_create_by(tag: tag)
+        Language.find_or_create_by!(tag: tag)
       end
 
       def authenticate

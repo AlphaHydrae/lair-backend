@@ -2,5 +2,8 @@
 
 FactoryGirl.define do
   factory :item_person do
+    relation 'author'
+    person
+    item
   end
 end

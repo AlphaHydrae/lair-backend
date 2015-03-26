@@ -2,8 +2,8 @@ require 'rails_helper'
 
 RSpec.describe 'POST /api/items' do
   let(:user){ create :user }
-  let(:people){ Array.new(2){ create :person } }
   let!(:headers){ auth_headers user }
+  let(:people){ Array.new(2){ create :person } }
 
   let :minimal_item do
     {
@@ -65,7 +65,7 @@ RSpec.describe 'POST /api/items' do
       titles: with_api_id(minimal_item[:titles])
     }), 6)
 
-    item = expect_item json
+    item = expect_item json, creator: user
     expect_model_event :create, user, item
   end
 
@@ -85,7 +85,7 @@ RSpec.describe 'POST /api/items' do
       titles: with_api_id(maximal_item[:titles])
     }).except(:descriptions), 6)
 
-    item = expect_item json
+    item = expect_item json, creator: user
     expect_model_event :create, user, item
   end
 end

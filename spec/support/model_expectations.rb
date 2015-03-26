@@ -1,5 +1,5 @@
 module SpecModelExpectationsHelper
-  def expect_item json
+  def expect_item json, options = {}
 
     item = Item.where(api_id: json['id']).includes([ :language, { links: :language }, { titles: :language }, :descriptions, { relationships: :person } ]).first
     expect(item).to be_present
@@ -16,6 +16,8 @@ module SpecModelExpectationsHelper
       expect(item.titles[i].contents).to eq(title['text'])
       expect(item.titles[i].language.tag).to eq(title['language'])
     end
+
+    expect(item.original_title).to eq(item.titles[0])
 
     relationships = json['relationships'] || [] # TODO: check that relationship people are unique
     expect(item.relationships).to have(relationships.length).items
@@ -38,6 +40,10 @@ module SpecModelExpectationsHelper
     end
 
     expect(item.tags).to eq(json['tags'] || {})
+
+    raise ":creator option is required" unless options.key? :creator
+    expect(item.creator).to eq(options[:creator])
+    expect(item.updater).to eq(options[:updater] || options[:creator])
 
     item
   end
