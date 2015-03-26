@@ -24,7 +24,9 @@ ActiveRecord::Migration.maintain_test_schema!
 RSpec.configure do |config|
 
   config.include SpecAuthHelper
+  config.include SpecLanguagesHelper
   config.include SpecExpectationsHelper
+  config.include SpecModelExpectationsHelper
   config.include FactoryGirl::Syntax::Methods
 
   # If you're not using ActiveRecord, or you'd prefer not to run each of your

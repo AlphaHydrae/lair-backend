@@ -21,3 +21,33 @@ module SpecAuthHelper
     decoded[0]
   end
 end
+
+RSpec.shared_examples "a protected resource" do
+  let(:user){ create :user }
+
+  it "should respond with HTTP 401 if no credentials are sent" do
+    expect_no_changes{ protected_call.call({}) }
+    expect_unauthorized
+  end
+
+  it "should respond with HTTP 401 if invalid credentials are sent" do
+    expect_no_changes{ protected_call.call({ 'Authorization' => 'Foo Bar' }) }
+    expect_unauthorized
+  end
+
+  it "should respond with HTTP 401 if the wrong type of credentials are sent" do
+    expect_no_changes{ protected_call.call({ 'Authorization' => "Basic #{user.generate_auth_token}" }) }
+    expect_unauthorized
+  end
+
+  it "should respond with HTTP 401 if an invalid Bearer token is sent" do
+    expect_no_changes{ protected_call.call({ 'Authorization' => "Bearer foo" }) }
+    expect_unauthorized
+  end
+
+  # TODO: test invalid JWT signature, expired token, etc
+
+  def expect_unauthorized
+    expect(response.status).to eq(401)
+  end
+end

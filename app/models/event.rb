@@ -6,6 +6,7 @@ class Event < ActiveRecord::Base
 
   belongs_to :user
   belongs_to :trackable, polymorphic: true
+  belongs_to :cause, class_name: 'Event'
 
   validates :event_type, inclusion: { in: %w(create update delete job) }
   validates :event_subject, presence: { unless: :trackable }, length: { maximum: 50 }

@@ -3,7 +3,7 @@ FactoryGirl.define do
     "john.doe.#{n}@example.com"
   end
 
-  factory :user do
+  factory :user, aliases: %i(creator) do
     email{ generate :email }
   end
 end

@@ -37,7 +37,6 @@ ActiveRecord::Schema.define(version: 20140913130401) do
     t.string   "query",          limit: 255, null: false
     t.json     "results",                    null: false
     t.integer  "results_count",              null: false
-    t.integer  "user_id"
     t.integer  "creator_id",                 null: false
     t.datetime "created_at",                 null: false
     t.datetime "updated_at",                 null: false

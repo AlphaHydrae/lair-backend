@@ -8,5 +8,6 @@ FactoryGirl.define do
   factory :person do
     last_name "Doe"
     first_names{ generate :first_names }
+    creator
   end
 end

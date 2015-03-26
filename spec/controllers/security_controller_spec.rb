@@ -5,7 +5,7 @@ RSpec.describe SecurityController, type: :controller do
   describe "POST #token" do
     let(:user){ create :user }
 
-    it "should return the token used for authentication and user data" do
+    it "should return an authentication token and user data" do
 
       token = user.generate_auth_token
       request.env['HTTP_AUTHORIZATION'] = "Bearer #{token}"

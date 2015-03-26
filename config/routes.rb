@@ -8,7 +8,7 @@ Rails.application.routes.draw do
 
   mount Lair::API => '/api'
 
-  if Rails.env == 'development'
+  if %w(development test).include? Rails.env
     mount Resque::Server.new, at: '/resque'
     get '/templates/:name', to: 'home#template'
   end

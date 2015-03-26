@@ -7,7 +7,7 @@ module Lair
 
     cascade false
     rescue_from :all do |e|
-      if Rails.env != 'production'
+      if Rails.env == 'development'
         puts e.message
         puts e.backtrace.join("\n")
       end
