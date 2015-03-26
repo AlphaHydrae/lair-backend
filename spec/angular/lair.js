@@ -12,6 +12,7 @@ angular.module('lair', [
   'lair.home',
   'lair.people',
   'lair.routes',
+  'lair.images',
   'lair.images.missing',
   'lair.items.create',
   'lair.items.edit',
@@ -21,7 +22,7 @@ angular.module('lair', [
 ])
 
   // configuration
-  .constant('version', "0.1.0")
+  .constant('version', "5.0.0")
   .constant('environment', "test")
   .constant('config.googleOAuth2ClientId', "test")
 

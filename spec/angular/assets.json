@@ -124,6 +124,10 @@
         "projectPath": "app/assets/javascripts/modules/home.js"
       },
       {
+        "logicalPath": "modules/images.js",
+        "projectPath": "app/assets/javascripts/modules/images.js"
+      },
+      {
         "logicalPath": "modules/images.missing.js",
         "projectPath": "app/assets/javascripts/modules/images.missing.js"
       },
