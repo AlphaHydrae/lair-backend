@@ -17,7 +17,7 @@ FactoryGirl.define do
     creator
 
     before :create do |item,evaluator|
-      evaluator.titles.each do |title|
+      evaluator.titles.each.with_index do |title,i|
 
         title = if title.kind_of? Hash
           OpenStruct.new({ language: item.language }.merge(title))
@@ -27,15 +27,15 @@ FactoryGirl.define do
           raise "Unsupported item factory title type #{title.class}"
         end
 
-        item.titles << build(:item_title, item: item, contents: title.contents, language: title.language, display_position: 0)
+        item.titles << build(:item_title, item: item, contents: title.contents, language: title.language, display_position: i)
       end
 
       evaluator.links.each do |link|
 
         link = if link.kind_of? Hash
-          OpenStruct.new({ language: item.language }.merge(link))
+          OpenStruct.new link
         elsif link.kind_of? String
-          OpenStruct.new url: link, language: item.language
+          OpenStruct.new url: link
         else
           raise "Unsupported item factory link type #{link.class}"
         end

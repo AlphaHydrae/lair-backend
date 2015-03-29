@@ -3,10 +3,10 @@ require 'rails_helper'
 RSpec.describe 'PATCH /api/items/{id}' do
   let(:user){ create :user }
   let(:creator){ create :user }
-  let!(:headers){ auth_headers user }
+  let!(:auth_headers){ generate_auth_headers user }
   let(:people){ Array.new(2){ create :person } }
   let(:languages){ create_languages :en, :fr, :de, 'fr-CH' }
-  let(:item){ create :item, creator: creator, language: languages[0], titles: [ 'A Tale of Two Cities', { contents: 'Le Conte de deux cités', language: languages[1] } ] }
+  let(:item){ create :item, creator: creator, language: languages[0], titles: [ 'A Tale of Two Cities', { contents: 'Le Conte de deux cités', language: languages[1] } ], links: [ 'http://foo.example.com' ] }
 
   let! :original_version do
     item.to_builder.attributes!
@@ -29,9 +29,9 @@ RSpec.describe 'PATCH /api/items/{id}' do
       language: 'fr',
       numberOfParts: 2,
       titles: [
+        { text: 'Eine Geschichte von Zwei Städten', language: 'de' },
         { id: item.titles[1].api_id, text: 'Le Conte de deux cités', language: 'fr-CH' },
-        { id: item.titles[0].api_id, text: 'A Tale of Three Cities', language: 'en' },
-        { text: 'Eine Geschichte von Zwei Städten', language: 'de' }
+        { id: item.titles[0].api_id, text: 'A Tale of Three Cities', language: 'en' }
       ],
       relationships: [
         { relation: 'author', personId: people[0].api_id },
@@ -56,10 +56,9 @@ RSpec.describe 'PATCH /api/items/{id}' do
   it "should partially update an item" do
 
     expect_changes events: 1 do
-      patch "/api/items/#{item.api_id}", minimal_update, headers
+      patch_item item, minimal_update
+      expect(response.status).to eq(200)
     end
-
-    expect(response.status).to eq(200)
 
     json = expect_json original_version.merge(minimal_update)
     expect_item json, creator: creator, updater: user
@@ -70,11 +69,10 @@ RSpec.describe 'PATCH /api/items/{id}' do
 
     update = full_update
 
-    expect_changes events: 1, item_links: 3, item_people: 2, item_titles: 1 do
-      patch "/api/items/#{item.api_id}", update, headers
+    expect_changes events: 1, item_links: 2, item_people: 2, item_titles: 1 do
+      patch_item item, update
+      expect(response.status).to eq(200)
     end
-
-    expect(response.status).to eq(200)
 
     json = expect_json full_update.tap{ |u|
       u[:titles] = with_api_id u[:titles]
@@ -83,5 +81,9 @@ RSpec.describe 'PATCH /api/items/{id}' do
 
     expect_item json, creator: creator, updater: user
     expect_model_event :update, user, item, previous_version: original_version
+  end
+
+  def patch_item item, updates
+    patch "/api/items/#{item.api_id}", JSON.dump(updates), auth_headers.merge('CONTENT_TYPE' => 'application/json')
   end
 end

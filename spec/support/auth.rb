@@ -1,12 +1,12 @@
 module SpecAuthHelper
-  def auth_token token_user = nil
+  def generate_auth_token token_user = nil
     token_user ||= user if respond_to?(:user)
     token_user ||= create :user
     token_user.generate_auth_token
   end
 
-  def auth_headers user = nil
-    { 'Authorization' => "Bearer #{auth_token(user)}" }
+  def generate_auth_headers user = nil
+    { 'Authorization' => "Bearer #{generate_auth_token(user)}" }
   end
 
   def decode_auth_token token

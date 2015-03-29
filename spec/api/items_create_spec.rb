@@ -2,7 +2,7 @@ require 'rails_helper'
 
 RSpec.describe 'POST /api/items' do
   let(:user){ create :user }
-  let!(:headers){ auth_headers user }
+  let!(:auth_headers){ generate_auth_headers user }
   let(:people){ Array.new(2){ create :person } }
 
   let :minimal_item do
@@ -17,7 +17,7 @@ RSpec.describe 'POST /api/items' do
     }
   end
 
-  let :maximal_item do
+  let :full_item do
     minimal_item.merge({
       numberOfParts: 1,
       titles: [
@@ -53,10 +53,9 @@ RSpec.describe 'POST /api/items' do
     create_languages :en
 
     expect_changes events: 1, items: 1, item_titles: 1 do
-      post '/api/items', minimal_item, headers
+      post_item minimal_item
+      expect(response.status).to eq(201)
     end
-
-    expect(response.status).to eq(201)
 
     json = expect_json with_api_id(minimal_item.merge({
       links: [],
@@ -75,17 +74,20 @@ RSpec.describe 'POST /api/items' do
     create_languages :en, :fr
 
     expect_changes events: 1, items: 1, item_descriptions: 2, item_links: 3, item_people: 2, item_titles: 2 do
-      post '/api/items', maximal_item, headers
+      post_item full_item
+      expect(response.status).to eq(201)
     end
 
-    expect(response.status).to eq(201)
-
-    json = expect_json with_api_id(maximal_item.merge({
-      relationships: maximal_item[:relationships].collect{ |r| r.merge person: people.find{ |p| p.api_id == r[:personId] }.to_builder.attributes! },
-      titles: with_api_id(maximal_item[:titles])
+    json = expect_json with_api_id(full_item.merge({
+      relationships: full_item[:relationships].collect{ |r| r.merge person: people.find{ |p| p.api_id == r[:personId] }.to_builder.attributes! },
+      titles: with_api_id(full_item[:titles])
     }).except(:descriptions), 6)
 
     item = expect_item json, creator: user
     expect_model_event :create, user, item
+  end
+
+  def post_item body
+    post '/api/items', JSON.dump(body), auth_headers.merge('CONTENT_TYPE' => 'application/json')
   end
 end

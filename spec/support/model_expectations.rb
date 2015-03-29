@@ -10,21 +10,20 @@ module SpecModelExpectationsHelper
 
     expect(item.language.tag).to eq(json['language'])
 
-    expect(item.titles).to have(json['titles'].length).items
+    item_titles = item.titles.sort_by &:display_position
+    expect(item_titles).to have(json['titles'].length).items
     json['titles'].each.with_index do |title,i|
-      expect(item.titles[i].api_id).to eq(title['id'])
-      expect(item.titles[i].contents).to eq(title['text'])
-      expect(item.titles[i].language.tag).to eq(title['language'])
+      expect(item_titles[i].to_builder.attributes!).to eq(title)
     end
 
-    expect(item.original_title).to eq(item.titles[0])
+    expect(item.original_title).to eq(item_titles[0])
 
     relationships = json['relationships'] || [] # TODO: check that relationship people are unique
     expect(item.relationships).to have(relationships.length).items
     relationships.each.with_index do |rel,i|
       matching_rel = item.relationships.find{ |item_rel| item_rel.person.api_id == rel['personId'] }
       expect(matching_rel).to be_present, "expected item #{json['id']} to have a relationship with person #{rel['personId']}"
-      expect(matching_rel.relationship).to eq(rel['relation'])
+      expect(matching_rel.relationship).to eq(rel['relation']) # TODO custom error message
     end
 
     links = json['links'] || [] # TODO: check that link URLs are unique
@@ -33,7 +32,7 @@ module SpecModelExpectationsHelper
       matching_link = item.links.find{ |item_link| item_link.url == link['url'] }
       expect(matching_link).to be_present, "expected item #{json['id']} to have a link with URL #{link['url']}"
       if link.key? 'language'
-        expect(matching_link.language.tag).to eq(link['language'])
+        expect(matching_link.language.tag).to eq(link['language']) # TODO: custom error message
       else
         expect(matching_link.language).to be_nil
       end

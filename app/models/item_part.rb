@@ -57,6 +57,7 @@ class ItemPart < ActiveRecord::Base
       json.itemId item.api_id
       json.item item.to_builder(options.slice(:image_from_search)) if options[:with_item]
       json.title do
+        json.id title.api_id if title.present?
         json.text effective_title
         json.language custom_title.present? ? custom_title_language.tag : title.language.tag
       end
@@ -72,7 +73,7 @@ class ItemPart < ActiveRecord::Base
       json.version version if version
       json.format format if format
       json.length length if length
-      json.tags
+      json.tags tags
 
       if options[:current_user] && options[:ownerships]
         json.ownedByMe options[:ownerships].any?{ |o| o.item_part_id == id && o.user_id == options[:current_user].id }
@@ -85,6 +86,7 @@ class ItemPart < ActiveRecord::Base
   private
 
   def range
+    return nil unless range_start
     range_end != range_start ? "#{range_start}-#{range_end}" : range_start.to_s
   end
 
@@ -100,7 +102,7 @@ class ItemPart < ActiveRecord::Base
     self.effective_title = if custom_title.present?
       custom_title
     else
-      "#{title.contents} #{range}"
+      [ title.contents, range ].compact.join ' '
     end
   end
 end
