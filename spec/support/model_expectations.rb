@@ -1,4 +1,37 @@
 module SpecModelExpectationsHelper
+  def expect_ownership json, options = {}
+
+    ownership = Ownership.where(api_id: json['id']).includes(:item_part, :user).first
+    expect(ownership).to be_present
+
+    expect(ownership.item_part.api_id).to eq(json['partId'])
+    expect(ownership.user.api_id).to eq(json['userId'])
+    expect(ownership.gotten_at.iso8601(3)).to eq(json['gottenAt'])
+    expect(ownership.tags).to eq(json['tags'])
+
+    raise ":creator option is required" unless options.key? :creator
+    expect(ownership.creator).to eq(options[:creator])
+    expect(ownership.updater).to eq(options[:updater] || options[:creator])
+
+    ownership
+  end
+
+  def expect_person json, options = {}
+
+    person = Person.where(api_id: json['id']).first
+    expect(person).to be_present
+
+    expect(person.first_names).to json.key?('firstNames') ? eq(json['firstNames']) : be_nil
+    expect(person.last_name).to json.key?('lastName') ? eq(json['lastName']) : be_nil
+    expect(person.pseudonym).to json.key?('pseudonym') ? eq(json['pseudonym']) : be_nil
+
+    raise ":creator option is required" unless options.key? :creator
+    expect(person.creator).to eq(options[:creator])
+    expect(person.updater).to eq(options[:updater] || options[:creator])
+
+    person
+  end
+
   def expect_part json, options = {}
 
     part = ItemPart.where(api_id: json['id']).includes(:item, { title: :language }, :custom_title_language, :language).first
