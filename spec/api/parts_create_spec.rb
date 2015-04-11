@@ -48,7 +48,8 @@ RSpec.describe 'POST /api/parts' do
       tags: {}
     })
 
-    # TODO: expect part & event
+    part = expect_part json, creator: user
+    expect_model_event :create, user, part
   end
 
   it "should create a full part" do
@@ -62,7 +63,8 @@ RSpec.describe 'POST /api/parts' do
       title: title.to_builder.attributes!.merge('text' => "#{title.contents} 1-3")
     })
 
-    # TODO: expect part & event
+    part = expect_part json, creator: user
+    expect_model_event :create, user, part
   end
 
   def post_part body

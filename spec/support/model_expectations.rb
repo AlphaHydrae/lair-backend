@@ -1,4 +1,50 @@
 module SpecModelExpectationsHelper
+  def expect_part json, options = {}
+
+    part = ItemPart.where(api_id: json['id']).includes(:item, { title: :language }, :custom_title_language, :language).first
+    expect(part).to be_present
+
+    item = Item.where(api_id: json['itemId']).first
+    expect(item).to be_present
+    expect(part.item).to eq(item)
+
+    if json.key? 'titleId'
+      title = item.titles.where(api_id: json['titleId']).first
+      expect(title).to be_present
+      expect(part.title).to eq(title)
+      expect(part.effective_title).to eq(json['title']['text'])
+      expect(part.title.language.tag).to eq(json['title']['language'])
+      expect(part.custom_title).to be_nil
+      expect(part.custom_title_language).to be_nil
+    else
+      expect(part.title).to be_nil
+      expect(part.custom_title).to eq(json['title']['text'])
+      expect(part.custom_title_language.tag).to eq(json['title']['language'])
+    end
+
+    expect(part.original_year).to eq(json['originalYear'])
+    expect(part.year).to json.key?('year') ? eq(json['year']) : be_nil
+    expect(part.language.tag).to eq(json['language'])
+    expect(part.range_start).to json.key?('start') ? eq(json['start']) : be_nil
+    expect(part.range_end).to json.key?('end') ? eq(json['end']) : be_nil
+    expect(json.key?('start')).to eq(json.key?('end')) # custom error message
+    expect(part.edition).to json.key?('edition') ? eq(json['edition']) : be_nil
+    expect(part.version).to json.key?('version') ? eq(json['version']) : be_nil
+    expect(part.format).to json.key?('format') ? eq(json['format']) : be_nil
+    expect(part.length).to json.key?('length') ? eq(json['length']) : be_nil
+    expect(part.tags).to eq(json['tags'])
+
+    # TODO: test with item
+    # TODO: test ownedByMe
+    # TODO: test with image
+
+    raise ":creator option is required" unless options.key? :creator
+    expect(part.creator).to eq(options[:creator])
+    expect(part.updater).to eq(options[:updater] || options[:creator])
+
+    part
+  end
+
   def expect_item json, options = {}
 
     item = Item.where(api_id: json['id']).includes([ :language, { links: :language }, { titles: :language }, :descriptions, { relationships: :person } ]).first

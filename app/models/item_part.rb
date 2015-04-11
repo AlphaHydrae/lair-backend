@@ -15,6 +15,8 @@ class ItemPart < ActiveRecord::Base
   belongs_to :custom_title_language, class_name: 'Language'
   has_many :ownerships
 
+  # TODO: make edition an enum
+
   strip_attributes
   validates :item, presence: true
   validates :title, presence: { unless: :custom_title }
