@@ -1,5 +1,5 @@
-.modal-header
-  .btn-group.btn-group-sm.pull-right
+.modal-header.clearfix
+  .btn-group.btn-group-sm.pull-right ng-if='currentUser'
     button.btn.btn-warning type='button' ng-click='edit(item)' tooltip='Edit'
       span.glyphicon.glyphicon-edit
     button.btn.btn-success type='button' ng-click='createPart(item)' tooltip='Add Part'
@@ -46,8 +46,8 @@
                   |  ({{ part.year }})
                 span ng-if='!part.year'
                   |  ({{ part.originalYear }})
-            td.description
-              .btn-group.btn-group-sm.pull-right
+            td.description.clearfix
+              .btn-group.btn-group-sm.pull-right ng-if='currentUser'
                 button.btn.btn-warning type='button' ng-click='editPart(part)' tooltip='Edit'
                   span.glyphicon.glyphicon-edit
                 button.btn.btn-default type='button' own-dialog=true ng-if='!part.ownedByMe'

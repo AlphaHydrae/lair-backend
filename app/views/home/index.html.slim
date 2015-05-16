@@ -10,7 +10,7 @@ script type='text/ng-template' id='/templates/navbar.html'
         a.navbar-brand ui-sref='std.home' Lair
       #menu.collapse.navbar-collapse
         ul.nav.navbar-nav
-          li dropdown=true
+          li ng-if='currentUser' dropdown=true
             a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
               | Admin
               span.caret

@@ -9,6 +9,7 @@ angular.module('lair', [
   'ui.sortable',
   'lair.state',
   'lair.auth',
+  'lair.auth.policy',
   'lair.home',
   'lair.people',
   'lair.routes',

@@ -112,6 +112,10 @@
         "projectPath": "app/assets/javascripts/modules/auth.js"
       },
       {
+        "logicalPath": "modules/auth.policy.js",
+        "projectPath": "app/assets/javascripts/modules/auth.policy.js"
+      },
+      {
         "logicalPath": "modules/auth.token.js",
         "projectPath": "app/assets/javascripts/modules/auth.token.js"
       },

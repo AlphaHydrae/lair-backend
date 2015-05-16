@@ -1,6 +1,6 @@
 class LanguagePolicy < ApplicationPolicy
   def index?
-    authenticated?
+    true
   end
 
   class Scope < Scope
