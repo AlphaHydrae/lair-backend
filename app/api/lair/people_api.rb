@@ -2,7 +2,7 @@ module Lair
   class PeopleApi < Grape::API
     namespace :people do
       post do
-        authenticate!
+        authorize! Person, :create
 
         person = Person.new creator: current_user
         %i(last_name first_names pseudonym).each{ |attr| person.send "#{attr}=", params[attr.to_s.camelize(:lower)] if params.key? attr.to_s.camelize(:lower) }
@@ -12,7 +12,7 @@ module Lair
       end
 
       get do
-        authenticate!
+        authorize! Person, :index
 
         limit = params[:pageSize].to_i
         limit = 10 if limit < 1

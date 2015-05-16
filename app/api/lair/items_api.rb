@@ -2,7 +2,7 @@ module Lair
   class ItemsApi < Grape::API
     namespace :items do
       post do
-        authenticate!
+        authorize! Item, :create
         language = language(params[:language])
 
         Item.transaction do
@@ -88,11 +88,13 @@ module Lair
       end
 
       head do
+        authorize! Item, :index
         search_items
         nil
       end
 
       get do
+        authorize! Item, :index
         rel = search_items
 
         if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
@@ -130,6 +132,7 @@ module Lair
         end
 
         get do
+          authorize! Item, :show
           fetch_item!(includes: true).to_builder.attributes!
         end
 
@@ -137,7 +140,7 @@ module Lair
         include MainImageSearchApi
 
         patch do
-          authenticate!
+          authorize! Item, :update
           item = fetch_item! includes: true
           item.cache_previous_version
           item.updater = current_user

@@ -2,7 +2,7 @@ module Lair
   class OwnershipsApi < Grape::API
     namespace :ownerships do
       post do
-        authenticate!
+        authorize! Ownership, :create
 
         part = ItemPart.where(api_id: params[:partId]).first!
         user = params.key?(:userId) ? User.where(api_id: params[:userId]).first! : current_user
@@ -23,7 +23,7 @@ module Lair
       end
 
       get do
-        authenticate!
+        authorize! Ownership, :index
 
         rel = Ownership.joins(:item_part).joins(:user).order('item_parts.effective_title ASC, users.email ASC')
 
@@ -72,7 +72,8 @@ module Lair
         end
 
         patch do
-          authenticate!
+          authorize! Ownership, :update
+
           ownership = fetch_ownership!
           ownership.cache_previous_version
           ownership.updater = current_user
@@ -92,7 +93,7 @@ module Lair
         end
 
         delete do
-          authenticate!
+          authorize! Ownership, :destroy
 
           ownership = fetch_ownership!
           ownership.cache_previous_version

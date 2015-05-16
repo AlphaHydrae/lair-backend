@@ -45,6 +45,8 @@ module SpecModelExpectationsHelper
     raise ":creator option is required" unless options.key? :creator
     expect(ownership.creator).to eq(options[:creator])
     expect(ownership.updater).to eq(options[:updater] || options[:creator])
+
+    ownership
   end
 
   def expect_part json, options = {}

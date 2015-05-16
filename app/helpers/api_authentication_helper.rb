@@ -2,10 +2,22 @@ require_dependency 'errors'
 
 module ApiAuthenticationHelper
 
+  def authenticate
+    authenticate_with_header headers['Authorization'], required: false
+  end
+
+  def authenticate!
+    authenticate_with_header headers['Authorization'], required: true
+  end
+
   def authenticate_with_header authorization_header, options = {}
 
-    return fail_authentication 'Missing credentials', options if authorization_header.blank?
-    return fail_authentication 'Wrong credentials', options unless m = authorization_header.match(/\ABearer ([a-zA-Z0-9\-\_\/\:\=\.]+)\Z/)
+    if authorization_header.blank?
+      fail_auth 'Missing credentials' if options.fetch :required, true
+      return
+    end
+
+    return fail_auth 'Not a valid bearer token' unless m = authorization_header.match(/\ABearer (.+)\Z/)
 
     @raw_auth_token = m[1]
 
@@ -13,13 +25,15 @@ module ApiAuthenticationHelper
       token = JWT.decode @raw_auth_token, Rails.application.secrets.jwt_hmac_key
     rescue JWT::DecodeError
       @raw_auth_token = nil
-      return fail_authentication 'Wrong credentials', options
+      return fail_auth 'Invalid credentials'
     end
 
     @auth_token = token[0]
   end
 
-  def fail_authentication message, options = {}
-    raise AuthError.new(message) if options.fetch(:required, true)
+  private
+
+  def fail_auth message
+    raise AuthError.new(message)
   end
 end

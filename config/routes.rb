@@ -3,7 +3,7 @@ require 'resque/server'
 Rails.application.routes.draw do
   namespace :auth, module: nil do
     post '/google', to: 'security#google'
-    post '/token', to: 'security#token'
+    post '/token', to: 'security#token' # TODO: move this to API
   end
 
   mount Lair::API => '/api'

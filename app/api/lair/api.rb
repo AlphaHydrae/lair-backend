@@ -7,6 +7,7 @@ module Lair
 
     cascade false
     rescue_from :all do |e|
+
       if Rails.env == 'development'
         puts e.message
         puts e.backtrace.join("\n")
@@ -14,11 +15,14 @@ module Lair
 
       code = if e.kind_of? LairError
         e.http_status_code
+      elsif e.kind_of? Pundit::NotAuthorizedError
+        403
       elsif e.kind_of? ActiveRecord::RecordNotFound
         404
       elsif e.kind_of? ActiveRecord::RecordInvalid
         422
       else
+        Rails.logger.error e
         500
       end
 
@@ -31,27 +35,30 @@ module Lair
     end
 
     helpers ApiAuthenticationHelper
-    helpers ImageSearchHelper::Api
+    helpers ApiAuthorizationHelper
     helpers ApiImageableHelper
     helpers ApiPaginationHelper
     helpers ApiParamsHelper
+    helpers ImageSearchHelper::Api
 
     helpers do
       def language tag
         Language.find_or_create_by!(tag: tag)
       end
 
-      def authenticate
-        authenticate_with_header headers['Authorization'], required: false
-      end
-
-      def authenticate!
-        authenticate_with_header headers['Authorization'], required: true
-      end
-
       def current_user
-        @auth_token ? User.where(email: @auth_token['iss']).first! : nil
+
+        if @auth_token && !@current_user
+          @current_user = User.where(email: @auth_token['iss']).first
+          raise AuthError.new("Unknown user #{@auth_token['iss']}") if @current_user.blank?
+        end
+
+        @current_user
       end
+    end
+
+    before do
+      authenticate
     end
 
     include ImageSearchesApi
@@ -63,22 +70,23 @@ module Lair
     mount UsersApi
 
     get :ping do
-      authenticate!
+      authorize! :api, :ping
       'pong'
     end
 
     get :bookPublishers do
-      authenticate!
+      authorize! ItemPart, :index
       Book.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
     end
 
     get :partEditions do
-      authenticate!
+      authorize! ItemPart, :index
+      Book.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
       ItemPart.order(:edition).pluck('distinct(edition)').compact.collect{ |edition| { name: edition } }
     end
 
     get :partFormats do
-      authenticate!
+      authorize! ItemPart, :index
       ItemPart.order(:format).pluck('distinct(format)').compact.collect{ |format| { name: format } }
     end
   end

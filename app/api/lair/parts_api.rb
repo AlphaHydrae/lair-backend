@@ -2,7 +2,7 @@ module Lair
   class PartsApi < Grape::API
     namespace :parts do
       post do
-        authenticate!
+        authorize! ItemPart, :create
 
         part = Book.new creator: current_user
 
@@ -80,12 +80,13 @@ module Lair
       end
 
       head do
+        authorize! ItemPart, :index
         search_parts
         nil
       end
 
       get do
-        authenticate
+        authorize! ItemPart, :index
 
         rel = search_parts
 
@@ -133,7 +134,7 @@ module Lair
         end
 
         get do
-          authenticate
+          authorize! ItemPart, :show
 
           part = fetch_part!
 
@@ -153,7 +154,8 @@ module Lair
         include MainImageSearchApi
 
         patch do
-          authenticate!
+          authorize! ItemPart, :update
+
           part = fetch_part!
           part.cache_previous_version
           part.updater = current_user
