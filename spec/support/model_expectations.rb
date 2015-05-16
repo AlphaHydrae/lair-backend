@@ -32,6 +32,21 @@ module SpecModelExpectationsHelper
     person
   end
 
+  def expect_ownership json, options = {}
+
+    ownership = Ownership.where(api_id: json['id']).first
+    expect(ownership).to be_present
+
+    expect(ownership.item_part.api_id).to eq(json['partId'])
+    expect(ownership.user.api_id).to eq(json['userId'])
+    expect(ownership.gotten_at.iso8601(3)).to eq(json['gottenAt'])
+    expect(ownership.tags).to eq(json['tags'])
+
+    raise ":creator option is required" unless options.key? :creator
+    expect(ownership.creator).to eq(options[:creator])
+    expect(ownership.updater).to eq(options[:updater] || options[:creator])
+  end
+
   def expect_part json, options = {}
 
     part = ItemPart.where(api_id: json['id']).includes(:item, { title: :language }, :custom_title_language, :language).first

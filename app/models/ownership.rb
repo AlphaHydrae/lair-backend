@@ -23,6 +23,8 @@ class Ownership < ActiveRecord::Base
 
       json.part item_part.to_builder.attributes! if options[:with_part]
       json.user user.to_builder.attributes! if options[:with_user]
+
+      # TODO: add createdAt/updatedAt
     end
   end
 end
