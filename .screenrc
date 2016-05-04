@@ -5,9 +5,9 @@ stuff "psql new-lair\012"
 screen -t redis 1
 stuff "redis-cli\012"
 screen -t resque 2
-stuff "bundle exec guard start -g resque-pool\012"
+stuff "direnv reload && bundle exec guard start -g resque-pool\012"
 screen -t server 3
-stuff "bundle exec rails server\012"
+stuff "direnv reload && bundle exec rails server\012"
 screen -t vim 4
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
 screen -t zsh 5
