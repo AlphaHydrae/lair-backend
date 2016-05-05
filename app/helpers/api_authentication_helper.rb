@@ -12,7 +12,7 @@ module ApiAuthenticationHelper
       raise AuthError.new("User #{@current_user.api_id} is inactive") unless @current_user.active?
     end
 
-    User.where(id: @current_user.id).update_all(active_at: Time.now)
+    User.where(id: @current_user.id).update_all(active_at: Time.now) if @current_user
 
     @current_user
   end
