@@ -39,8 +39,16 @@ module Lair
 
         rel = paginated rel do |rel|
 
-          if params.key? :userId
+          if current_user.admin? && params.key?(:userId)
             rel = rel.where 'users.api_id = ?', params[:userId].to_s
+          end
+
+          if true_flag? :mine
+            rel = rel.where 'users.api_id = ?', current_user.api_id
+          end
+
+          if params.key? :name
+            rel = rel.where normalized_name: params[:name].to_s.downcase
           end
 
           rel
@@ -69,6 +77,13 @@ module Lair
             record.save!
             serialize record
           end
+        end
+
+        delete do
+          authorize! record, :destroy
+          record.destroy
+          status 204
+          nil
         end
 
         namespace :scanPaths do

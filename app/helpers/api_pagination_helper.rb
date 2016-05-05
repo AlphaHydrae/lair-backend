@@ -12,6 +12,8 @@ module ApiPaginationHelper
     header 'X-Pagination-Number', limit.to_s
     header 'X-Pagination-Total', rel.count.to_s
 
+    filtered_count = 0
+
     filtered_rel = if block_given?
       yield rel
     else
@@ -25,9 +27,9 @@ module ApiPaginationHelper
       else
         (@pagination_filtered_count_rel || filtered_rel).count
       end
-
-      header 'X-Pagination-Filtered-Total', filtered_count.to_s
     end
+
+    header 'X-Pagination-Filtered-Total', filtered_count.to_s
 
     filtered_rel = filtered_rel.none if limit == 0
 

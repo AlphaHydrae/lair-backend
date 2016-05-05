@@ -24,8 +24,12 @@ module Lair
             end
           end
 
-          if params.key? :userId
+          if current_user.admin? && params.key?(:userId)
             rel = rel.where 'users.api_id = ?', params[:userId].to_s
+          end
+
+          if true_flag? :mine
+            rel = rel.where 'users.api_id = ?', current_user.api_id
           end
 
           if params.key? :sourceId

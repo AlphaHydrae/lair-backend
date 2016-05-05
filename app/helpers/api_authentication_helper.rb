@@ -3,7 +3,10 @@ require_dependency 'errors'
 module ApiAuthenticationHelper
   def current_user
 
+    new_user = false
+
     if @auth_token && !@current_user
+      new_user = true
       @current_user = User.where(api_id: @auth_token['iss']).first
       raise AuthError.new("Unknown user #{@auth_token['iss']}") if @current_user.blank?
     end
@@ -12,7 +15,7 @@ module ApiAuthenticationHelper
       raise AuthError.new("User #{@current_user.api_id} is inactive") unless @current_user.active?
     end
 
-    User.where(id: @current_user.id).update_all(active_at: Time.now) if @current_user
+    User.where(id: @current_user.id).update_all(active_at: Time.now) if @current_user && new_user
 
     @current_user
   end

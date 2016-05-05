@@ -37,7 +37,7 @@ module Lair
           authorize! MediaScan, :update
 
           MediaScan.transaction do
-            record.ended_at = params[:ended_at].to_s if params.key? :ended_at
+            record.ended_at = params[:endedAt].to_s if params.key? :endedAt
             record.save!
             serialize record
           end

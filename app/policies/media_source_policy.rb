@@ -15,6 +15,10 @@ class MediaSourcePolicy < ApplicationPolicy
     admin? || user == record.user
   end
 
+  def destroy?
+    admin? || user == record.user
+  end
+
   class Scope < Scope
     def resolve
       if user.admin?
