@@ -1,6 +1,6 @@
 angular.module('lair.profile').controller('ProfileCtrl', function(api, auth, forms, $scope) {
 
-  $scope.user = $scope.currentUser;
+  $scope.user = _.omit($scope.currentUser, 'activeAt');
 
   $scope.save = saveProfile;
   $scope.reset = resetModifiedUser;
