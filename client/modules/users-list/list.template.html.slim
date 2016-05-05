@@ -10,6 +10,7 @@
         th Name
         th E-mail
         th Creation date
+        th Last activity
         th
     tbody
       tr.empty ng-if='!usersList.initialized'
@@ -17,7 +18,10 @@
       tr ng-repeat='user in usersList.records'
         td {{ user.name }}
         td {{ user.email }}
-        td.creation-date {{ user.createdAt | amDateFormat: 'lll' }}
+        td {{ user.createdAt | amDateFormat: 'lll' }}
+        td
+          span ng-if='user.activeAt' tooltip='{{ user.activeAt | amDateFormat: "lll" }}' {{ user.activeAt | amTimeAgo }}
+          span.empty ng-if='!user.activeAt' Not available
         td.actions
           .pull-right
             .btn-group.btn-group-sm

@@ -21,6 +21,9 @@
     .checkbox
       label
         input type='checkbox' ng-model='modifiedUser.active' User is active
+    p.help-block ng-if='user.activeAt'
+      strong> Last activity:
+      span tooltip='{{ user.activeAt | amDateFormat: "lll" }}' {{ user.activeAt | amTimeAgo }}
 
   .col-sm-6.col-xs-12 ng-if='currentUserIs("admin")'
     .form-group

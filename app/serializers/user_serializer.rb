@@ -6,7 +6,10 @@ class UserSerializer < ApplicationSerializer
     json.email record.email if policy.show_email?
     json.emailMd5 Digest::MD5.hexdigest(record.email)
 
-    json.active record.active if policy.show_active?
+    if policy.show_active?
+      json.active record.active
+      json.activeAt record.active_at if record.active_at
+    end
 
     json.roles record.roles.collect(&:to_s)
     json.createdAt record.created_at.iso8601(3)
