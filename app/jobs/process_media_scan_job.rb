@@ -21,52 +21,71 @@ class ProcessMediaScanJob
     MediaScan.transaction do
 
       scanned_at = Time.now
-      directories_by_path = {}
 
-      total = 0
-      scan.scanned_files.where(processed: false).find_each batch_size: 250 do |scanned_file|
-        total += 1
+      scan.scanned_files.where(processed: false).find_in_batches batch_size: 250 do |scanned_files|
 
-        directory_paths = []
-        current_path = scanned_file.path
+        directories_by_path = {}
+        paths_to_check_for_deletion = Set.new
 
-        n = 0
-        loop do
-          path = File.dirname current_path
-          directory_paths.unshift path
-          break if path == '/' || path == '.' || n >= 100
-          current_path = path
-          n += 1
+        scanned_files.each do |scanned_file|
+
+          if scanned_file.deleted?
+            if file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path).first
+              paths_to_check_for_deletion << File.dirname(scanned_file.path)
+              file.deleted = true
+              file.save!
+            end
+            next
+          end
+
+          directory_paths = []
+          current_path = scanned_file.path
+
+          n = 0
+          loop do
+            path = File.dirname current_path
+            directory_paths.unshift path
+            break if path == '/' || path == '.' || n >= 100
+            current_path = path
+            n += 1
+          end
+
+          directory_paths.each.with_index do |path,i|
+            next if directories_by_path.key? path
+            parent_directory = path == '/' ? nil : directories_by_path[File.dirname(path)]
+            directories_by_path[path] = MediaDirectory.find_or_create_by!(source_id: scan.source_id, directory_id: parent_directory.try(:id), path: path, depth: i)
+          end
+
+          directory = directories_by_path[File.dirname(scanned_file.path)]
+          file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path, directory_id: directory, depth: directory.depth + 1).first
+
+          unless file
+            file = MediaFile.new
+            file.source = scan.source
+            file.directory = directory
+            file.depth = directory.depth + 1
+            file.path = scanned_file.path
+          end
+
+          file.deleted = false
+          file.last_scan = scan
+          file.scanned_at = scanned_at
+          file.bytesize = scanned_file.size
+          file.file_created_at = scanned_file.file_created_at
+          file.file_modified_at = scanned_file.file_modified_at
+          file.save!
         end
 
-        directory_paths.each.with_index do |path,i|
-          next if directories_by_path.key? path
-          parent_directory = path == '/' ? nil : directories_by_path[File.dirname(path)]
-          directories_by_path[path] = MediaDirectory.find_or_create_by!(source_id: scan.source_id, directory_id: parent_directory.try(:id), path: path, depth: i)
-        end
+        MediaDirectory.where(source_id: scan.source_id, path: directories_by_path.keys, deleted: true).update_all deleted: false
 
-        directory = directories_by_path[File.dirname(scanned_file.path)]
-        file = MediaFile.where(path: scanned_file.path, directory_id: directory, depth: directory.depth + 1).first
+        paths_to_check_for_deletion -= directories_by_path.keys
+        delete_directories scan, paths_to_check_for_deletion unless paths_to_check_for_deletion.empty?
 
-        unless file
-          file = MediaFile.new
-          file.source = scan.source
-          file.directory = directory
-          file.depth = directory.depth + 1
-          file.path = scanned_file.path
-        end
-
-        file.last_scan = scan
-        file.scanned_at = scanned_at
-        file.bytesize = scanned_file.size
-        file.file_created_at = scanned_file.file_created_at
-        file.file_modified_at = scanned_file.file_modified_at
-        file.save!
+        MediaScan.update_counters scan.id, processed_files_count: scanned_files.length
       end
 
       MediaScanFile.where(scan_id: scan.id).update_all processed: true
 
-      scan.processed_files_count += total
       scan.finish_scan_processing!
 
       scan.source.last_scan = scan
@@ -77,5 +96,27 @@ class ProcessMediaScanJob
     scan.reload
     scan.backtrace = e.message + "\n" + e.backtrace.join("\n")
     scan.fail_scan!
+  end
+
+  def self.delete_directories scan, paths
+
+    paths_to_check_for_deletion = Set.new
+
+    directories = MediaDirectory
+      .select('media_files.*, count(sub_media_files.id) AS deleted_files_count')
+      .joins('INNER JOIN media_files AS sub_media_files ON media_files.id = sub_media_files.directory_id')
+      .where('media_files.source_id = ? AND media_files.path IN (?) AND sub_media_files.deleted = ?', scan.source_id, paths, true)
+      .group('media_files.id')
+      .to_a
+
+    directories.each do |directory|
+      if directory.deleted_files_count == directory.files_count
+        paths_to_check_for_deletion = File.dirname directory.path unless directory.depth <= 0
+        directory.deleted = true
+        directory.save!
+      end
+    end
+
+    delete_directories scan, paths_to_check_for_deletion unless paths_to_check_for_deletion.empty?
   end
 end

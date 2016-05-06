@@ -3,7 +3,7 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
   $scope.mediaFilesList = {
     records: [],
     httpSettings: {
-      url: '/api/media/files',
+      url: '/media/files',
       params: {}
     },
     infiniteOptions: {

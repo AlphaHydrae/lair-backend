@@ -40,6 +40,12 @@ module Lair
             rel = rel.where 'media_files.path = ?', params[:path].to_s
           end
 
+          if true_flag? :deleted
+            rel = rel.where deleted: true
+          else
+            rel = rel.where deleted: false
+          end
+
           if params.key? :directory
             dir = MediaDirectory.where(path: params[:directory].to_s).first
             if dir

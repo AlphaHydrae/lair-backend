@@ -20,4 +20,8 @@ class MediaScanFile < ActiveRecord::Base
   def file_modified_at
     data['fileModifiedAt']
   end
+
+  def deleted?
+    change_type.to_s == 'deleted'
+  end
 end
