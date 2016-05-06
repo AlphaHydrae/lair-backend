@@ -8,7 +8,7 @@ class MediaSource < ActiveRecord::Base
 
   belongs_to :user
   belongs_to :last_scan, class_name: 'MediaScan'
-  has_many :files, class_name: 'MediaFile'
+  has_many :files, class_name: 'MediaFile', foreign_key: :source_id
   has_many :scans, class_name: 'MediaScan'
 
   validates :name, presence: true, length: { maximum: 50 }, uniqueness: { case_sensitive: false, scope: :user_id }

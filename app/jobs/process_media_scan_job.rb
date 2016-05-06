@@ -5,25 +5,27 @@ class ProcessMediaScanJob
 
   @queue = :high
 
-  def self.enqueue scan, n
-    Resque.enqueue self, scan.id, n
+  def self.enqueue scan
+    Resque.enqueue self, scan.id
   end
 
   def self.lock_workers *args
     name
   end
 
-  def self.perform id, n
-    scan = MediaScan.where(id: id).first!
+  def self.perform id
+    process_files MediaScan.where(id: id).first!
+  end
 
+  def self.process_files scan
     MediaScan.transaction do
 
       scanned_at = Time.now
       directories_by_path = {}
 
-      unprocessed_files = scan.scanned_files.where(processed: false).limit(n).to_a
-
-      unprocessed_files.each do |scanned_file|
+      total = 0
+      scan.scanned_files.where(processed: false).find_each batch_size: 250 do |scanned_file|
+        total += 1
 
         directory_paths = []
         current_path = scanned_file.path
@@ -62,18 +64,18 @@ class ProcessMediaScanJob
         file.save!
       end
 
-      if unprocessed_files.present?
+      MediaScanFile.where(scan_id: scan.id).update_all processed: true
 
-        MediaScanFile.where(id: unprocessed_files.collect(&:id)).update_all processed: true
+      scan.processed_files_count += total
+      scan.finish_scan_processing!
 
-        scan.processed_files_count += unprocessed_files.length
-        scan.processed_at = Time.now
-        scan.save!
-
-        scan.source.last_scan = scan
-        scan.source.scanned_at = scan.created_at
-        scan.source.save!
-      end
+      scan.source.last_scan = scan
+      scan.source.scanned_at = scan.created_at
+      scan.source.save!
     end
+  rescue => e
+    scan.reload
+    scan.backtrace = e.message + "\n" + e.backtrace.join("\n")
+    scan.fail_scan!
   end
 end

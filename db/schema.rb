@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160505091814) do
+ActiveRecord::Schema.define(version: 20160506132351) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -219,10 +219,11 @@ ActiveRecord::Schema.define(version: 20160505091814) do
   add_index "media_files", ["path", "source_id"], name: "index_media_files_on_path_and_source_id", unique: true, using: :btree
 
   create_table "media_scan_files", force: :cascade do |t|
-    t.integer "scan_id",                   null: false
-    t.text    "path",                      null: false
-    t.json    "data",                      null: false
-    t.boolean "processed", default: false, null: false
+    t.integer "scan_id",                                null: false
+    t.text    "path",                                   null: false
+    t.json    "data",                                   null: false
+    t.boolean "processed",              default: false, null: false
+    t.string  "change_type", limit: 10,                 null: false
   end
 
   add_index "media_scan_files", ["path", "scan_id"], name: "index_media_scan_files_on_path_and_scan_id", unique: true, using: :btree
@@ -246,10 +247,14 @@ ActiveRecord::Schema.define(version: 20160505091814) do
     t.integer  "processed_files_count",            default: 0, null: false
     t.json     "properties"
     t.datetime "created_at"
-    t.datetime "started_at",                                   null: false
-    t.datetime "ended_at"
     t.datetime "processed_at"
     t.integer  "source_id",                                    null: false
+    t.string   "state",                 limit: 10,             null: false
+    t.datetime "canceled_at"
+    t.datetime "scanned_at"
+    t.datetime "failed_at"
+    t.text     "backtrace"
+    t.integer  "changed_files_count",              default: 0, null: false
   end
 
   add_index "media_scans", ["api_id"], name: "index_media_scans_on_api_id", unique: true, using: :btree

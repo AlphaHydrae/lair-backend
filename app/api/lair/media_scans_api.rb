@@ -5,7 +5,6 @@ module Lair
         def update_record_from_params record
           record.source = MediaSource.where(api_id: params[:sourceId].to_s).first! if params.key? :sourceId
           record.scanner = MediaScanner.where(api_id: params[:scannerId].to_s).first! if params.key? :scannerId
-          record.started_at = Time.now
         end
       end
 
@@ -13,13 +12,17 @@ module Lair
         authorize! MediaScan, :create
 
         MediaScan.transaction do
+
           record = MediaScan.new
           update_record_from_params record
+
+          processing_scan = MediaScan.where('media_scans.source_id = ? AND media_scans.state IN (?)', record.source_id, %w(scanned)).first
+          raise 'Scan already in progress' if processing_scan.present?
+
           record.save!
 
-          now = Time.now
-          MediaScan.where('media_scans.id != ? AND media_scans.source_id = ? AND media_scans.ended_at IS NULL', record.id, record.source_id).to_a.each do |incomplete_scan|
-            incomplete_scan.update_attribute :ended_at, now
+          MediaScan.where('media_scans.id != ? AND media_scans.source_id = ? AND media_scans.state NOT IN (?)', record.id, record.source_id, %w(canceled failed processed)).to_a.each do |incomplete_scan|
+            incomplete_scan.cancel_scan!
           end
 
           serialize record
@@ -37,7 +40,13 @@ module Lair
           authorize! MediaScan, :update
 
           MediaScan.transaction do
-            record.ended_at = params[:endedAt].to_s if params.key? :endedAt
+
+            record.files_count = params[:filesCount] if params.key? :filesCount
+
+            if record.state == 'started' && params[:state] == 'scanned'
+              record.finish_scan!
+            end
+
             record.save!
             serialize record
           end
@@ -47,7 +56,7 @@ module Lair
           post do
             authorize! MediaScan, :update
 
-            raise 'Scan completed' if record.ended_at.present?
+            raise 'Scan completed' if record.scanned_at.present?
 
             files = JSON.parse request.body.read
             raise 'Array required' unless files.kind_of? Array
@@ -55,7 +64,9 @@ module Lair
             MediaScan.transaction do
 
               files = files.collect do |data|
-                MediaScanFile.new(scan_id: record.id, path: data.delete('path')).tap do |f|
+                MediaScanFile.new(scan_id: record.id).tap do |f|
+                  f.path = data.delete 'path'
+                  f.change_type = data.delete 'change'
                   f.data = data
                 end
               end
@@ -63,10 +74,8 @@ module Lair
               # TODO: batch validate
               MediaScanFile.import files, validate: true
 
-              record.files_count += files.length
+              record.changed_files_count += files.length
               record.save!
-
-              ProcessMediaScanJob.enqueue record, files.length
 
               status 200
               files

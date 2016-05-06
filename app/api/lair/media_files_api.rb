@@ -41,12 +41,16 @@ module Lair
           end
 
           if params.key? :directory
-            dir = MediaDirectory.where(path: params[:directory].to_s).first!
-            rel = rel.where 'media_files.depth > ?', dir.depth
-            rel = rel.where 'media_files.path LIKE ?', "#{dir.path.gsub(/_/, '\\_').gsub(/\%/, '\\%')}/%" unless dir.depth == 0
+            dir = MediaDirectory.where(path: params[:directory].to_s).first
+            if dir
+              rel = rel.where 'media_files.depth > ?', dir.depth
+              rel = rel.where 'media_files.path LIKE ?', "#{dir.path.gsub(/_/, '\\_').gsub(/\%/, '\\%')}/%" unless dir.depth == 0
 
-            if params.key? :maxDepth
-              rel = rel.where 'media_files.depth <= ?', dir.depth + params[:maxDepth].to_i
+              if params.key? :maxDepth
+                rel = rel.where 'media_files.depth <= ?', dir.depth + params[:maxDepth].to_i
+              end
+            else
+              rel = rel.none
             end
           elsif params.key? :maxDepth
             rel = rel.where 'media_files.depth <= ?', params[:maxDepth].to_i

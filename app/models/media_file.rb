@@ -1,6 +1,7 @@
 class MediaFile < MediaAbstractFile
   include ResourceWithProperties
 
+  belongs_to :source, class_name: 'MediaSource'
   belongs_to :last_scan, class_name: 'MediaScan'
   has_and_belongs_to_many :scans, class_name: 'MediaScan'
 
