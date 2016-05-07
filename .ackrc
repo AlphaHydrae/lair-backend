@@ -1,5 +1,6 @@
 --ignore-dir=bower_components
 --ignore-dir=log
 --ignore-dir=node_modules
+--ignore-dir=spec/angular/support
 --ignore-dir=tmp
 --ignore-dir=vendor

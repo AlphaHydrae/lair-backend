@@ -7,6 +7,7 @@ class MediaScanPath
   validates :category, presence: true, inclusion: { in: Work::CATEGORIES, allow_blank: true }
   validates :path, presence: true, length: { maximum: 255 }
   validate :path_must_be_unique
+  # TODO: validate that path is not included in an existing path
 
   def <=> other
     path <=> other.path

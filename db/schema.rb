@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160506132351) do
+ActiveRecord::Schema.define(version: 20160507150216) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -213,6 +213,9 @@ ActiveRecord::Schema.define(version: 20160506132351) do
     t.datetime "created_at",                                  null: false
     t.datetime "updated_at",                                  null: false
     t.json     "properties"
+    t.string   "state",            limit: 20
+    t.string   "extension",        limit: 20
+    t.integer  "media_url_id"
   end
 
   add_index "media_files", ["api_id"], name: "index_media_files_on_api_id", unique: true, using: :btree
@@ -277,6 +280,17 @@ ActiveRecord::Schema.define(version: 20160506132351) do
   add_index "media_sources", ["api_id"], name: "index_media_sources_on_api_id", unique: true, using: :btree
   add_index "media_sources", ["normalized_name", "user_id"], name: "index_media_sources_on_normalized_name_and_user_id", unique: true, using: :btree
 
+  create_table "media_urls", force: :cascade do |t|
+    t.string   "api_id",      limit: 12,  null: false
+    t.string   "provider",    limit: 20,  null: false
+    t.string   "category",    limit: 20,  null: false
+    t.string   "provider_id", limit: 100, null: false
+    t.datetime "created_at",              null: false
+    t.datetime "updated_at",              null: false
+  end
+
+  add_index "media_urls", ["provider", "provider_id"], name: "index_media_urls_on_provider_and_provider_id", unique: true, using: :btree
+
   create_table "ownerships", force: :cascade do |t|
     t.string   "api_id",     limit: 12,                null: false
     t.integer  "item_id",                              null: false
@@ -301,6 +315,26 @@ ActiveRecord::Schema.define(version: 20160506132351) do
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
   end
+
+  create_table "scraps", force: :cascade do |t|
+    t.string   "api_id",          limit: 12, null: false
+    t.string   "provider",        limit: 20, null: false
+    t.string   "state",           limit: 20, null: false
+    t.text     "contents"
+    t.string   "content_type",    limit: 50
+    t.integer  "media_url_id",               null: false
+    t.datetime "scraping_at"
+    t.datetime "canceled_at"
+    t.datetime "scraped_at"
+    t.datetime "failed_at"
+    t.text     "error_message"
+    t.text     "error_backtrace"
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+  end
+
+  add_index "scraps", ["api_id"], name: "index_scraps_on_api_id", unique: true, using: :btree
+  add_index "scraps", ["media_url_id"], name: "index_scraps_on_media_url_id", unique: true, using: :btree
 
   create_table "users", force: :cascade do |t|
     t.string   "api_id",          limit: 12,                  null: false
@@ -415,6 +449,7 @@ ActiveRecord::Schema.define(version: 20160506132351) do
   add_foreign_key "media_files", "media_files", column: "directory_id", on_delete: :cascade
   add_foreign_key "media_files", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_files", "media_sources", column: "source_id", on_delete: :cascade
+  add_foreign_key "media_files", "media_urls"
   add_foreign_key "media_scan_files", "media_scans", column: "scan_id", on_delete: :cascade
   add_foreign_key "media_scanners", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_scanners", "users", on_delete: :cascade
@@ -428,6 +463,7 @@ ActiveRecord::Schema.define(version: 20160506132351) do
   add_foreign_key "ownerships", "users", on_delete: :restrict
   add_foreign_key "people", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "people", "users", column: "updater_id", on_delete: :restrict
+  add_foreign_key "scraps", "media_urls"
   add_foreign_key "work_companies", "companies", on_delete: :cascade
   add_foreign_key "work_companies", "works", on_delete: :cascade
   add_foreign_key "work_descriptions", "languages", on_delete: :restrict

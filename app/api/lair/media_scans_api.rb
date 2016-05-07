@@ -71,7 +71,7 @@ module Lair
                 end
               end
 
-              # TODO: batch validate
+              # TODO: batch validate (path uniqueness & changed/deleted path exists in source)
               MediaScanFile.import files, validate: true
 
               record.changed_files_count += files.length

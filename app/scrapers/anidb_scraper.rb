@@ -1,0 +1,2 @@
+class AnidbScraper < ApplicationScraper
+end

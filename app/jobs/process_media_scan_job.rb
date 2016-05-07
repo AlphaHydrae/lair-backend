@@ -11,15 +11,13 @@ class ProcessMediaScanJob
     Resque.enqueue self, scan.id
   end
 
-  def self.lock_workers *args
-    name
+  def self.lock_workers id
+    "media-#{id}"
   end
 
   def self.perform id
-    process_files MediaScan.where(id: id).first!
-  end
+    scan = MediaScan.find id
 
-  def self.process_files scan
     MediaScan.transaction do
 
       scanned_at = Time.now
@@ -63,12 +61,14 @@ class ProcessMediaScanJob
           directory = directories_by_path[File.dirname(scanned_file.path)]
           file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path, directory_id: directory, depth: directory.depth + 1).first
 
-          unless file
+          if file.blank?
             file = MediaFile.new
             file.source = scan.source
             file.directory = directory
             file.depth = directory.depth + 1
             file.path = scanned_file.path
+          elsif file.nfo?
+            file.mark_as_changed
           end
 
           FILE_PROPERTIES.each do |key|
@@ -103,6 +103,8 @@ class ProcessMediaScanJob
       scan.source.last_scan = scan
       scan.source.scanned_at = scan.created_at
       scan.source.save!
+
+      AnalyzeMediaFilesJob.enqueue scan.source
     end
   rescue => e
     scan.reload
