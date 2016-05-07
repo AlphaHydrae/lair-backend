@@ -1,6 +1,8 @@
 require 'resque/plugins/workers/lock'
 
 class ProcessMediaScanJob
+  FILE_PROPERTIES = %i(url format languages subtitles)
+
   extend Resque::Plugins::Workers::Lock
 
   @queue = :high
@@ -33,6 +35,8 @@ class ProcessMediaScanJob
             if file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path).first
               paths_to_check_for_deletion << File.dirname(scanned_file.path)
               file.deleted = true
+              file.last_scan = scan
+              file.scanned_at = scanned_at
               file.save!
             end
             next
@@ -65,6 +69,14 @@ class ProcessMediaScanJob
             file.directory = directory
             file.depth = directory.depth + 1
             file.path = scanned_file.path
+          end
+
+          FILE_PROPERTIES.each do |key|
+            if scanned_file.properties && value = scanned_file.properties[key.to_s]
+              file.properties[key.to_s] = value
+            else
+              file.properties.delete key.to_s
+            end
           end
 
           file.deleted = false

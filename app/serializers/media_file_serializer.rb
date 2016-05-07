@@ -8,5 +8,6 @@ class MediaFileSerializer < MediaAbstractFileSerializer
     json.scannedAt record.scanned_at.iso8601(3)
     json.createdAt record.created_at.iso8601(3)
     json.updatedAt record.updated_at.iso8601(3)
+    json.properties record.properties
   end
 end

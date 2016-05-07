@@ -56,7 +56,7 @@ module Lair
           post do
             authorize! MediaScan, :update
 
-            raise 'Scan completed' if record.scanned_at.present?
+            raise 'Scan completed' if record.state.to_s != 'started'
 
             files = JSON.parse request.body.read
             raise 'Array required' unless files.kind_of? Array

@@ -9,16 +9,10 @@ class MediaScanFile < ActiveRecord::Base
   validates :processed, inclusion: { in: [ true, false ] }
   validates :change_type, presence: true, inclusion: { in: CHANGE_TYPES + CHANGE_TYPES.collect(&:to_s), allow_blank: true }
 
-  def size
-    data['size']
-  end
-
-  def file_created_at
-    data['fileCreatedAt'] || data['fileModifiedAt']
-  end
-
-  def file_modified_at
-    data['fileModifiedAt']
+  %i(size file_created_at file_modified_at properties).each do |attr|
+    define_method attr do
+      data[attr.to_s.camelize(:lower)]
+    end
   end
 
   def deleted?
