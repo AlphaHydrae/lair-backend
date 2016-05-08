@@ -1,4 +1,7 @@
-class ScrapMediaUrlJob
+require 'resque/plugins/workers/lock'
+
+# FIXME: add scrap event
+class ScrapJob
   extend Resque::Plugins::WaitingRoom
   extend Resque::Plugins::Workers::Lock
 
@@ -16,8 +19,8 @@ class ScrapMediaUrlJob
 
   def self.perform id
     scrap = Scrap.includes(:media_url).find id
-    perform_scraping scrap
-    perform_expansion scrap if scrap.state.to_s == 'scraped'
+    perform_scraping scrap if scrap.contents.blank?
+    perform_expansion scrap if %w(scraped expansion_failed expanded).include? scrap.state.to_s
   end
 
   def self.perform_scraping scrap

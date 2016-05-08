@@ -8,7 +8,8 @@ angular.module('lair.infinite').directive('infinite', function() {
       records: '=',
       httpSettings: '=',
       infiniteOptions: '=',
-      onFetched: '&'
+      onFetched: '&?',
+      onRecordsUpdated: '&?'
     }
   };
 });

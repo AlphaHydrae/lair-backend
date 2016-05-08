@@ -5,6 +5,7 @@ angular.module('lair.tables').factory('tables', function(api) {
 
       var list = $scope[name] = {
         initialized: false,
+        params: {},
         records: []
       };
 
@@ -13,7 +14,7 @@ angular.module('lair.tables').factory('tables', function(api) {
         table.pagination.start = table.pagination.start || 0;
         table.pagination.number = table.pagination.number || options.pageSize || 15;
 
-        var params = _.extend({}, options.params, {
+        var params = _.extend({}, options.params, list.params, {
           start: table.pagination.start,
           number: table.pagination.number
         });
@@ -26,6 +27,7 @@ angular.module('lair.tables').factory('tables', function(api) {
         }).then(updatePagination).then(updateRecords);
 
         function updatePagination(res) {
+          list.pagination = res.pagination();
           table.pagination.numberOfPages = res.pagination().numberOfPages;
           return res;
         }

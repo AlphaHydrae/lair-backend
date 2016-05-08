@@ -1,4 +1,4 @@
-angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(api, auth, $location, $scope, $stateParams) {
+angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(api, auth, $location, $scope, scrapers, $stateParams) {
 
   $scope.mediaFilesList = {
     records: [],
@@ -39,6 +39,7 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     }
   });
 
+  // TODO: add text search
   $scope.$on('$locationChangeSuccess', function() {
 
     var search = $location.search(),
@@ -99,49 +100,9 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     $scope.mediaFilesList.httpSettings.params.directory = '/';
   };
 
-  $scope.getFilesState = function() {
-    if (!$scope.mediaFilesList.records.length) {
-      return;
-    }
-
-    var states = _.reduce($scope.mediaFilesList.records, function(memo, file) {
-      if (!file.deleted && file.type == 'file' && file.extension != 'nfo' && !_.includes(memo, file.state)) {
-        memo.push(file.state);
-      }
-
-      return memo;
-    }, []);
-
-    if (!states.length) {
-      return 'none';
-    }
-
-    return _.find([ 'unlinked', 'created', 'linked' ], function(state) {
-      return _.includes(states, state);
-    }) || 'none';
-  }
-
-  $scope.getNfoState = function() {
-    if (!$scope.mediaFilesList.records.length) {
-      return;
-    }
-
-    var states = _.reduce($scope.mediaFilesList.records, function(memo, file) {
-      if (!file.deleted && file.type == 'file' && file.extension == 'nfo' && !_.includes(memo, file.state)) {
-        memo.push(file.state);
-      }
-
-      return memo;
-    }, []);
-
-    if (!states.length) {
-      return 'none';
-    }
-
-    return _.find([ 'duplicated', 'invalid', 'changed', 'unlinked', 'linked' ], function(state) {
-      return _.includes(states, state);
-    }) || 'none';
-  }
+  $scope.showSupportedScrapers = function() {
+    scrapers.openSupportModal();
+  };
 
   $scope.enrichMediaFiles = function(res) {
     _.each(res.data, function(file) {
@@ -155,9 +116,40 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
         file.warning = 'directoryHasUnlikedFiles';
       } else if (fileIsUnlinked(file)) {
         file.warning = 'fileUnlinked';
+      } else if (fileIsBeingProcessed(file)) {
+        file.processing = true;
       }
     });
   };
+
+  $scope.$watch('mediaFilesList.records', function(records) {
+    if (records) {
+
+      delete $scope.directoryMessage;
+      delete $scope.directoryMessageType;
+      delete $scope.nfoFile;
+      delete $scope.duplicatedNfoCount;
+
+      var nfoFile = _.findWhere(records, { type: 'file', deleted: false, extension: 'nfo' }),
+          duplicatedNfoCount = _.filter(records, { error: 'nfoDuplicated' }).length;
+
+      if (duplicatedNfoCount) {
+        $scope.directoryMessageType = 'error';
+        $scope.directoryMessage = 'nfoDuplicated';
+        $scope.duplicatedNfoCount = duplicatedNfoCount;
+      } else if (nfoFile && nfoFile.error == 'nfoInvalid') {
+        $scope.directoryMessageType = 'error';
+        $scope.directoryMessage = 'nfoInvalid';
+        $scope.nfoFile = nfoFile;
+      } else if (_.findWhere(records, { warning: 'fileUnlinked' })) {
+        $scope.directoryMessageType = 'warning';
+        $scope.directoryMessage = 'unlinkedFiles';
+      } else if (_.findWhere(records, { processed: true })) {
+        $scope.directoryMessageType = 'info';
+        $scope.directoryMessage = 'filesProcessing';
+      }
+    }
+  }, true);
 
   function nfoIs(file, state) {
     return !file.deleted && file.type == 'file' && file.extension == 'nfo' && file.state == state;
@@ -169,7 +161,11 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
 
   function fileIsUnlinked(file) {
     return !file.deleted && file.type == 'file' && file.extension != 'nfo' && file.state != 'linked';
-  };
+  }
+
+  function fileIsBeingProcessed(file) {
+    return !file.deleted && file.type == 'file' && file.state == 'created';
+  }
 
   function resetBreadcrumbs() {
 

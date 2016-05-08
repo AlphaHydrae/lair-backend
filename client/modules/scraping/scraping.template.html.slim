@@ -1,0 +1,74 @@
+#scraping.container
+  .page-header
+    h1
+      | Media scraping
+      small< ng-if='mediaUrlsList.pagination.total >= 1'
+        | {{ mediaUrlsList.pagination.total | number }} found
+        span ng-if='scrapingErrorsCount'
+          span> ,
+          strong.text-danger ng-if='scrapingErrorsCount == 1' 1 error
+          strong.text-danger ng-if='scrapingErrorsCount >= 2' {{ scrapingErrorsCount | number }} errors
+        strong.text-warning ng-if='scrapingCanceledCount'
+          | , {{ scrapingCanceledCount | number }} canceled
+        span.text-primary ng-if='scrapingInProgressCount'
+          | , {{ scrapingInProgressCount | number }} in progress
+  div st-pipe='mediaUrlsList.refresh' st-table='mediaUrlsList.records'
+    table-filters filters='mediaUrlsList.params'
+      form.filters
+        .btn-group
+          button.btn.btn-danger ng-model='mediaUrlsList.params.scrapStates' btn-radio='errorScrapStates' uncheckable=true
+            span.glyphicon.glyphicon-thumbs-down>
+            | Show errors
+          button.btn.btn-warning ng-model='mediaUrlsList.params.scrapStates' btn-radio='canceledScrapStates' uncheckable=true
+            span.glyphicon.glyphicon-warning-sign>
+            | Show canceled
+          button.btn.btn-primary ng-model='mediaUrlsList.params.scrapStates' btn-radio='inProgressScrapStates' uncheckable=true
+            span.glyphicon.glyphicon-time>
+            | Show in progress
+    table#events.table.table-striped.table-hover
+      thead
+        tr.hidden-lg.hidden-md.hidden-sm
+          th.url Media
+        tr.hidden-xs
+          th.provider Provider
+          th.url Media
+          th.status Status
+      tbody
+        tr.loading ng-if='!mediaUrlsList.initialized'
+          td colspan=3 Loading...
+        tr.empty ng-if='mediaUrlsList.initialized && !mediaUrlsList.records.length'
+          td colspan=3
+            span ng-if='!_.isEmpty(mediaUrlsList.params)' No matching media found.
+            span ng-if='_.isEmpty(mediaUrlsList.params)' No media scraped.
+        tr.hidden-lg.hidden-md.hidden-sm ng-repeat='url in mediaUrlsList.records'
+          td
+            .pull-right
+              a href='#' ng-click='showSupportedScrapers()'
+                .label.label-default ng-if='!url.scrap' Scraping not yet supported
+              .label.label-primary ng-if='url.scrap.state == "created"' Queued
+              .label.label-primary ng-if='url.scrap.state == "scraping" || url.scrap.state == "scraped"' Scraping
+              .label.label-warning ng-if='url.scrap.state == "scrapingCanceled"' Canceled
+              .label.label-danger ng-if='url.scrap.state == "scrapingFailed"' tooltip='URL could not be scraped' Scraping error
+              .label.label-danger ng-if='url.scrap.state == "expansionFailed"' tooltip='Scraped data could not be parsed' Scraping error
+              .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
+            a href='{{ url.url }}' {{ url.url }}
+        tr.hidden-xs ng-repeat='url in mediaUrlsList.records'
+          td
+            a href='http://anidb.net'
+              .label.label-default ng-if='url.provider == "anidb"' AniDB
+            a href='http://www.imdb.com'
+              .label.label-default ng-if='url.provider == "imdb"' IMDB
+          td
+            a href='{{ url.url }}' {{ url.url }}
+          td
+            a href='#' ng-click='showSupportedScrapers()'
+              .label.label-default ng-if='!url.scrap' Scraping not yet supported
+            .label.label-primary ng-if='url.scrap.state == "created"' Queued
+            .label.label-primary ng-if='url.scrap.state == "scraping" || url.scrap.state == "scraped"' Scraping
+            .label.label-warning ng-if='url.scrap.state == "scrapingCanceled"' Canceled
+            .label.label-danger ng-if='url.scrap.state == "scrapingFailed"' tooltip='URL could not be scraped' Scraping error
+            .label.label-danger ng-if='url.scrap.state == "expansionFailed"' tooltip='Scraped data could not be parsed' Scraping error
+            .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
+      tfoot
+        tr
+          td.text-center st-pagination=true st-items-by-page=15 st-template='/templates/modules/tables/tables.pagination.template.html' colspan=3

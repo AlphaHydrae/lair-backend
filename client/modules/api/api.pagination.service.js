@@ -28,7 +28,7 @@ angular.module('lair.api').factory('apiPagination', function($log) {
     this.total = this.filteredTotal || this.filteredTotal === 0 ? this.filteredTotal : this.grandTotal;
     this.length = response.data.length;
 
-    this.numberOfPages = Math.ceil(this.total / this.number);
+    this.numberOfPages = this.total === 0 ? 0 : Math.ceil(this.total / this.number);
   }
 
   Pagination.prototype.hasMorePages = function() {

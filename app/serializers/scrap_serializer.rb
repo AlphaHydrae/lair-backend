@@ -1,7 +1,7 @@
 class ScrapSerializer < ApplicationSerializer
   def build json, options = {}
     json.id record.api_id
-    json.state record.state
+    json.state record.state.to_s.camelize(:lower)
 
     json.scrapingAt record.scraping_at.iso8601(3) if record.scraping_at.present?
     json.canceledAt record.canceled_at.iso8601(3) if record.canceled_at.present?

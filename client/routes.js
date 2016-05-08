@@ -101,6 +101,13 @@ angular.module('lair.routes', [ 'ui.router' ])
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
       })
 
+      .state('scraping', {
+        url: '^/scraping',
+        reloadOnSearch: false,
+        controller: 'ScrapingCtrl',
+        templateUrl: '/templates/modules/scraping/scraping.template.html'
+      })
+
       .state('images', {
         abstract: true,
         url: '^/images',

@@ -17,6 +17,11 @@ class ImdbScraper < ApplicationScraper
   def self.expand scrap
     media_url = scrap.media_url
 
+    data = JSON.parse scrap.contents
+    data_type = data['Type'].to_s.downcase
+
+    raise "Unsupported OMDB data type #{data_type.inspect}: #{scrap.contents}" if data_type != 'movie'
+
     work = find_existing_work media_url
 
     if work.present?
@@ -28,12 +33,6 @@ class ImdbScraper < ApplicationScraper
       work.creator = scrap.creator
     end
 
-    data = JSON.parse scrap.contents
-    data_type = data['Type'].to_s
-    data_language = Language.find_or_create_by!(tag: 'en')
-
-    raise "Unsupported OMDB data type #{data_type.inspect}: #{scrap.contents}" if data_type != 'movie'
-
     work.scrap = scrap
     work.category = media_url.category
 
@@ -41,6 +40,8 @@ class ImdbScraper < ApplicationScraper
     if title.blank?
       raise "OMDB data has no title: #{scrap.contents}"
     end
+
+    data_language = Language.find_or_create_by!(tag: 'en')
 
     if work.titles.find{ |t| t.contents == title }.blank?
       work.titles.build work: work, contents: title, language: data_language, display_position: work.titles.length
@@ -101,6 +102,37 @@ class ImdbScraper < ApplicationScraper
 
     work.save!
     work.update_columns original_title_id: work.titles.where(display_position: 0).first.id
+
+    item = find_existing_item work, media_url
+
+    if item.present?
+      item.cache_previous_version
+      item.updater = scrap.creator
+    else
+      item = Video.new
+      item.work = work
+      item.media_url = media_url
+      item.creator = scrap.creator
+    end
+
+    item.title ||= work.original_title
+    item.language ||= work.language
+
+    if item.image.blank? && work.image.present?
+      item.build_image.url = work.image.url
+    end
+
+    if item.original_release_date.blank?
+      item.original_release_date = Date.new work.start_year
+      item.original_release_date_precision = 'y'
+    end
+
+    runtime = data['Runtime'].to_s.strip.downcase
+    if match = runtime.match(/^(\d+) min$/)
+      item.length ||= match[1].to_i
+    end
+
+    item.save!
   end
 
   private

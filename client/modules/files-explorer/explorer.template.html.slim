@@ -44,17 +44,49 @@
           a href='#' ng-if='$index < breadcrumbs.length - 1' ng-click='open(directory)' {{ directory | basename }}
           span ng-if='$index == breadcrumbs.length - 1' {{ directory | basename }}
 
-      .alert.alert-info ng-if='getFilesState() == "created"'
-        | Some of the files in this directory are still being analyzed.
+      .alert ng-if='directoryMessage && directoryMessageType' ng-class='{"alert-danger": directoryMessageType == "error", "alert-warning": directoryMessageType == "warning", "alert-info": directoryMessageType == "info"}'
+        span ng-if='directoryMessage == "nfoDuplicated"'
+          strong> Duplicate NFOs:
+          span ng-if='duplicatedNfoCount >= 2'
+            | This directory contains {{ duplicatedNfoCount }} NFO files.
+            |  Directories with media files must contain one and exactly one NFO file.
+            |  This NFO file should contain a URL that identifies the media and is
+            a<> href='#' ng-click='showSupportedScrapers()' supported by one of our scrapers
+            | .
+          span ng-if='duplicatedNfoCount == 1'
+            | Another NFO file is present in a parent directory or sub-directory.
+            |  Only one NFO file must be present in a directory tree.
+            |  This NFO file should contain a URL that identifies the media and is
+            a<> href='#' ng-click='showSupportedScrapers()' supported by one of our scrapers
+        span ng-if='directoryMessage == "nfoInvalid"'
+          strong> Invalid NFO:
+          span ng-if='nfoFile && nfoFile.properties.url'
+            | The NFO file in this directory contains a URL that is not
+            a<> href='#' ng-click='showSupportedScrapers()' supported by any of our scrapers
+            | . The URL is 
+            a href='{{ nfoFile.properties.url }}' {{ nfoFile.properties.url }}
+            | .
+          span ng-if='nfoFile && !nfoFile.properties.url'
+            | The NFO file in this directory does not contain a valid URL.
+            |  NFO files should contain a URL that identifies the media and is
+            a<> href='#' ng-click='showSupportedScrapers()' supported by one of our scrapers
+            | .
+          span ng-if='!nfoFile' The NFO file in this directory does not contain a valid or recognized URL.
+        span ng-if='directoryMessage == "unlinkedFiles"'
+          strong> Unidentified files:
+          | Some of the files in this directory cannot be identified.
+          |  There appears to be no valid NFO file in this directory or parent directories.
+          |  Directories with media files should contain an NFO file.
+          |  This file should contain a URL that identifies the media and is
+          a<> href='#' ng-click='showSupportedScrapers()' supported by one of our scrapers
+          | .
+        span ng-if='directoryMessage == "filesProcessing"'
+          strong> Processing:
+          | Some of the files in this directory are still being analyzed.
 
-      .alert.alert-warning ng-if='getFilesState() == "unlinked" && getNfoState() == "none"'
-        strong> Unidentified files:
-        | Some of the files in this directory cannot be identified.
-        |  There appears to be no valid NFO file in this directory or parent directories.
-
-      infinite records='mediaFilesList.records' http-settings='mediaFilesList.httpSettings' infinite-options='mediaFilesList.infiniteOptions' on-fetched='enrichMediaFiles(res)'
+      infinite records='mediaFilesList.records' http-settings='mediaFilesList.httpSettings' infinite-options='mediaFilesList.infiniteOptions' on-fetched='enrichMediaFiles(res)' on-records-updated='enrichDirectory(records)'
         ul.list-group
-          li.list-group-item ng-repeat='file in mediaFilesList.records' ng-class='{"list-group-item-danger": file.error, "list-group-item-warning": file.warning}'
+          li.list-group-item ng-repeat='file in mediaFilesList.records' ng-class='{"list-group-item-danger": file.error, "list-group-item-warning": file.warning, "list-group-item-info": file.processing}'
             span.badge ng-if='file.type == "file"' {{ file.size | prettyBytes }}
             a href='#' ng-if='file.type == "directory"' ng-click='open(file.path)'
               span.glyphicon.glyphicon-folder-open ng-if='file.type == "directory"'

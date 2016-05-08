@@ -63,7 +63,9 @@ angular.module('lair.infinite').controller('InfiniteCtrl', function(api, auth, $
       $scope.records.length = 0;
     }
 
-    $scope.onFetched({ res: res });
+    if ($scope.onFetched) {
+      $scope.onFetched({ res: res });
+    }
 
     if (!state.initialized && !auth.currentUser) {
       state.enabled = false;

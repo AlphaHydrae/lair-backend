@@ -58,6 +58,7 @@ class AnalyzeMediaFilesJob
         file.mark_as_linked!
       end
 
+      # TODO: apply existing NFOs to new files in existing directories
       # FIXME: unlink files when NFOs are deleted
 
       mark_files MediaFile.where(source_id: source.id, deleted: false, state: :created), :mark_as_unlinked

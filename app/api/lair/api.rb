@@ -79,6 +79,7 @@ module Lair
       mount MediaScannersApi
       mount MediaScansApi
       mount MediaSourcesApi
+      mount MediaUrlsApi
     end
 
     get do

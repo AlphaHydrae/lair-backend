@@ -18,18 +18,24 @@ nav.navbar.navbar-default role='navigation'
             | Admin
             span.caret
           ul.dropdown-menu role='menu'
+            li.dropdown-header Add media
             li
-              a href='#' ui-sref='works.new' Create Work
+              a href='#' ui-sref='works.new' Create work
             li
-              a href='#' ui-sref='items.new' Create Item
+              a href='#' ui-sref='items.new' Create item
+            li.dropdown-header Manage media
             li
               a href='#' ui-sref='ownerships.list' Ownerships
             li
-              a href='#' ui-sref='images.missing' Set Missing Images
+              a href='#' ui-sref='images.missing' Set missing images
+            li
+              a href='#' ui-sref='events.list' Events
+            li.dropdown-header Manage files
             li
               a href='#' ui-sref='files.explorer' Files
             li
-              a href='#' ui-sref='events.list' Events
+              a href='#' ui-sref='scraping' Media scraping
+            li.dropdown-header Platform admin
             li ng-if='currentUserIs("admin")'
               a href='#' ui-sref='status' Status
             li ng-if='currentUserIs("admin")'

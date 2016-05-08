@@ -10,7 +10,7 @@ class Scrap < ActiveRecord::Base
   states :created, :scraping, :scraping_canceled, :scraping_failed, :scraped, :expansion_failed, :expanded
   event :start_scraping, to: :scraping
   event :cancel_scraping, to: :canceled
-  event :fail_scraping, to: :failed
+  event :fail_scraping, to: :scraping_failed
   event :finish_scraping, to: :scraped
   event :fail_expansion, to: :expansion_failed
   event :finish_expansion, to: :expanded
@@ -26,6 +26,6 @@ class Scrap < ActiveRecord::Base
   private
 
   def queue_job
-    ScrapMediaUrlJob.enqueue self
+    ScrapJob.enqueue self
   end
 end
