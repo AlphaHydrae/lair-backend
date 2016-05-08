@@ -18,7 +18,7 @@ class MediaUrl < ActiveRecord::Base
   # IMDB URL example: http://www.imdb.com/title/tt0120815/
   # AniDB URL example: http://anidb.net/perl-bin/animedb.pl?show=anime&aid=4
   def self.resolve url, source, default_category = nil
-    if match = url.match(/^https?:\/\/(?:www\.)?imdb\.com\/title\/([a-z0-9]+)/i)
+    if match = url.match(/^(?:https?:\/\/)?(?:www\.)?imdb\.com\/title\/([a-z0-9]+)/i)
       attrs = {
         provider: 'imdb',
         category: %w(movie show).include?(default_category) ? default_category : 'movie',
@@ -26,7 +26,7 @@ class MediaUrl < ActiveRecord::Base
       }
 
       MediaUrl.where(attrs).first_or_create! creator: source.user
-    elsif match = url.match(/^https?:\/\/(?:www\.)?anidb\.net\/?.*\?.*aid=([a-z0-9]+).*/i)
+    elsif match = url.match(/^(?:https?:\/\/)?(?:www\.)?anidb\.net\/?.*\?.*aid=([a-z0-9]+).*/i)
       attrs = {
         provider: 'anidb',
         category: 'anime',

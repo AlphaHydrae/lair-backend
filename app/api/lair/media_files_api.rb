@@ -2,8 +2,17 @@ module Lair
   class MediaFilesApi < Grape::API
     namespace :files do
       helpers do
+        def serialization_options *args
+          {
+            include_media_url: include_in_response?(:mediaUrl),
+            include_files_count: include_in_response?(:filesCount),
+            include_linked_files_count: include_in_response?(:linkedFilesCount)
+          }
+        end
+
         def with_serialization_includes rel
           rel = rel.includes :source
+          rel
         end
       end
 
@@ -42,7 +51,7 @@ module Lair
 
           if true_flag? :deleted
             rel = rel.where deleted: true
-          else
+          elsif !all_flag?(:deleted)
             rel = rel.where deleted: false
           end
 
@@ -65,7 +74,38 @@ module Lair
           rel
         end
 
-        serialize load_resources(rel)
+        files = load_resources rel
+
+        options = {}
+
+        if %i(filesCount linkedFilesCount).any?{ |attr| include_in_response? attr }
+          options[:directory_counts] = {}
+
+          directories = files.select &:directory?
+          directories.each do |dir|
+
+            dir_files_rel = MediaFile
+              .where(source_id: dir.source_id, deleted: false)
+              .where('media_files.depth > ?', dir.depth)
+
+            dir_files_rel = dir_files_rel.where('media_files.path LIKE ?', "#{dir.path.gsub(/_/, '\\_').gsub(/\%/, '\\%')}/%") unless dir.depth == 0
+
+            options[:directory_counts][dir.api_id] = {}
+            options[:directory_counts][dir.api_id][:files_count] = dir_files_rel.count if include_in_response? :filesCount
+
+            if include_in_response? :linkedFilesCount
+              options[:directory_counts][dir.api_id][:linked_files_count] = dir_files_rel.where('media_files.state = ?', 'linked').count
+            end
+          end
+        end
+
+        if include_in_response? :mediaUrl
+          options[:media_urls] = MediaUrl.where(id: files.collect(&:media_url_id).compact.uniq).includes(:work).to_a
+        else
+          options[:media_urls] = MediaUrl.where(id: files.collect(&:media_url_id).compact.uniq).to_a
+        end
+
+        serialize files, options
       end
     end
   end

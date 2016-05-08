@@ -6,11 +6,13 @@ class MediaScan < ActiveRecord::Base
   before_create :set_identifier
 
   self.initial_state = :started
-  states :started, :canceled, :scanned, :failed, :processed
-  event :cancel_scan, from: :started, to: :canceled
-  event :finish_scan, from: :started, to: :scanned, after: :process_scan
-  event :fail_scan, from: :scanned, to: :failed
-  event :finish_scan_processing, from: :scanned, to: :processed
+  states :started, :canceled, :scanned, :failed, :processed, :analysis_failed, :analyzed
+  event :cancel_scan, to: :canceled
+  event :close_scan, to: :scanned, after: :process_scan
+  event :fail_scan, to: :failed
+  event :finish_scan, to: :processed
+  event :fail_analysis, to: :analysis_failed
+  event :finish_analysis, to: :analyzed
 
   belongs_to :scanner, class_name: 'MediaScanner'
   belongs_to :source, class_name: 'MediaSource', counter_cache: :scans_count
@@ -18,7 +20,7 @@ class MediaScan < ActiveRecord::Base
 
   strip_attributes
   validates :source, presence: true
-  validates :files_count, presence: { if: ->(scan){ %i(scanned processed).include? scan.state } }
+  validates :files_count, presence: { if: ->(scan){ %w(scanned processed analysis_failed analyzed).include? scan.state.to_s } }
   validate :files_count_should_be_correct
   validate :scanned_files_should_be_processed
 

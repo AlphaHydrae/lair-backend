@@ -67,6 +67,9 @@ class ProcessMediaScanJob
             file.directory = directory
             file.depth = directory.depth + 1
             file.path = scanned_file.path
+          elsif file.deleted?
+            file.media_url = nil
+            file.mark_as_created
           elsif file.nfo?
             file.mark_as_changed
           end
@@ -80,6 +83,7 @@ class ProcessMediaScanJob
           end
 
           file.deleted = false
+
           file.last_scan = scan
           file.scanned_at = scanned_at
           file.bytesize = scanned_file.size
@@ -98,17 +102,18 @@ class ProcessMediaScanJob
 
       MediaScanFile.where(scan_id: scan.id).update_all processed: true
 
-      scan.finish_scan_processing!
+      scan.error_message = nil
+      scan.error_backtrace = nil
+      scan.finish_scan!
 
-      scan.source.last_scan = scan
-      scan.source.scanned_at = scan.created_at
-      scan.source.save!
+      scan.source.update_columns last_scan_id: scan.id, scanned_at: scan.created_at
 
-      AnalyzeMediaFilesJob.enqueue scan.source
+      AnalyzeMediaFilesJob.enqueue scan
     end
   rescue => e
     scan.reload
-    scan.backtrace = e.message + "\n" + e.backtrace.join("\n")
+    scan.error_message = e.message
+    scan.error_backtrace = e.backtrace.join("\n")
     scan.fail_scan!
   end
 

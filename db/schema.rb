@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160507150216) do
+ActiveRecord::Schema.define(version: 20160508132054) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -258,8 +258,9 @@ ActiveRecord::Schema.define(version: 20160507150216) do
     t.datetime "canceled_at"
     t.datetime "scanned_at"
     t.datetime "failed_at"
-    t.text     "backtrace"
+    t.text     "error_backtrace"
     t.integer  "changed_files_count",              default: 0, null: false
+    t.string   "error_message"
   end
 
   add_index "media_scans", ["api_id"], name: "index_media_scans_on_api_id", unique: true, using: :btree

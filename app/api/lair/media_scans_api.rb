@@ -44,7 +44,7 @@ module Lair
             record.files_count = params[:filesCount] if params.key? :filesCount
 
             if record.state == 'started' && params[:state] == 'scanned'
-              record.finish_scan!
+              record.close_scan!
             end
 
             record.save!
@@ -71,7 +71,9 @@ module Lair
                 end
               end
 
-              # TODO: batch validate (path uniqueness & changed/deleted path exists in source)
+              puts files.inspect
+
+              # FIXME: batch validate (path uniqueness & changed/deleted path exists in source)
               MediaScanFile.import files, validate: true
 
               record.changed_files_count += files.length

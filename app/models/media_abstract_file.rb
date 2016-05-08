@@ -18,6 +18,14 @@ class MediaAbstractFile < ActiveRecord::Base
   validate :parent_directory_must_not_be_a_parent
   validate :depth_must_fit_parent
 
+  def directory?
+    kind_of? MediaDirectory
+  end
+
+  def file?
+    kind_of? MediaFile
+  end
+
   private
 
   def path_must_be_absolute

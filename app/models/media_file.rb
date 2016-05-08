@@ -6,8 +6,9 @@ class MediaFile < MediaAbstractFile
 
   before_create :set_extension
 
-  self.initial_state = :unlinked
-  states :unlinked, :changed, :invalid, :duplicated, :linked
+  states :created, :unlinked, :changed, :invalid, :duplicated, :linked
+  event :mark_as_created, to: :created
+  event :mark_as_unlinked, to: :unlinked
   event :mark_as_changed, to: :changed
   event :mark_as_invalid, to: :invalid
   event :mark_as_duplicated, to: :duplicated
@@ -16,7 +17,6 @@ class MediaFile < MediaAbstractFile
   belongs_to :media_url
   belongs_to :source, class_name: 'MediaSource'
   belongs_to :last_scan, class_name: 'MediaScan'
-  has_and_belongs_to_many :scans, class_name: 'MediaScan'
 
   strip_attributes
   validates :bytesize, presence: true, numericality: { only_integer: true, allow_blank: true }
@@ -29,6 +29,10 @@ class MediaFile < MediaAbstractFile
 
   def nfo?
     file_type == 'nfo'
+  end
+
+  def deleted?
+    deleted
   end
 
   def file_type

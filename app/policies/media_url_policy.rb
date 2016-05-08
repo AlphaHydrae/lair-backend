@@ -1,0 +1,2 @@
+class MediaUrlPolicy < ApplicationPolicy
+end

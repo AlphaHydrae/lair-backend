@@ -4,7 +4,7 @@ class MediaScanFile < ActiveRecord::Base
   belongs_to :scan, class_name: 'MediaFile'
 
   strip_attributes
-  validates :data, presence: true
+  validates :data, presence: { unless: :deleted? }
   validates :path, presence: true
   validates :processed, inclusion: { in: [ true, false ] }
   validates :change_type, presence: true, inclusion: { in: CHANGE_TYPES + CHANGE_TYPES.collect(&:to_s), allow_blank: true }

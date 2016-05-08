@@ -1,0 +1,2 @@
+class ScrapPolicy < ApplicationPolicy
+end

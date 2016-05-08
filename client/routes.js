@@ -95,7 +95,7 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('files.explorer', {
-        url: '?directory',
+        url: '?directory&deleted',
         reloadOnSearch: false,
         controller: 'FileExplorerCtrl',
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
