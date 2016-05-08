@@ -21,6 +21,7 @@ gem 'wisper'
 gem 'resque'
 gem 'resque-scheduler'
 gem 'resque-workers-lock'
+gem 'resque-waiting-room'
 
 # Templates & Assets
 gem 'slim-rails'

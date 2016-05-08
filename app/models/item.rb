@@ -13,6 +13,8 @@ class Item < ActiveRecord::Base
   belongs_to :title, class_name: 'WorkTitle'
   belongs_to :language
   belongs_to :custom_title_language, class_name: 'Language'
+  belongs_to :media_url
+  belongs_to :scrap
   has_many :ownerships, dependent: :destroy
   has_many :collection_items
   has_many :collections, through: :collection_items

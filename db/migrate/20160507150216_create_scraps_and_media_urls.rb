@@ -5,8 +5,10 @@ class CreateScrapsAndMediaUrls < ActiveRecord::Migration
       t.string :provider, null: false, limit: 20
       t.string :category, null: false, limit: 20
       t.string :provider_id, null: false, limit: 100
+      t.integer :creator_id, null: false
       t.timestamps null: false
       t.index %i(provider provider_id), unique: true
+      t.foreign_key :users, column: :creator_id, on_delete: :restrict
     end
 
     create_table :scraps do |t|
@@ -16,6 +18,7 @@ class CreateScrapsAndMediaUrls < ActiveRecord::Migration
       t.text :contents
       t.string :content_type, limit: 50
       t.integer :media_url_id, null: false
+      t.integer :creator_id, null: false
       t.datetime :scraping_at
       t.datetime :canceled_at
       t.datetime :scraped_at
@@ -25,12 +28,24 @@ class CreateScrapsAndMediaUrls < ActiveRecord::Migration
       t.timestamps null: false
       t.index :api_id, unique: true
       t.index :media_url_id, unique: true
-      t.foreign_key :media_urls
+      t.foreign_key :media_urls, on_delete: :cascade
+      t.foreign_key :users, column: :creator_id, on_delete: :restrict
     end
 
     add_column :media_files, :state, :string, limit: 20
     add_column :media_files, :extension, :string, limit: 20
     add_column :media_files, :media_url_id, :integer
-    add_foreign_key :media_files, :media_urls
+    add_foreign_key :media_files, :media_urls, on_delete: :nullify
+
+    add_column :works, :scrap_id, :integer
+    add_column :works, :media_url_id, :integer
+    add_index :works, :media_url_id, unique: true
+    add_foreign_key :works, :scraps, on_delete: :nullify
+    add_foreign_key :works, :media_urls, on_delete: :nullify
+
+    add_column :items, :scrap_id, :integer
+    add_column :items, :media_url_id, :integer
+    add_foreign_key :items, :scraps, on_delete: :nullify
+    add_foreign_key :items, :media_urls, on_delete: :nullify
   end
 end

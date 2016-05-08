@@ -170,6 +170,8 @@ ActiveRecord::Schema.define(version: 20160507150216) do
     t.text     "sortable_title",                              null: false
     t.integer  "last_image_search_id"
     t.string   "issn",                            limit: 8
+    t.integer  "scrap_id"
+    t.integer  "media_url_id"
   end
 
   add_index "items", ["api_id"], name: "index_items_on_api_id", unique: true, using: :btree
@@ -285,6 +287,7 @@ ActiveRecord::Schema.define(version: 20160507150216) do
     t.string   "provider",    limit: 20,  null: false
     t.string   "category",    limit: 20,  null: false
     t.string   "provider_id", limit: 100, null: false
+    t.integer  "creator_id",              null: false
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
   end
@@ -323,6 +326,7 @@ ActiveRecord::Schema.define(version: 20160507150216) do
     t.text     "contents"
     t.string   "content_type",    limit: 50
     t.integer  "media_url_id",               null: false
+    t.integer  "creator_id",                 null: false
     t.datetime "scraping_at"
     t.datetime "canceled_at"
     t.datetime "scraped_at"
@@ -413,10 +417,13 @@ ActiveRecord::Schema.define(version: 20160507150216) do
     t.datetime "created_at",                      null: false
     t.datetime "updated_at",                      null: false
     t.integer  "last_image_search_id"
+    t.integer  "scrap_id"
+    t.integer  "media_url_id"
   end
 
   add_index "works", ["api_id"], name: "index_works_on_api_id", unique: true, using: :btree
   add_index "works", ["category"], name: "index_works_on_category", using: :btree
+  add_index "works", ["media_url_id"], name: "index_works_on_media_url_id", unique: true, using: :btree
 
   add_foreign_key "collection_items", "collections", on_delete: :cascade
   add_foreign_key "collection_items", "items", on_delete: :cascade
@@ -438,6 +445,8 @@ ActiveRecord::Schema.define(version: 20160507150216) do
   add_foreign_key "items", "images", on_delete: :nullify
   add_foreign_key "items", "languages", column: "custom_title_language_id", on_delete: :restrict
   add_foreign_key "items", "languages", on_delete: :restrict
+  add_foreign_key "items", "media_urls", on_delete: :nullify
+  add_foreign_key "items", "scraps", on_delete: :nullify
   add_foreign_key "items", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "items", "users", column: "updater_id", on_delete: :restrict
   add_foreign_key "items", "work_titles", column: "title_id", on_delete: :nullify
@@ -449,7 +458,7 @@ ActiveRecord::Schema.define(version: 20160507150216) do
   add_foreign_key "media_files", "media_files", column: "directory_id", on_delete: :cascade
   add_foreign_key "media_files", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_files", "media_sources", column: "source_id", on_delete: :cascade
-  add_foreign_key "media_files", "media_urls"
+  add_foreign_key "media_files", "media_urls", on_delete: :nullify
   add_foreign_key "media_scan_files", "media_scans", column: "scan_id", on_delete: :cascade
   add_foreign_key "media_scanners", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_scanners", "users", on_delete: :cascade
@@ -457,13 +466,15 @@ ActiveRecord::Schema.define(version: 20160507150216) do
   add_foreign_key "media_scans", "media_sources", column: "source_id", on_delete: :cascade
   add_foreign_key "media_sources", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_sources", "users", on_delete: :cascade
+  add_foreign_key "media_urls", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "ownerships", "items", on_delete: :cascade
   add_foreign_key "ownerships", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "ownerships", "users", column: "updater_id", on_delete: :restrict
   add_foreign_key "ownerships", "users", on_delete: :restrict
   add_foreign_key "people", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "people", "users", column: "updater_id", on_delete: :restrict
-  add_foreign_key "scraps", "media_urls"
+  add_foreign_key "scraps", "media_urls", on_delete: :cascade
+  add_foreign_key "scraps", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "work_companies", "companies", on_delete: :cascade
   add_foreign_key "work_companies", "works", on_delete: :cascade
   add_foreign_key "work_descriptions", "languages", on_delete: :restrict
@@ -477,6 +488,8 @@ ActiveRecord::Schema.define(version: 20160507150216) do
   add_foreign_key "works", "image_searches", column: "last_image_search_id", on_delete: :nullify
   add_foreign_key "works", "images", on_delete: :nullify
   add_foreign_key "works", "languages", on_delete: :restrict
+  add_foreign_key "works", "media_urls", on_delete: :nullify
+  add_foreign_key "works", "scraps", on_delete: :nullify
   add_foreign_key "works", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "works", "users", column: "updater_id", on_delete: :restrict
   add_foreign_key "works", "work_titles", column: "original_title_id", on_delete: :nullify

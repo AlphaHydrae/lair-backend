@@ -1,4 +1,4 @@
-angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(api, auth, $scope) {
+angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(api, auth, $location, $scope, $stateParams) {
 
   $scope.mediaFilesList = {
     records: [],
@@ -13,12 +13,26 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
 
   $scope.$watch('mediaSource', function(value) {
     if (value) {
-      $scope.mediaFilesList.httpSettings.params.directory = '/';
+      $scope.mediaFilesList.httpSettings.params.directory = $stateParams.directory || '/';
       $scope.mediaFilesList.httpSettings.params.maxDepth = 1;
       $scope.mediaFilesList.httpSettings.params.sourceId = value.id;
       $scope.mediaFilesList.infiniteOptions.enabled = true;
       fetchFilesCount();
     }
+  });
+
+  $scope.$on('$locationChangeSuccess', function() {
+
+    var search = $location.search(),
+        params = $scope.mediaFilesList.httpSettings.params;
+
+    if (search.directory != params.directory) {
+      params.directory = search.directory || '/';
+    }
+  });
+
+  $scope.$watch('mediaFilesList.httpSettings.params.directory', function(directory) {
+    $location.search('directory', directory && directory != '/' ? directory : null);
   });
 
   api.all({
@@ -44,6 +58,8 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     } else {
       $scope.breadcrumbs.push(file);
     }
+
+    $location.search('directory', file.path);
 
     $scope.mediaFilesList.httpSettings.params.directory = file.path;
   };

@@ -3,7 +3,7 @@ require 'resque/plugins/workers/lock'
 class AnalyzeMediaFilesJob
   extend Resque::Plugins::Workers::Lock
 
-  @queue = :low
+  @queue = :high
 
   def self.enqueue source
     Resque.enqueue self, source.id
@@ -37,7 +37,7 @@ class AnalyzeMediaFilesJob
           file.path.index("#{sp.path}/") == 0
         end
 
-        media_url = MediaUrl.resolve file.url, scan_path.try(:category)
+        media_url = MediaUrl.resolve file.url, source, scan_path.try(:category)
         if media_url.blank?
           file.mark_as_invalid!
           next

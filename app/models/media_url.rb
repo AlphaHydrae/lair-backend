@@ -7,6 +7,9 @@ class MediaUrl < ActiveRecord::Base
   after_create :queue_scraping
 
   has_one :scrap
+  belongs_to :creator, class_name: 'User'
+  has_one :work
+  has_many :items
 
   validates :provider, presence: true, inclusion: { in: PROVIDERS.collect(&:to_s), allow_blank: true }
   validates :category, presence: true, inclusion: { in: Work::CATEGORIES, allow_blank: true }
@@ -14,15 +17,15 @@ class MediaUrl < ActiveRecord::Base
 
   # IMDB URL example: http://www.imdb.com/title/tt0120815/
   # AniDB URL example: http://anidb.net/perl-bin/animedb.pl?show=anime&aid=4
-  def self.resolve url, category = nil
+  def self.resolve url, source, default_category = nil
     if match = url.match(/^https?:\/\/(?:www\.)?imdb\.com\/title\/([a-z0-9]+)/i)
       attrs = {
         provider: 'imdb',
-        category: category || 'movie',
+        category: %w(movie show).include?(default_category) ? default_category : 'movie',
         provider_id: match[1]
       }
 
-      MediaUrl.where(attrs).first_or_create!
+      MediaUrl.where(attrs).first_or_create! creator: source.user
     elsif match = url.match(/^https?:\/\/(?:www\.)?anidb\.net\/?.*\?.*aid=([a-z0-9]+).*/i)
       attrs = {
         provider: 'anidb',
@@ -30,7 +33,7 @@ class MediaUrl < ActiveRecord::Base
         provider_id: match[1]
       }
 
-      MediaUrl.where(attrs).first_or_create!
+      MediaUrl.where(attrs).first_or_create! creator: source.user
     end
   end
 
@@ -40,7 +43,7 @@ class MediaUrl < ActiveRecord::Base
     scraper = find_scraper
     return unless scraper
 
-    Scrap.new(media_url: self, provider: scraper.provider.to_s).save!
+    Scrap.new(media_url: self, creator: creator, provider: scraper.provider.to_s).save!
   end
 
   def find_scraper

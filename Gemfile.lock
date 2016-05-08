@@ -296,6 +296,7 @@ GEM
       redis (~> 3.0)
       resque (~> 1.25)
       rufus-scheduler (~> 3.0)
+    resque-waiting-room (0.2.3)
     resque-workers-lock (2.0.0)
       resque
     retriable (1.4.1)
@@ -459,6 +460,7 @@ DEPENDENCIES
   resque
   resque-pool
   resque-scheduler
+  resque-waiting-room
   resque-workers-lock
   role_model
   rspec-collection_matchers

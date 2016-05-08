@@ -15,6 +15,8 @@ class Work < ActiveRecord::Base
 
   belongs_to :language
   belongs_to :original_title, class_name: 'WorkTitle'
+  belongs_to :media_url
+  belongs_to :scrap
   has_many :titles, class_name: 'WorkTitle', dependent: :destroy, autosave: true
   has_many :links, class_name: 'WorkLink', dependent: :destroy, autosave: true
   has_many :descriptions, class_name: 'WorkDescription', dependent: :destroy

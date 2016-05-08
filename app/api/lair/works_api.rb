@@ -41,7 +41,7 @@ module Lair
           end
 
           work.save!
-          work.update_columns original_title_id: work.titles.first.id
+          work.update_columns original_title_id: work.titles.where(display_position: 0).first.id
 
           serialize work
         end
