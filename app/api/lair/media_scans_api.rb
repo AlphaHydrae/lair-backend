@@ -61,26 +61,51 @@ module Lair
             files = JSON.parse request.body.read
             raise 'Array required' unless files.kind_of? Array
 
-            MediaScan.transaction do
+            lock_for_update 'media_scans:scanned_files' do
+              MediaScan.transaction do
 
-              files = files.collect do |data|
-                MediaScanFile.new(scan_id: record.id).tap do |f|
-                  f.path = data.delete 'path'
-                  f.change_type = data.delete 'change'
-                  f.data = data
+                files = files.collect do |data|
+                  MediaScanFile.new(scan_id: record.id).tap do |f|
+                    f.path = data.delete 'path'
+                    f.change_type = data.delete 'change'
+                    f.data = data
+                  end
                 end
+
+                file_changes = files.select{ |f| %w(added changed deleted).include?(f.change_type) && f.path }
+                existing_paths = record.scanned_files.where(path: file_changes.collect(&:path)).to_a.collect &:path
+                existing_paths_in_source = record.source.files.where(path: file_changes.collect(&:path), deleted: false).to_a.collect &:path
+
+                validation_error = ValidationError.new 'Scanned files are invalid'
+
+                file_changes.each.with_index do |file,i|
+                  if existing_paths.include? file.path
+                    validation_error.add message: "File #{file.path} was already scanned", path: "/#{i}/path"
+                  end
+
+                  if files.count{ |f| f.path == file.path } >= 2
+                    validation_error.add message: "File #{file.path} is present multiple times in the request", path: "/#{i}/path"
+                  end
+
+                  if file.change_type == 'added' && existing_paths_in_source.include?(file.path)
+                    validation_error.add message: "File #{file.path} cannot be added because it is already present in the media source", path: "/#{i}/change"
+                  end
+
+                  if %w(changed deleted).include?(file.change_type) && !existing_paths_in_source.include?(file.path)
+                    validation_error.add message: "File #{file.path} cannot be #{file.change_type} because it does not exist in the media source", path: "/#{i}/change"
+                  end
+                end
+
+                validation_error.raise_if_any
+
+                MediaScanFile.import files, validate: true
+
+                record.changed_files_count += files.length
+                record.save!
+
+                status 200
+                files
               end
-
-              puts files.inspect
-
-              # FIXME: batch validate (path uniqueness & changed/deleted path exists in source)
-              MediaScanFile.import files, validate: true
-
-              record.changed_files_count += files.length
-              record.save!
-
-              status 200
-              files
             end
           end
         end

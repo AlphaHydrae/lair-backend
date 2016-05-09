@@ -1,14 +1,20 @@
 require 'tmpdir'
 
-class UploadImageJob
+class UploadImageJob < ApplicationJob
   @queue = :low
 
   def self.enqueue image
-    Resque.enqueue self, image.id
+    enqueue_after_transaction self, image.id
   end
 
   def self.perform id
     image = Image.find id
+
+    unless Rails.application.service_config(:imageUpload)[:enabled]
+      Rails.logger.debug "Skipping image upload because service is disabled"
+      return
+    end
+
     image.start_upload!
 
     begin

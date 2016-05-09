@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160508132054) do
+ActiveRecord::Schema.define(version: 20160509112649) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,17 +90,18 @@ ActiveRecord::Schema.define(version: 20160508132054) do
   add_index "companies", ["name"], name: "index_companies_on_name", unique: true, using: :btree
 
   create_table "events", force: :cascade do |t|
-    t.string   "api_id",           limit: 36, null: false
-    t.integer  "api_version",                 null: false
-    t.string   "event_type",       limit: 12, null: false
-    t.string   "event_subject",    limit: 50
-    t.string   "trackable_type",   limit: 50
+    t.string   "api_id",             limit: 36,             null: false
+    t.integer  "api_version",                               null: false
+    t.string   "event_type",         limit: 12,             null: false
+    t.string   "event_subject",      limit: 50
+    t.string   "trackable_type",     limit: 50
     t.integer  "trackable_id"
     t.json     "previous_version"
     t.integer  "cause_id"
     t.integer  "user_id"
-    t.datetime "created_at",                  null: false
-    t.string   "trackable_api_id", limit: 12, null: false
+    t.datetime "created_at",                                null: false
+    t.string   "trackable_api_id",   limit: 12,             null: false
+    t.integer  "side_effects_count",            default: 0, null: false
   end
 
   add_index "events", ["trackable_type", "trackable_api_id"], name: "index_events_on_trackable_type_and_trackable_api_id", using: :btree
@@ -254,7 +255,7 @@ ActiveRecord::Schema.define(version: 20160508132054) do
     t.datetime "created_at"
     t.datetime "processed_at"
     t.integer  "source_id",                                    null: false
-    t.string   "state",                 limit: 10,             null: false
+    t.string   "state",                 limit: 20,             null: false
     t.datetime "canceled_at"
     t.datetime "scanned_at"
     t.datetime "failed_at"
@@ -321,21 +322,23 @@ ActiveRecord::Schema.define(version: 20160508132054) do
   end
 
   create_table "scraps", force: :cascade do |t|
-    t.string   "api_id",          limit: 12, null: false
-    t.string   "provider",        limit: 20, null: false
-    t.string   "state",           limit: 20, null: false
+    t.string   "api_id",               limit: 12, null: false
+    t.string   "provider",             limit: 20, null: false
+    t.string   "state",                limit: 20, null: false
     t.text     "contents"
-    t.string   "content_type",    limit: 50
-    t.integer  "media_url_id",               null: false
-    t.integer  "creator_id",                 null: false
+    t.string   "content_type",         limit: 50
+    t.integer  "media_url_id",                    null: false
+    t.integer  "creator_id",                      null: false
     t.datetime "scraping_at"
-    t.datetime "canceled_at"
+    t.datetime "scraping_canceled_at"
+    t.datetime "scraping_failed_at"
     t.datetime "scraped_at"
-    t.datetime "failed_at"
+    t.datetime "expansion_failed_at"
+    t.datetime "expanded_at"
     t.text     "error_message"
     t.text     "error_backtrace"
-    t.datetime "created_at",                 null: false
-    t.datetime "updated_at",                 null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
   end
 
   add_index "scraps", ["api_id"], name: "index_scraps_on_api_id", unique: true, using: :btree

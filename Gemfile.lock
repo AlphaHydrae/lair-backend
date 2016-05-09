@@ -39,6 +39,8 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     addressable (2.3.8)
+    ar_after_transaction (0.4.0)
+      activerecord
     arel (6.0.0)
     autoparse (0.3.3)
       addressable (>= 2.3.1)
@@ -423,6 +425,7 @@ PLATFORMS
 
 DEPENDENCIES
   activerecord-import
+  ar_after_transaction
   autoprefixer-rails
   aws-sdk (~> 2)
   byebug

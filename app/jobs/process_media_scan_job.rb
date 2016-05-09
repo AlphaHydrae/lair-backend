@@ -1,6 +1,6 @@
 require 'resque/plugins/workers/lock'
 
-class ProcessMediaScanJob
+class ProcessMediaScanJob < ApplicationJob
   FILE_PROPERTIES = %i(url format languages subtitles)
 
   extend Resque::Plugins::Workers::Lock
@@ -8,7 +8,7 @@ class ProcessMediaScanJob
   @queue = :high
 
   def self.enqueue scan
-    Resque.enqueue self, scan.id
+    enqueue_after_transaction self, scan.id
   end
 
   def self.lock_workers id
@@ -30,9 +30,12 @@ class ProcessMediaScanJob
         scanned_files.each do |scanned_file|
 
           if scanned_file.deleted?
-            if file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path).first
+            if file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path).first!
               paths_to_check_for_deletion << File.dirname(scanned_file.path)
+
               file.deleted = true
+              file.mark_as_deleted if file.nfo?
+
               file.last_scan = scan
               file.scanned_at = scanned_at
               file.save!

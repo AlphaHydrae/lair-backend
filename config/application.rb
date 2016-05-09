@@ -28,6 +28,19 @@ module Lair
       config[service.to_s].with_indifferent_access
     end
 
+    def current_event
+      @current_event
+    end
+
+    def with_current_event event
+      @current_event = event
+      begin
+        yield if block_given?
+      ensure
+        @current_event = nil
+      end
+    end
+
     def destroy record, current_user, options = {}
       hard = options.fetch :hard, false
 

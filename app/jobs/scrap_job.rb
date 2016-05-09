@@ -1,7 +1,6 @@
 require 'resque/plugins/workers/lock'
 
-# FIXME: add scrap event
-class ScrapJob
+class ScrapJob < ApplicationJob
   extend Resque::Plugins::WaitingRoom
   extend Resque::Plugins::Workers::Lock
 
@@ -10,7 +9,7 @@ class ScrapJob
   @queue = :low
 
   def self.enqueue scrap
-    Resque.enqueue self, scrap.id
+    enqueue_after_transaction self, scrap.id
   end
 
   def self.lock_workers id
@@ -19,8 +18,10 @@ class ScrapJob
 
   def self.perform id
     scrap = Scrap.includes(:media_url).find id
-    perform_scraping scrap if scrap.contents.blank?
-    perform_expansion scrap if %w(scraped expansion_failed expanded).include? scrap.state.to_s
+    Rails.application.with_current_event create_job_event(scrap, scrap.creator) do
+      perform_scraping scrap if scrap.contents.blank?
+      perform_expansion scrap if %w(scraped expansion_failed expanded).include? scrap.state.to_s
+    end
   end
 
   def self.perform_scraping scrap

@@ -5,6 +5,7 @@ gem 'rails', '4.2.1'
 # Database
 gem 'pg'
 gem 'activerecord-import'
+gem 'ar_after_transaction'
 
 # Memory Database
 gem 'redis'

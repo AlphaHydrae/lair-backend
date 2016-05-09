@@ -80,6 +80,10 @@
           |  This file should contain a URL that identifies the media and is
           a<> href='#' ng-click='showSupportedScrapers()' supported by one of our scrapers
           | .
+        span ng-if='directoryMessage == "unlinkedWarnings"'
+          strong> Warning:
+          | Some of your media files cannot be identified.
+          |  Open directories shown in yellow to find these files.
         span ng-if='directoryMessage == "filesProcessing"'
           strong> Processing:
           | Some of the files in this directory are still being analyzed.

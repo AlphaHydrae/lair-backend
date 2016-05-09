@@ -9,6 +9,8 @@ development:
     rate_limit_duration: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_DURATION'].to_i %>
   scraping:
     interval: <%= ENV['LAIR_SCRAPING_INTERVAL'].to_i %>
+  imageUpload:
+    enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^true$/i) %>
 test:
   bingSearch:
     url: http://localhost/bingSearch
@@ -20,6 +22,8 @@ test:
     rate_limit_duration: 86400 # 1 day (in seconds)
   scraping:
     interval: 5
+  imageUpload:
+    enabled: false
 production:
   bingSearch:
     url: <%= ENV['LAIR_BING_SEARCH_URL'] %>
@@ -31,3 +35,5 @@ production:
     rate_limit_duration: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_DURATION'].to_i %>
   scraping:
     interval: <%= ENV['LAIR_SCRAPING_INTERVAL'].to_i %>
+  imageUpload:
+    enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^true$/i) %>

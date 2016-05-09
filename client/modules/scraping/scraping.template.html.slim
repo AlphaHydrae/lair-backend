@@ -2,10 +2,15 @@
   .page-header
     h1
       | Media scraping
-      small< ng-if='mediaUrlsList.pagination.total >= 1'
-        | {{ mediaUrlsList.pagination.total | number }} found
+      small< ng-if='mediaUrlsList.pagination.total >= 1 || mediaUrlsList.pagination.filtered'
+        | {{ mediaUrlsList.pagination.total | number }}
+        span ng-if='!mediaUrlsList.pagination.filtered'
+          span< total
+        span ng-if='mediaUrlsList.pagination.filtered'
+          span< matching
         span ng-if='scrapingErrorsCount'
-          span> ,
+          span>
+            | ,
           strong.text-danger ng-if='scrapingErrorsCount == 1' 1 error
           strong.text-danger ng-if='scrapingErrorsCount >= 2' {{ scrapingErrorsCount | number }} errors
         strong.text-warning ng-if='scrapingCanceledCount'
@@ -27,9 +32,7 @@
             | Show in progress
     table#events.table.table-striped.table-hover
       thead
-        tr.hidden-lg.hidden-md.hidden-sm
-          th.url Media
-        tr.hidden-xs
+        tr
           th.provider Provider
           th.url Media
           th.status Status
@@ -40,19 +43,7 @@
           td colspan=3
             span ng-if='!_.isEmpty(mediaUrlsList.params)' No matching media found.
             span ng-if='_.isEmpty(mediaUrlsList.params)' No media scraped.
-        tr.hidden-lg.hidden-md.hidden-sm ng-repeat='url in mediaUrlsList.records'
-          td
-            .pull-right
-              a href='#' ng-click='showSupportedScrapers()'
-                .label.label-default ng-if='!url.scrap' Scraping not yet supported
-              .label.label-primary ng-if='url.scrap.state == "created"' Queued
-              .label.label-primary ng-if='url.scrap.state == "scraping" || url.scrap.state == "scraped"' Scraping
-              .label.label-warning ng-if='url.scrap.state == "scrapingCanceled"' Canceled
-              .label.label-danger ng-if='url.scrap.state == "scrapingFailed"' tooltip='URL could not be scraped' Scraping error
-              .label.label-danger ng-if='url.scrap.state == "expansionFailed"' tooltip='Scraped data could not be parsed' Scraping error
-              .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
-            a href='{{ url.url }}' {{ url.url }}
-        tr.hidden-xs ng-repeat='url in mediaUrlsList.records'
+        tr ng-repeat='url in mediaUrlsList.records'
           td
             a href='http://anidb.net'
               .label.label-default ng-if='url.provider == "anidb"' AniDB
@@ -63,11 +54,21 @@
           td
             a href='#' ng-click='showSupportedScrapers()'
               .label.label-default ng-if='!url.scrap' Scraping not yet supported
+
             .label.label-primary ng-if='url.scrap.state == "created"' Queued
+
             .label.label-primary ng-if='url.scrap.state == "scraping" || url.scrap.state == "scraped"' Scraping
+
             .label.label-warning ng-if='url.scrap.state == "scrapingCanceled"' Canceled
-            .label.label-danger ng-if='url.scrap.state == "scrapingFailed"' tooltip='URL could not be scraped' Scraping error
-            .label.label-danger ng-if='url.scrap.state == "expansionFailed"' tooltip='Scraped data could not be parsed' Scraping error
+
+            .label.label-danger ng-if='url.scrap.state == "scrapingFailed" && !currentUserIs("admin")' tooltip='URL could not be scraped' Scraping error
+            a href='#' ng-if='url.scrap.state == "scrapingFailed" && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='URL could not be scraped'
+              .label.label-danger Scraping error
+
+            .label.label-danger ng-if='url.scrap.state == "expansionFailed" && !currentUserIs("admin")' tooltip='Scraped data could not be parsed' Scraping error
+            a href='#' ng-if='url.scrap.state == "expansionFailed" && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='Scraped data could not be parsed'
+              .label.label-danger Scraping error
+
             .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
       tfoot
         tr

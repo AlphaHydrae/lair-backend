@@ -43,7 +43,7 @@ class MediaUrl < ActiveRecord::Base
     scraper = find_scraper
     return unless scraper
 
-    Scrap.new(media_url: self, creator: creator, provider: scraper.provider.to_s).save!
+    self.scrap = Scrap.new(media_url: self, creator: creator, provider: scraper.provider.to_s).tap &:save!
   end
 
   def find_scraper

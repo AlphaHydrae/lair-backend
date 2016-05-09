@@ -9,7 +9,7 @@ module Lair
         end
 
         def with_serialization_includes rel
-          rel = rel.includes :scrap, :work
+          rel = rel.includes(:work, { scrap: :media_url })
           rel
         end
       end

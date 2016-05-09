@@ -19,6 +19,12 @@ module Lair
             rel = rel.where trackable_type: params[:resource].to_s.gsub(/-/, '_').singularize.camelize
           end
 
+          if true_flag? :caused
+            rel = rel.where 'cause_id IS NOT NULL'
+          elsif false_flag? :caused
+            rel = rel.where 'cause_id IS NULL'
+          end
+
           rel
         end
 

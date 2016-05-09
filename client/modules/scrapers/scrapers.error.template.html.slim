@@ -1,0 +1,13 @@
+#scraping-error
+  .modal-header
+    h3 Scraping error
+  .modal-body
+    p.loading ng-if='!scrap' Loading...
+    p ng-if='scrap && !scrap.error.message'
+      strong.text-danger No scraping error found.
+    div ng-if='scrap.error.message'
+      p
+        strong.text-danger {{ scrap.error.message }}
+      pre ng-if='scrap.error.stackTrace' {{ scrap.error.stackTrace }}
+  .modal-footer
+    button.btn.btn-default.pull-right type='button' ng-click='$dismiss()' Close

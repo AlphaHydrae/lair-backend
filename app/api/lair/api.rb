@@ -18,10 +18,16 @@ module Lair
 
       if e.kind_of? LairError
         code = e.http_status_code
-      elsif e.kind_of? Pundit::NotAuthorizedError
+        errors.first[:message] = e.reason if e.reason.present?
+      end
+
+      if e.kind_of? Pundit::NotAuthorizedError
         code = 403
       elsif e.kind_of? ActiveRecord::RecordNotFound
         code = 404
+      elsif e.kind_of? ValidationError
+        errors.clear
+        errors += e.errors
       elsif e.kind_of? ActiveRecord::RecordInvalid
         code = 422
         errors.clear
@@ -49,6 +55,7 @@ module Lair
     helpers ApiParamsHelper
     helpers ApiResourceHelper
     helpers ApiSerializationHelper
+    helpers RedisHelper
 
     helpers do
       def language tag
@@ -70,6 +77,7 @@ module Lair
     mount OwnershipsApi
     mount ItemsApi
     mount PeopleApi
+    mount ScrapsApi
     mount StatsApi
     mount TokensApi
     mount UsersApi

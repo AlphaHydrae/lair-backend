@@ -21,3 +21,12 @@
 
 en:
   hello: "Hello world"
+
+  activemodel:
+    errors:
+      models:
+        media_scan_path:
+          attributes:
+            path:
+              scan_path_already_included_in_existing_path: "is already included in an existing scan path of this media source (%{existing_path})"
+              scan_path_includes_already_existing_paths: "would include scan paths already defined in this media source (%{existing_path})"

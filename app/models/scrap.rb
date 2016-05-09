@@ -5,7 +5,7 @@ class Scrap < ActiveRecord::Base
   include ResourceWithIdentifier
 
   before_create :set_identifier
-  after_create :queue_job
+  after_commit :queue_job, on: :create
 
   states :created, :scraping, :scraping_canceled, :scraping_failed, :scraped, :expansion_failed, :expanded
   event :start_scraping, to: :scraping

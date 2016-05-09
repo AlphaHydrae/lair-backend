@@ -20,6 +20,7 @@ class MediaScan < ActiveRecord::Base
 
   strip_attributes
   validates :source, presence: true
+  validates :scanner, presence: true
   validates :files_count, presence: { if: ->(scan){ %w(scanned processed analysis_failed analyzed).include? scan.state.to_s } }
   validate :files_count_should_be_correct
   validate :scanned_files_should_be_processed

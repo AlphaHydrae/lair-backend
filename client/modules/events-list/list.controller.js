@@ -1,6 +1,6 @@
 angular.module('lair.events.list').controller('EventsListCtrl', function(api, $log, moment, $q, $scope) {
 
-  var resourceEventTypes = [ 'create', 'update', 'delete' ];
+  var resourceEventTypes = [ 'create', 'update', 'delete', 'job' ];
 
   $scope.eventFilters = {
     resource: ''
@@ -33,14 +33,28 @@ angular.module('lair.events.list').controller('EventsListCtrl', function(api, $l
   });
 
   $scope.description = function(event) {
-    if (_.contains(resourceEventTypes, event.type)) {
+    if (_.includes(resourceEventTypes, event.type)) {
 
       var version = event.eventVersion;
       if (event.type == 'delete') {
         version = event.previousVersion;
       }
 
-      if (event.resource == 'collections') {
+      if (!version) {
+        return '-';
+      } else if (event.resource == 'scraps') {
+        if (version.mediaUrl) {
+
+          var description = 'Scraping ' + version.mediaUrl.url;
+          if (version.mediaUrl.work) {
+            description += ' (' + version.mediaUrl.work.titles[0].text + ')';
+          }
+
+          return description;
+        } else {
+          return 'Scraping';
+        }
+      } else if (event.resource == 'collections') {
         return version.name;
       } else if (event.resource == 'works') {
         return version.titles[0].text;
@@ -94,7 +108,9 @@ angular.module('lair.events.list').controller('EventsListCtrl', function(api, $l
 
     api({
       url: '/events',
-      params: params
+      params: _.extend(params, {
+        caused: 0
+      })
     }).then(function(res) {
       $scope.events = res.data;
       table.pagination.numberOfPages = res.pagination().numberOfPages;

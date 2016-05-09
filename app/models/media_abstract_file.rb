@@ -26,6 +26,32 @@ class MediaAbstractFile < ActiveRecord::Base
     kind_of? MediaFile
   end
 
+  def parent_directories
+    MediaDirectory.where "media_files.id IN (#{parent_directories_sql})"
+  end
+
+  def parent_directory_files
+    MediaFile.where "media_files.directory_id IN (#{parent_directories_sql})"
+  end
+
+  def parent_directories_sql
+
+    rel = MediaDirectory
+      .select('media_files.directory_id')
+      .joins('INNER JOIN r ON media_files.id = r.current_id')
+      .where('media_files.directory_id IS NOT NULL')
+
+    sql = <<-SQL
+      WITH RECURSIVE r(current_id) AS (
+          VALUES(#{directory_id})
+        UNION ALL
+          #{rel.to_sql}
+      ) SELECT current_id FROM r
+    SQL
+
+    strip_sql sql
+  end
+
   private
 
   def path_must_be_absolute

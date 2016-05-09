@@ -18,6 +18,46 @@ class AuthError < LairError
   end
 end
 
+class ConflictError < LairError
+  def initialize msg = nil, options = {}
+    options[:http_status_code] ||= 409
+    super msg, options
+  end
+end
+
+class ValidationError < LairError
+  attr_reader :errors
+
+  def initialize msg = nil, options = {}
+    options[:http_status_code] ||= 422
+    super msg, options
+    @errors = []
+  end
+
+  def add message, **args
+    error = {
+      message: message
+    }
+
+    error[:path] = args[:path] if args[:path]
+
+    @errors << error
+    error
+  end
+
+  def empty?
+    @errors.empty?
+  end
+
+  def any? &block
+    @errors.any? &block
+  end
+
+  def raise_if_any &block
+    raise self if any?(&block)
+  end
+end
+
 class RateLimitError < LairError
   def initialize msg = nil, options = {}
     options[:http_status_code] ||= 429

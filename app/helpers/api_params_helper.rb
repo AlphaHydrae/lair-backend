@@ -11,7 +11,7 @@ module ApiParamsHelper
     params[name].to_s.match(/\A(?:\*|a|all)\Z/i)
   end
 
-  def include_in_response? name
-    params[:include].to_s == name.to_s || (params[:include].kind_of?(Array) && params[:include].include?(name.to_s))
+  def include_in_response? *args
+    args.any?{ |name| params[:include].to_s == name.to_s || (params[:include].kind_of?(Array) && params[:include].include?(name.to_s)) }
   end
 end

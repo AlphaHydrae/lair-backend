@@ -144,7 +144,10 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
       } else if (_.findWhere(records, { warning: 'fileUnlinked' })) {
         $scope.directoryMessageType = 'warning';
         $scope.directoryMessage = 'unlinkedFiles';
-      } else if (_.findWhere(records, { processed: true })) {
+      } else if (_.findWhere(records, { warning: 'directoryHasUnlikedFiles' })) {
+        $scope.directoryMessageType = 'warning';
+        $scope.directoryMessage = 'unlinkedWarnings';
+      } else if (_.findWhere(records, { processing: true })) {
         $scope.directoryMessageType = 'info';
         $scope.directoryMessage = 'filesProcessing';
       }

@@ -109,6 +109,26 @@ module Lair
               path.to_h
             end
           end
+
+          namespace '/:id' do
+            helpers do
+              def scan_path_resource
+                @scan_path_resource ||= record.scan_paths.find{ |sp| sp.id == params[:id].to_s }
+                raise ActiveRecord::RecordNotFound, 'Scan path not found' unless @scan_path_resource
+              end
+            end
+
+            delete do
+              authorize! record, :update
+
+              MediaSource.transaction do
+                record.scan_paths.delete scan_path_resource
+                record.save!
+                status 204
+                nil
+              end
+            end
+          end
         end
       end
     end

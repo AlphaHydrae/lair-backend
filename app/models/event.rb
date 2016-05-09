@@ -1,4 +1,5 @@
 class Event < ActiveRecord::Base
+  EVENT_TYPES = %i(create update delete job)
   TRACKED_MODELS = [ Company, Work, Item, Ownership, Person ]
 
   include ResourceWithIdentifier
@@ -6,17 +7,19 @@ class Event < ActiveRecord::Base
 
   before_create :set_api_version
   before_create{ set_identifier{ SecureRandom.uuid } }
+  before_create :auto_set_cause
   after_create :broadcast_created
 
   belongs_to :user
   belongs_to :trackable, polymorphic: true
-  belongs_to :cause, class_name: 'Event'
+  belongs_to :cause, class_name: 'Event', counter_cache: :side_effects_count
+  has_many :side_effects, class_name: 'Event', foreign_key: :cause_id
 
-  validates :event_type, inclusion: { in: %w(create update delete job) }
+  validates :event_type, inclusion: { in: EVENT_TYPES.collect(&:to_s) }
   validates :event_subject, presence: { unless: :trackable }, length: { maximum: 50 }
   validates :trackable, presence: { unless: :event_subject }
-  validates :previous_version, presence: { if: ->(e){ e.trackable.present? && %w(update delete).include?(e.event_type) } }
-  validates :user, presence: { if: ->(e){ %w(create update delete).include?(e.event_type) } }
+  validates :previous_version, presence: { if: ->(e){ e.trackable.present? && %w(update delete).include?(e.event_type.to_s) } }
+  validates :user, presence: { if: ->(e){ %w(create update delete).include?(e.event_type.to_s) } }
 
   def subject
     event_subject || trackable_type
@@ -30,5 +33,9 @@ class Event < ActiveRecord::Base
 
   def broadcast_created
     broadcast :event_created, self
+  end
+
+  def auto_set_cause
+    self.cause ||= Rails.application.current_event
   end
 end

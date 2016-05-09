@@ -6,10 +6,11 @@ class MediaFile < MediaAbstractFile
 
   before_create :set_extension
 
-  states :created, :unlinked, :changed, :invalid, :duplicated, :linked
+  states :created, :unlinked, :changed, :deleted, :invalid, :duplicated, :linked
   event :mark_as_created, to: :created
   event :mark_as_unlinked, to: :unlinked
   event :mark_as_changed, to: :changed
+  event :mark_as_deleted, to: :deleted
   event :mark_as_invalid, to: :invalid
   event :mark_as_duplicated, to: :duplicated
   event :mark_as_linked, to: :linked

@@ -8,7 +8,11 @@ angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $locati
   });
 
   $scope.showSupportedScrapers = function() {
-    scrapers.openSupportModal();
+    scrapers.openSupportModal($scope);
+  };
+
+  $scope.showScrapingError = function(scrap) {
+    scrapers.openErrorModal($scope, scrap.id);
   };
 
   $scope.canceledScrapStates = [ 'scrapingCanceled' ];

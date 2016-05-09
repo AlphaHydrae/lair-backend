@@ -58,8 +58,8 @@ module Lair
           if params.key? :directory
             dir = MediaDirectory.where(path: params[:directory].to_s).first
             if dir
-              rel = rel.where 'media_files.depth > ?', dir.depth
-              rel = rel.where 'media_files.path LIKE ?', "#{dir.path.gsub(/_/, '\\_').gsub(/\%/, '\\%')}/%" unless dir.depth == 0
+              rel = rel.where 'media_files.id != ?', dir.id
+              rel = rel.where "media_files.id IN (#{dir.child_files_sql})" unless dir.depth == 0
 
               if params.key? :maxDepth
                 rel = rel.where 'media_files.depth <= ?', dir.depth + params[:maxDepth].to_i
@@ -86,9 +86,8 @@ module Lair
 
             dir_files_rel = MediaFile
               .where(source_id: dir.source_id, deleted: false)
-              .where('media_files.depth > ?', dir.depth)
 
-            dir_files_rel = dir_files_rel.where('media_files.path LIKE ?', "#{dir.path.gsub(/_/, '\\_').gsub(/\%/, '\\%')}/%") unless dir.depth == 0
+            dir_files_rel = dir_files_rel.where("media_files.id IN (#{dir.child_files_sql})") unless dir.depth == 0
 
             options[:directory_counts][dir.api_id] = {}
             options[:directory_counts][dir.api_id][:files_count] = dir_files_rel.count if include_in_response? :filesCount

@@ -20,9 +20,11 @@ class CreateScrapsAndMediaUrls < ActiveRecord::Migration
       t.integer :media_url_id, null: false
       t.integer :creator_id, null: false
       t.datetime :scraping_at
-      t.datetime :canceled_at
+      t.datetime :scraping_canceled_at
+      t.datetime :scraping_failed_at
       t.datetime :scraped_at
-      t.datetime :failed_at
+      t.datetime :expansion_failed_at
+      t.datetime :expanded_at
       t.text :error_message
       t.text :error_backtrace
       t.timestamps null: false
