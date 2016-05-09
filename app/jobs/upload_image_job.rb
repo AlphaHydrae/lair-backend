@@ -4,6 +4,7 @@ class UploadImageJob < ApplicationJob
   @queue = :low
 
   def self.enqueue image
+    log_queueing "image #{image.api_id}"
     enqueue_after_transaction self, image.id
   end
 

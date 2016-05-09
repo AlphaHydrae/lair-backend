@@ -9,20 +9,22 @@ class ScrapJob < ApplicationJob
   @queue = :low
 
   def self.enqueue scrap
+    log_queueing "scrap #{scrap.api_id}"
     enqueue_after_transaction self, scrap.id
   end
 
-  def self.lock_workers id
+  def self.lock_workers *args
     :scraping
   end
 
-  def self.perform id
+  def self.perform id, options = {}
     scrap = Scrap.includes(:media_url).find id
     Rails.application.with_current_event create_job_event(scrap, scrap.creator) do
       perform_scraping scrap if scrap.contents.blank?
-      perform_expansion scrap if %w(scraped expansion_failed expanded).include? scrap.state.to_s
     end
   end
+
+  private
 
   def self.perform_scraping scrap
     MediaUrl.transaction do
@@ -46,21 +48,5 @@ class ScrapJob < ApplicationJob
     scrap.error_message = e.message
     scrap.error_backtrace = e.backtrace.join "\n"
     scrap.fail_scraping!
-  end
-
-  def self.perform_expansion scrap
-    MediaUrl.transaction do
-
-      scrap.media_url.find_scraper.expand scrap
-
-      scrap.error_message = nil
-      scrap.error_backtrace = nil
-      scrap.finish_expansion!
-    end
-  rescue => e
-    scrap.reload
-    scrap.error_message = e.message
-    scrap.error_backtrace = e.backtrace.join "\n"
-    scrap.fail_expansion!
   end
 end

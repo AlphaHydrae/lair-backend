@@ -11,7 +11,7 @@ class MediaAbstractFile < ActiveRecord::Base
   strip_attributes
   # TODO: validate max depth
   validates :source, presence: true
-  validates :path, presence: true, length: { maximum: 1000 }, uniqueness: { scope: :directory_id }
+  validates :path, presence: true, length: { maximum: 1000 }, uniqueness: { scope: :source_id }
   validates :depth, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate :path_must_be_absolute
   validate :parent_directory_must_not_be_self
@@ -76,6 +76,6 @@ class MediaAbstractFile < ActiveRecord::Base
   end
 
   def depth_must_fit_parent
-    errors.add :depth, :invalid if depth.present? && directory.present? && depth != directory.depth + 1
+    errors.add :depth, :invalid_directory_depth if depth.present? && directory.present? && depth != directory.depth + 1
   end
 end

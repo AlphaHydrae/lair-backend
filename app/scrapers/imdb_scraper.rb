@@ -59,7 +59,7 @@ class ImdbScraper < ApplicationScraper
 
     description = data['Plot'].to_s.strip
     if description.present?
-      work.descriptions << WorkDescription.new(work: work, contents: description, language: data_language)
+      work.descriptions << WorkDescription.new(work: work, contents: description.truncate(5000), language: data_language)
     end
 
     work.language = data_language

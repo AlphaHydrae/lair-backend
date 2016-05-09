@@ -2,7 +2,7 @@ class Image < ActiveRecord::Base
   include SimpleStates
   include ResourceWithIdentifier
 
-  after_create :upload_image
+  after_commit :upload_image, on: :create
 
   states :created, :uploading, :uploaded, :upload_failed
   event :start_upload, from: :created, to: :uploading

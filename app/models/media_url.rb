@@ -7,9 +7,10 @@ class MediaUrl < ActiveRecord::Base
   after_create :queue_scraping
 
   has_one :scrap
-  belongs_to :creator, class_name: 'User'
   has_one :work
+  belongs_to :creator, class_name: 'User'
   has_many :items
+  has_many :files, class_name: 'MediaFile'
 
   validates :provider, presence: true, inclusion: { in: PROVIDERS.collect(&:to_s), allow_blank: true }
   validates :category, presence: true, inclusion: { in: Work::CATEGORIES, allow_blank: true }

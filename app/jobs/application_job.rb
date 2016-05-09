@@ -12,4 +12,8 @@ class ApplicationJob
   def self.create_job_event trackable, user
     Event.new(event_type: 'job', user: user, trackable: trackable, trackable_api_id: trackable.api_id).tap &:save!
   end
+
+  def self.log_queueing description
+    Rails.logger.debug "Queueing #{name} for #{description}"
+  end
 end

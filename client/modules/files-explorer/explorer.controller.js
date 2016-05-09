@@ -13,8 +13,10 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     }
   };
 
-  $scope.$watch('mediaSource', function(value, oldValue) {
+  $scope.$watch('mediaFilesList.mediaSource', function(value, oldValue) {
     if (value) {
+
+      $location.search('source', value.id);
 
       var directory;
       if (oldValue && value != oldValue) {
@@ -45,6 +47,13 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     var search = $location.search(),
         params = $scope.mediaFilesList.httpSettings.params;
 
+    if (search.source != params.sourceId) {
+      var mediaSource = _.findWhere($scope.mediaSources, { id: search.source });
+      if (mediaSource) {
+        $scope.mediaFilesList.mediaSource = mediaSource;
+      }
+    }
+
     if ((search.directory || '/') != params.directory) {
       params.directory = search.directory || '/';
       resetBreadcrumbs();
@@ -71,8 +80,8 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     }
   }).then(function(sources) {
     $scope.mediaSources = sources;
-    if (sources.length) {
-      $scope.mediaSource = sources[0];
+    if (sources.length && !$scope.mediaFilesList.mediaSource) {
+      $scope.mediaFilesList.mediaSource = _.findWhere(sources, { id: $stateParams.source }) || sources[0];
     }
   });
 

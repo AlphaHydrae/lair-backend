@@ -8,6 +8,7 @@ class Ownership < ActiveRecord::Base
 
   belongs_to :item
   belongs_to :user
+  belongs_to :media_url
   has_many :collection_ownerships
   has_many :collections, through: :collection_ownerships
 

@@ -34,12 +34,12 @@ class ValidationError < LairError
     @errors = []
   end
 
-  def add message, **args
+  def add message, path: nil
     error = {
       message: message
     }
 
-    error[:path] = args[:path] if args[:path]
+    error[:path] = path if path
 
     @errors << error
     error

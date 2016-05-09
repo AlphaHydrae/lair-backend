@@ -95,14 +95,14 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('files.explorer', {
-        url: '?directory&deleted',
+        url: '?source&directory&deleted',
         reloadOnSearch: false,
         controller: 'FileExplorerCtrl',
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
       })
 
       .state('scraping', {
-        url: '^/scraping',
+        url: '^/scraping?show',
         reloadOnSearch: false,
         controller: 'ScrapingCtrl',
         templateUrl: '/templates/modules/scraping/scraping.template.html'

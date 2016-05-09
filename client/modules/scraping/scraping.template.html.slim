@@ -21,13 +21,13 @@
     table-filters filters='mediaUrlsList.params'
       form.filters
         .btn-group
-          button.btn.btn-danger ng-model='mediaUrlsList.params.scrapStates' btn-radio='errorScrapStates' uncheckable=true
+          button.btn.btn-danger ng-model='filters.show' btn-radio='"errors"' uncheckable=true
             span.glyphicon.glyphicon-thumbs-down>
             | Show errors
-          button.btn.btn-warning ng-model='mediaUrlsList.params.scrapStates' btn-radio='canceledScrapStates' uncheckable=true
+          button.btn.btn-warning ng-model='filters.show' btn-radio='"canceled"' uncheckable=true
             span.glyphicon.glyphicon-warning-sign>
             | Show canceled
-          button.btn.btn-primary ng-model='mediaUrlsList.params.scrapStates' btn-radio='inProgressScrapStates' uncheckable=true
+          button.btn.btn-primary ng-model='filters.show' btn-radio='"inProgress"' uncheckable=true
             span.glyphicon.glyphicon-time>
             | Show in progress
     table#events.table.table-striped.table-hover
@@ -41,8 +41,8 @@
           td colspan=3 Loading...
         tr.empty ng-if='mediaUrlsList.initialized && !mediaUrlsList.records.length'
           td colspan=3
-            span ng-if='!_.isEmpty(mediaUrlsList.params)' No matching media found.
-            span ng-if='_.isEmpty(mediaUrlsList.params)' No media scraped.
+            span ng-if='mediaUrlsList.pagination.filtered' No matching media found.
+            span ng-if='!mediaUrlsList.pagination.filtered' No media scraped.
         tr ng-repeat='url in mediaUrlsList.records'
           td
             a href='http://anidb.net'

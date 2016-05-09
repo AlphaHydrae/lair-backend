@@ -8,6 +8,7 @@ class AnalyzeMediaFilesJob < ApplicationJob
   @queue = :low
 
   def self.enqueue scan
+    log_queueing "media scan #{scan.api_id}"
     enqueue_after_transaction self, scan.id
   end
 
@@ -16,12 +17,14 @@ class AnalyzeMediaFilesJob < ApplicationJob
   end
 
   def self.perform id
-    analyze_files MediaScan.includes(:source).find(id)
+    analyze_files MediaScan.includes(source: :user).find(id)
   end
 
   def self.analyze_files scan
     MediaScan.transaction do
       source = scan.source
+
+      media_url_ids_to_check = Set.new
 
       # Handle deleted NFO files.
       MediaFile.where(source_id: source.id, extension: 'nfo', deleted: true, state: %w(deleted)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
@@ -32,10 +35,11 @@ class AnalyzeMediaFilesJob < ApplicationJob
           # If after deleting the NFO file, exactly one other NFO file applies
           # to this directory and it is marked as duplicated, process that NFO file
           # and other files in its directory.
-          process_nfo_file nfo_files.first
+          process_nfo_file nfo_files.first, media_url_ids_to_check
         elsif nfo_files.blank?
           # If after deleting the NFO file, no other NFO file applies to this directory,
           # mark all its files as unlinked.
+          directory_files_rel = media_files_for_directory file.directory
           mark_files directory_files_rel, :mark_as_unlinked
         end
       end
@@ -62,7 +66,7 @@ class AnalyzeMediaFilesJob < ApplicationJob
           next
         end
 
-        process_nfo_file file
+        process_nfo_file file, media_url_ids_to_check
       end
 
       # Handle new media files.
@@ -103,6 +107,10 @@ class AnalyzeMediaFilesJob < ApplicationJob
       scan.error_message = nil
       scan.error_backtrace = nil
       scan.finish_analysis!
+
+      media_urls_to_check = MediaUrl.where(id: media_url_ids_to_check).find_each batch_size: BATCH_SIZE do |media_url|
+        UpdateMediaOwnershipsJob.enqueue media_url, scan.source.user
+      end
     end
   rescue => e
     scan.reload
@@ -132,7 +140,7 @@ class AnalyzeMediaFilesJob < ApplicationJob
     directory_files_rel.to_a + parent_directory_files_rel.to_a
   end
 
-  def self.process_nfo_file nfo_file
+  def self.process_nfo_file nfo_file, media_url_ids_to_check
 
     source = nfo_file.source
     directory_files_rel = media_files_for_directory nfo_file.directory
@@ -154,6 +162,7 @@ class AnalyzeMediaFilesJob < ApplicationJob
       return
     end
 
+    media_url_ids_to_check << media_url.id
     mark_files directory_files_rel, :mark_as_linked, media_url
 
     nfo_file.media_url = media_url

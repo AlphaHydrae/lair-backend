@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160509112649) do
+ActiveRecord::Schema.define(version: 20160509190541) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -219,6 +219,7 @@ ActiveRecord::Schema.define(version: 20160509112649) do
     t.string   "state",            limit: 20
     t.string   "extension",        limit: 20
     t.integer  "media_url_id"
+    t.integer  "ownership_id"
   end
 
   add_index "media_files", ["api_id"], name: "index_media_files_on_api_id", unique: true, using: :btree
@@ -297,17 +298,18 @@ ActiveRecord::Schema.define(version: 20160509112649) do
   add_index "media_urls", ["provider", "provider_id"], name: "index_media_urls_on_provider_and_provider_id", unique: true, using: :btree
 
   create_table "ownerships", force: :cascade do |t|
-    t.string   "api_id",     limit: 12,                null: false
-    t.integer  "item_id",                              null: false
-    t.integer  "user_id",                              null: false
+    t.string   "api_id",       limit: 12,                null: false
+    t.integer  "item_id",                                null: false
+    t.integer  "user_id",                                null: false
     t.json     "properties"
-    t.datetime "gotten_at",                            null: false
-    t.integer  "creator_id",                           null: false
-    t.integer  "updater_id",                           null: false
-    t.datetime "created_at",                           null: false
-    t.datetime "updated_at",                           null: false
-    t.boolean  "owned",                 default: true, null: false
+    t.datetime "gotten_at",                              null: false
+    t.integer  "creator_id",                             null: false
+    t.integer  "updater_id",                             null: false
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.boolean  "owned",                   default: true, null: false
     t.datetime "yielded_at"
+    t.integer  "media_url_id"
   end
 
   create_table "people", force: :cascade do |t|
@@ -463,6 +465,7 @@ ActiveRecord::Schema.define(version: 20160509112649) do
   add_foreign_key "media_files", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_files", "media_sources", column: "source_id", on_delete: :cascade
   add_foreign_key "media_files", "media_urls", on_delete: :nullify
+  add_foreign_key "media_files", "ownerships", on_delete: :nullify
   add_foreign_key "media_scan_files", "media_scans", column: "scan_id", on_delete: :cascade
   add_foreign_key "media_scanners", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_scanners", "users", on_delete: :cascade
@@ -472,6 +475,7 @@ ActiveRecord::Schema.define(version: 20160509112649) do
   add_foreign_key "media_sources", "users", on_delete: :cascade
   add_foreign_key "media_urls", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "ownerships", "items", on_delete: :cascade
+  add_foreign_key "ownerships", "media_urls", on_delete: :nullify
   add_foreign_key "ownerships", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "ownerships", "users", column: "updater_id", on_delete: :restrict
   add_foreign_key "ownerships", "users", on_delete: :restrict

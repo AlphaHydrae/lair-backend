@@ -6,6 +6,11 @@ class ScrapSerializer < ApplicationSerializer
     json.mediaUrlId record.media_url.api_id
     json.mediaUrl serialize(record.media_url, (options[:media_url_options] || {}).merge(options.slice(:event)).merge(include_scrap: false)) if options.fetch(:include_media_url, options[:event])
 
+    if options[:include_contents]
+      json.contentType record.content_type if record.content_type.present?
+      json.contents record.contents if record.contents.present?
+    end
+
     json.scrapingAt record.scraping_at.iso8601(3) if record.scraping_at.present?
     json.scrapingCanceledAt record.scraping_canceled_at.iso8601(3) if record.scraping_canceled_at.present?
     json.scrapingFailedAt record.scraping_failed_at.iso8601(3) if record.scraping_failed_at.present?

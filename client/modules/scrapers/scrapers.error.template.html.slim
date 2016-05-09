@@ -6,8 +6,17 @@
     p ng-if='scrap && !scrap.error.message'
       strong.text-danger No scraping error found.
     div ng-if='scrap.error.message'
+
       p
         strong.text-danger {{ scrap.error.message }}
-      pre ng-if='scrap.error.stackTrace' {{ scrap.error.stackTrace }}
+
+      pre.stack-trace ng-if='scrap.error.stackTrace' {{ scrap.error.stackTrace }}
+
+      .label.label-default.pull-right ng-if='scrap.contentType' {{ scrap.contentType }}
+      p.clearfix
+        pre.contents ng-if='scrap.contents' {{ scrap.contents }}
+
   .modal-footer
-    button.btn.btn-default.pull-right type='button' ng-click='$dismiss()' Close
+    .btn-group.pull-right
+      button.btn.btn-warning type='button' ng-click='retry()' Retry
+      button.btn.btn-default type='button' ng-click='$dismiss()' Close

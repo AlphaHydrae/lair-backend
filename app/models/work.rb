@@ -2,16 +2,17 @@ require 'random'
 
 # TODO: update item effective titles when title is modified
 class Work < ActiveRecord::Base
+  CATEGORIES = %w(anime book magazine manga movie show)
+
   include ResourceWithIdentifier
   include ResourceWithImage
   include ResourceWithProperties
   include TrackedMutableResource
 
-  CATEGORIES = %w(anime book magazine manga movie show)
-
   before_create{ set_identifier size: 6 }
   before_validation(on: :create){ complete_end_year }
   before_destroy :cache_dependent_previous_versions
+  after_commit :update_media_ownerships, on: :create
 
   belongs_to :language
   belongs_to :original_title, class_name: 'WorkTitle'
@@ -51,5 +52,10 @@ class Work < ActiveRecord::Base
 
   def cache_dependent_previous_versions
     items.each &:cache_previous_version
+  end
+
+  def update_media_ownerships
+    return unless media_url.present?
+    UpdateMediaOwnershipsJob.enqueue media_url
   end
 end

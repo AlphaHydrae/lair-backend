@@ -8,5 +8,5 @@ class WorkDescription < ActiveRecord::Base
   strip_attributes
   validates :work, presence: true
   validates :language, presence: true
-  validates :contents, presence: true, length: { maximum: 2500, allow_blank: true }
+  validates :contents, presence: true, length: { maximum: 5000, allow_blank: true }
 end

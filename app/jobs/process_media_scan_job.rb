@@ -8,15 +8,16 @@ class ProcessMediaScanJob < ApplicationJob
   @queue = :high
 
   def self.enqueue scan
+    log_queueing "media scan #{scan.api_id}"
     enqueue_after_transaction self, scan.id
   end
 
-  def self.lock_workers id
-    "media-#{id}"
+  def self.lock_workers scan_id
+    :media
   end
 
-  def self.perform id
-    scan = MediaScan.find id
+  def self.perform scan_id
+    scan = MediaScan.includes(:source).find scan_id
 
     MediaScan.transaction do
 

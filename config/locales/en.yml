@@ -30,3 +30,25 @@ en:
             path:
               scan_path_already_included_in_existing_path: "is already included in an existing scan path of this media source (%{existing_path})"
               scan_path_includes_already_existing_paths: "would include scan paths already defined in this media source (%{existing_path})"
+
+  activerecord:
+    errors:
+      models:
+        media_directory:
+          attributes:
+            depth:
+              invalid_directory_depth: "does not match the depth of the parent directory"
+        media_file:
+          attributes:
+            depth:
+              invalid_directory_depth: "does not match the depth of the parent directory"
+        media_scan:
+          attributes:
+            files_count:
+              invalid_files_count: "does not match the expected number of files after taking additions and deletions into account"
+            state:
+              unprocessed_files: "cannot be set to processed because there are scanned files that have not been processed yet"
+        scrap:
+          attributes:
+            state:
+              invalid_transition: "cannot be changed from %{from_state} to %{to_state}"

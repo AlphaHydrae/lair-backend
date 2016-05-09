@@ -77,7 +77,6 @@ module Lair
     mount OwnershipsApi
     mount ItemsApi
     mount PeopleApi
-    mount ScrapsApi
     mount StatsApi
     mount TokensApi
     mount UsersApi
@@ -86,6 +85,7 @@ module Lair
       mount MediaFilesApi
       mount MediaScannersApi
       mount MediaScansApi
+      mount MediaScrapsApi
       mount MediaSourcesApi
       mount MediaUrlsApi
     end

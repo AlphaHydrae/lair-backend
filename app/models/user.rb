@@ -8,6 +8,8 @@ class User < ActiveRecord::Base
 
   roles :admin
 
+  has_many :media_sources
+
   strip_attributes
   validates :name, presence: true, length: { maximum: 25 }, format: { with: /\A[a-z0-9]+(\-[a-z0-9]+)*\Z/i }, uniqueness: { case_sensitive: false }
   validates :email, presence: true, length: { maximum: 255 }, uniqueness: { case_sensitive: false }
