@@ -1,4 +1,4 @@
-angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(api, works, $log, $modal, $scope) {
+angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(api, $log, $modal, $scope, works) {
 
   $scope.matchingPeople = [];
   $scope.matchingCompanies = [];
@@ -6,9 +6,13 @@ angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(ap
   $scope.fetchPeople = resourceFetcher('people');
   $scope.fetchCompanies = resourceFetcher('companies');
 
-  $scope.$watch('relationship.relation', function(value) {
-    if (value) {
-      $scope.resource = works.relationResource(value);
+  $scope.$watchGroup([ 'relationship.personId', 'relationship.companyId' ], function(values) {
+    if (values[0] !== undefined) {
+      $scope.resource = 'people';
+      loadRelations();
+    } else if (values[1] !== undefined) {
+      $scope.resource = 'companies';
+      loadRelations();
     }
   });
 
@@ -30,6 +34,22 @@ angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(ap
     }
   };
 
+  function loadRelations() {
+
+    var promise;
+    if ($scope.resource == 'people') {
+      promise = works.loadPersonRelations();
+    } else if ($scope.resource == 'companies') {
+      promise = works.loadCompanyRelations();
+    }
+
+    if (promise) {
+      promise.then(function(relations) {
+        $scope.relations = relations;
+      });
+    }
+  }
+
   function createNewResource(resource) {
 
     var singularName = inflection.singularize(resource),
@@ -48,7 +68,9 @@ angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(ap
       $scope[matchingVar].push(resource);
       $scope.relationship[idVar] = resource.id;
     }, function() {
-      delete $scope.relationship[idVar];
+      if ($scope.relationship.personId === -1) {
+        $scope.relationship[idVar] = false;
+      }
     });
   }
 

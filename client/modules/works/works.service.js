@@ -1,41 +1,42 @@
-angular.module('lair.works').factory('works', function() {
+angular.module('lair.works').factory('works', function(api, $q) {
 
-  var commonWrittenWorkRelationTypes = [ 'artist', 'author', 'publishingCompany' ],
-      commonVideoRelationTypes = [ 'composer', 'director', 'producer', 'writer', 'productionCompany' ];
+  var personRelations,
+      companyRelations;
 
   var service = {
     categories: [
-      { name: 'anime', relations: commonVideoRelationTypes.concat([ 'voiceActor' ]).sort() },
-      { name: 'book', relations: commonWrittenWorkRelationTypes.sort() },
-      { name: 'magazine', relations: commonWrittenWorkRelationTypes.sort() },
-      { name: 'manga', relations: commonWrittenWorkRelationTypes.sort() },
-      { name: 'movie', relations: commonVideoRelationTypes.concat([ 'actor' ]).sort() },
-      { name: 'show', relations: commonVideoRelationTypes.concat([ 'actor' ]).sort() }
+      { name: 'anime' },
+      { name: 'book' },
+      { name: 'magazine' },
+      { name: 'manga' },
+      { name: 'movie' },
+      { name: 'show' }
     ],
 
-    relations: [
-      { name: 'actor', resource: 'people' },
-      { name: 'artist', resource: 'people' },
-      { name: 'author', resource: 'people' },
-      { name: 'composer', resource: 'people' },
-      { name: 'director', resource: 'people' },
-      { name: 'producer', resource: 'people' },
-      { name: 'voiceActor', resource: 'people' },
-      { name: 'writer', resource: 'people' },
-      { name: 'productionCompany', resource: 'companies' },
-      { name: 'publishingCompany', resource: 'companies' }
-    ],
+    loadPersonRelations: function() {
+      if (personRelations) {
+        return $q.when(personRelations);
+      }
 
-    relationsForWork: function(work) {
-      return _.filter(service.relations, function(relation) {
-        var category = _.findWhere(service.categories, { name: work.category });
-        return !category || _.includes(category.relations, relation.name);
+      return api.all({
+        url: '/personRelations'
+      }).then(function(relations) {
+        personRelations = relations;
+        return personRelations;
       });
     },
 
-    relationResource: function(name) {
-      var relation = _.findWhere(service.relations, { name: name });
-      return relation ? relation.resource : null;
+    loadCompanyRelations: function() {
+      if (companyRelations) {
+        return $q.when(companyRelations);
+      }
+
+      return api.all({
+        url: '/companyRelations'
+      }).then(function(relations) {
+        companyRelations = relations;
+        return companyRelations;
+      });
     }
   };
 

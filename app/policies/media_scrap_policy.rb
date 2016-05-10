@@ -1,4 +1,4 @@
-class ScrapPolicy < ApplicationPolicy
+class MediaScrapPolicy < ApplicationPolicy
   def show?
     admin?
   end

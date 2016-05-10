@@ -17,15 +17,16 @@ class Work < ActiveRecord::Base
   belongs_to :language
   belongs_to :original_title, class_name: 'WorkTitle'
   belongs_to :media_url
-  belongs_to :scrap
+  belongs_to :media_scrap
   has_many :titles, class_name: 'WorkTitle', dependent: :destroy, autosave: true
   has_many :links, class_name: 'WorkLink', dependent: :destroy, autosave: true
-  has_many :descriptions, class_name: 'WorkDescription', dependent: :destroy
+  has_many :descriptions, class_name: 'WorkDescription', dependent: :destroy, autosave: true
   has_many :person_relationships, class_name: 'WorkPerson', dependent: :destroy, autosave: true
   has_many :company_relationships, class_name: 'WorkCompany', dependent: :destroy, autosave: true
   has_many :items, class_name: 'Item', dependent: :destroy
   has_many :collection_works
   has_many :collections, through: :collection_works
+  has_and_belongs_to_many :genres
 
   strip_attributes
   validates :category, presence: true, inclusion: { in: CATEGORIES, allow_blank: true }
@@ -38,6 +39,10 @@ class Work < ActiveRecord::Base
 
   def default_image_search_query
     "#{titles[0].contents} #{category}"
+  end
+
+  def tree_new_or_changed?
+    ([ self ] + titles + links + descriptions + person_relationships + company_relationships).any?{ |r| r.new_record? || r.changed? }
   end
 
   private
@@ -56,6 +61,6 @@ class Work < ActiveRecord::Base
 
   def update_media_ownerships
     return unless media_url.present?
-    UpdateMediaOwnershipsJob.enqueue media_url
+    UpdateMediaOwnershipsJob.enqueue media_url, event: Rails.application.current_event
   end
 end

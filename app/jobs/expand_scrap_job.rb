@@ -14,10 +14,10 @@ class ExpandScrapJob < ApplicationJob
     :scraping
   end
 
-  def self.perform id, options = {}
-    scrap = Scrap.includes(:media_url).find id
-    Rails.application.with_current_event scrap.scraping_event do
-      perform_expansion scrap if %w(scraped expansion_failed).include? scrap.state.to_s
+  def self.perform id
+    scrap = MediaScrap.includes(:media_url).find id
+    Rails.application.with_current_event scrap.last_scrap_event do
+      perform_expansion scrap if %w(scraped expansion_failed expanded).include? scrap.state.to_s
     end
   end
 

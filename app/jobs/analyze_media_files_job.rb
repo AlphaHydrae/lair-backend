@@ -22,94 +22,98 @@ class AnalyzeMediaFilesJob < ApplicationJob
 
   def self.analyze_files scan
     MediaScan.transaction do
-      source = scan.source
+      event = scan.last_scan_event
+      Rails.application.with_current_event event do
 
-      media_url_ids_to_check = Set.new
+        source = scan.source
 
-      # Handle deleted NFO files.
-      MediaFile.where(source_id: source.id, extension: 'nfo', deleted: true, state: %w(deleted)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
+        media_url_ids_to_check = Set.new
 
-        nfo_files = nfo_files_for_directory file.directory, file
+        # Handle deleted NFO files.
+        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: true, state: %w(deleted)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
 
-        if nfo_files.length == 1 && nfo_files.first.state == 'duplicated'
-          # If after deleting the NFO file, exactly one other NFO file applies
-          # to this directory and it is marked as duplicated, process that NFO file
-          # and other files in its directory.
-          process_nfo_file nfo_files.first, media_url_ids_to_check
-        elsif nfo_files.blank?
-          # If after deleting the NFO file, no other NFO file applies to this directory,
-          # mark all its files as unlinked.
-          directory_files_rel = media_files_for_directory file.directory
-          mark_files directory_files_rel, :mark_as_unlinked
+          nfo_files = nfo_files_for_directory file.directory, file
+
+          if nfo_files.length == 1 && nfo_files.first.state == 'duplicated'
+            # If after deleting the NFO file, exactly one other NFO file applies
+            # to this directory and it is marked as duplicated, process that NFO file
+            # and other files in its directory.
+            process_nfo_file nfo_files.first, media_url_ids_to_check
+          elsif nfo_files.blank?
+            # If after deleting the NFO file, no other NFO file applies to this directory,
+            # mark all its files as unlinked.
+            directory_files_rel = media_files_for_directory file.directory
+            mark_files directory_files_rel, :mark_as_unlinked
+          end
         end
-      end
 
-      # Handle new and modified NFO files.
-      MediaFile.where(source_id: source.id, extension: 'nfo', deleted: false, state: %w(created changed)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
+        # Handle new and modified NFO files.
+        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: false, state: %w(created changed)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
 
-        nfo_files = nfo_files_for_directory file.directory, file
+          nfo_files = nfo_files_for_directory file.directory, file
 
-        if nfo_files.any?
-          if file.state == 'changed'
-            # If the NFO file was modified and other NFO files apply to this directory,
-            # mark the NFO file as duplicated. Do not change the state of other files.
-            file.mark_as_duplicated!
-          else
-            # If the NFO file is new and other NFO files apply to this directory,
-            # mark all these NFO files as duplicated. Do not change the state of other
-            # files.
-            nfo_files.select{ |f| f.state != 'duplicated' }.each do |file|
+          if nfo_files.any?
+            if file.state == 'changed'
+              # If the NFO file was modified and other NFO files apply to this directory,
+              # mark the NFO file as duplicated. Do not change the state of other files.
               file.mark_as_duplicated!
+            else
+              # If the NFO file is new and other NFO files apply to this directory,
+              # mark all these NFO files as duplicated. Do not change the state of other
+              # files.
+              nfo_files.select{ |f| f.state != 'duplicated' }.each do |file|
+                file.mark_as_duplicated!
+              end
+            end
+
+            next
+          end
+
+          process_nfo_file file, media_url_ids_to_check
+        end
+
+        # Handle new media files.
+        MediaFile.where(source_id: source.id, deleted: false, state: 'created').where('media_files.extension != ?', 'nfo').includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
+          linked_nfos_by_directory_path = {}
+
+          files.each do |file|
+
+            nfo_file = linked_nfos_by_directory_path[file.directory.path]
+
+            if nfo_file
+              file.mark_as_linked!
+              next
+            elsif nfo_file == false
+              file.mark_as_unlinked!
+              next
+            end
+
+            nfo_files = nfo_files_for_directory(file.directory)
+
+            if nfo_files.length == 1 && nfo_files.first.state == 'linked'
+              # If exactly one NFO file applies to this directory and it is linked,
+              # link the current file to the same media as the NFO file.
+              file.media_url = nfo_files.first.media_url
+              file.mark_as_linked!
+              linked_nfos_by_directory_path[file.directory.path] = nfo_files.first
+            else
+              # If no NFO file applies to this directory,
+              # mark the new file as unlinked.
+              file.mark_as_unlinked!
+              linked_nfos_by_directory_path[file.directory.path] = false
             end
           end
 
-          next
+          processed_directories = nil
         end
 
-        process_nfo_file file, media_url_ids_to_check
-      end
+        scan.error_message = nil
+        scan.error_backtrace = nil
+        scan.finish_analysis!
 
-      # Handle new media files.
-      MediaFile.where(source_id: source.id, deleted: false, state: 'created').where('media_files.extension != ?', 'nfo').includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
-        linked_nfos_by_directory_path = {}
-
-        files.each do |file|
-
-          nfo_file = linked_nfos_by_directory_path[file.directory.path]
-
-          if nfo_file
-            file.mark_as_linked!
-            next
-          elsif nfo_file == false
-            file.mark_as_unlinked!
-            next
-          end
-
-          nfo_files = nfo_files_for_directory(file.directory)
-
-          if nfo_files.length == 1 && nfo_files.first.state == 'linked'
-            # If exactly one NFO file applies to this directory and it is linked,
-            # link the current file to the same media as the NFO file.
-            file.media_url = nfo_files.first.media_url
-            file.mark_as_linked!
-            linked_nfos_by_directory_path[file.directory.path] = nfo_files.first
-          else
-            # If no NFO file applies to this directory,
-            # mark the new file as unlinked.
-            file.mark_as_unlinked!
-            linked_nfos_by_directory_path[file.directory.path] = false
-          end
+        media_urls_to_check = MediaUrl.where(id: media_url_ids_to_check).find_each batch_size: BATCH_SIZE do |media_url|
+          UpdateMediaOwnershipsJob.enqueue media_url, user: scan.source.user, event: event
         end
-
-        processed_directories = nil
-      end
-
-      scan.error_message = nil
-      scan.error_backtrace = nil
-      scan.finish_analysis!
-
-      media_urls_to_check = MediaUrl.where(id: media_url_ids_to_check).find_each batch_size: BATCH_SIZE do |media_url|
-        UpdateMediaOwnershipsJob.enqueue media_url, scan.source.user
       end
     end
   rescue => e

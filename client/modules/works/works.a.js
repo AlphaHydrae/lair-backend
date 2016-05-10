@@ -1,1 +1,1 @@
-angular.module('lair.works', []);
+angular.module('lair.works', [ 'lair.api' ]);

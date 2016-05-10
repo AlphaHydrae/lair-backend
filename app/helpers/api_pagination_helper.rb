@@ -11,7 +11,7 @@ module ApiPaginationHelper
     header 'X-Pagination-Start', offset.to_s
     header 'X-Pagination-Number', limit.to_s
 
-    total_count = rel.count
+    total_count = @pagination_total_count || rel.count
     header 'X-Pagination-Total', total_count.to_s
 
     filtered_count = 0
@@ -22,12 +22,12 @@ module ApiPaginationHelper
       rel
     end
 
-    filtered_count = if filtered_rel != rel
-      if @pagination_filtered_count
-        @pagination_filtered_count
-      else
-        (@pagination_filtered_count_rel || filtered_rel).count
-      end
+    filtered_count = if @pagination_filtered_count
+      @pagination_filtered_count
+    elsif @pagination_filtered_count_rel
+      @pagination_filtered_count_rel.count
+    elsif filtered_rel != rel
+      filtered_rel.count
     else
       total_count
     end

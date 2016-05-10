@@ -37,5 +37,30 @@ module Lair
         serialize load_resources(rel)
       end
     end
+
+    namespace :companyRelations do
+      get do
+        authorize! Company, :index
+
+        rel = WorkCompany.select('relation').order('relation')
+
+        @pagination_total_count = rel.count 'distinct relation'
+
+        rel = paginated rel do |rel|
+
+          @pagination_filtered_count = rel.count 'distinct relation'
+
+          rel
+        end
+
+        rel = rel.group 'relation'
+
+        rel.to_a.map do |wp|
+          {
+            relation: wp.relation
+          }
+        end
+      end
+    end
   end
 end

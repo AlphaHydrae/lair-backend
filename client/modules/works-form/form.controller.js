@@ -1,17 +1,6 @@
 angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works, $log, $modal, $scope, $state, $stateParams) {
 
-  $scope.relations = works.relations;
-
   $scope.workCategories = works.categories.slice();
-
-  $scope.$watch('modifiedWork.category', function(value) {
-    if (value) {
-      $scope.relations = works.relationsForWork($scope.modifiedWork);
-      $scope.modifiedWork.relationships = _.filter($scope.modifiedWork.relationships, function(relationship) {
-        return !!_.findWhere($scope.relations, { name: relationship.relation });
-      });
-    }
-  });
 
   $scope.selectImage = function() {
     var modal = $modal.open({
@@ -57,8 +46,16 @@ angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works
     $scope.modifiedWork.links.splice($scope.modifiedWork.links.indexOf(link), 1);
   };
 
-  $scope.addRelationship = function(relation) {
-    $scope.modifiedWork.relationships.push({ relation: relation.name });
+  $scope.addRelationship = function(type) {
+
+    var relationship = {};
+    if (type == 'person') {
+      relationship.personId = false;
+    } else if (type == 'company') {
+      relationship.companyId = false;
+    }
+
+    $scope.modifiedWork.relationships.push(relationship);
   };
 
   $scope.removeRelationship = function(relationship) {

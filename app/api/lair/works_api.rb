@@ -166,7 +166,7 @@ module Lair
             relationships_to_add = params[:relationships].select{ |r| r.key? id_type }
 
             work.send(association).each do |relationship|
-              if relationship_data = relationships_to_add.find{ |r| r[:relation].to_s.underscore == relationship.relation && r[id_type] == relationship.send(relation_association).api_id }
+              if relationship_data = relationships_to_add.find{ |r| r[:relation].to_s.downcase == relationship.normalized_relation && r[id_type] == relationship.send(relation_association).api_id }
                 relationships_to_add.delete relationship_data
               else
                 relationship.mark_for_destruction

@@ -11,10 +11,11 @@ class CreateScrapsAndMediaUrls < ActiveRecord::Migration
       t.foreign_key :users, column: :creator_id, on_delete: :restrict
     end
 
-    create_table :scraps do |t|
+    create_table :media_scraps do |t|
       t.string :api_id, null: false, limit: 12
       t.string :provider, null: false, limit: 20
       t.string :state, null: false, limit: 20
+      t.json :data
       t.text :contents
       t.string :content_type, limit: 50
       t.integer :media_url_id, null: false
@@ -39,15 +40,15 @@ class CreateScrapsAndMediaUrls < ActiveRecord::Migration
     add_column :media_files, :media_url_id, :integer
     add_foreign_key :media_files, :media_urls, on_delete: :nullify
 
-    add_column :works, :scrap_id, :integer
+    add_column :works, :media_scrap_id, :integer
     add_column :works, :media_url_id, :integer
     add_index :works, :media_url_id, unique: true
-    add_foreign_key :works, :scraps, on_delete: :nullify
+    add_foreign_key :works, :media_scraps, on_delete: :nullify
     add_foreign_key :works, :media_urls, on_delete: :nullify
 
-    add_column :items, :scrap_id, :integer
+    add_column :items, :media_scrap_id, :integer
     add_column :items, :media_url_id, :integer
-    add_foreign_key :items, :scraps, on_delete: :nullify
+    add_foreign_key :items, :media_scraps, on_delete: :nullify
     add_foreign_key :items, :media_urls, on_delete: :nullify
   end
 end

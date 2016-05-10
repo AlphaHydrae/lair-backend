@@ -1,5 +1,5 @@
 class Event < ActiveRecord::Base
-  EVENT_TYPES = %i(create update delete job)
+  EVENT_TYPES = %i(create update delete scan scrap)
   TRACKED_MODELS = [ Company, Work, Item, Ownership, Person ]
 
   include ResourceWithIdentifier
@@ -19,7 +19,6 @@ class Event < ActiveRecord::Base
   validates :event_subject, presence: { unless: :trackable }, length: { maximum: 50 }
   validates :trackable, presence: { unless: :event_subject }
   validates :previous_version, presence: { if: ->(e){ e.trackable.present? && %w(update delete).include?(e.event_type.to_s) } }
-  validates :user, presence: { if: ->(e){ %w(create update delete).include?(e.event_type.to_s) } }
 
   def subject
     event_subject || trackable_type

@@ -23,7 +23,7 @@ module Lair
       namespace '/:id' do
         helpers do
           def record
-            @record ||= load_resource!(Scrap.where(api_id: params[:id].to_s))
+            @record ||= load_resource!(MediaScrap.where(api_id: params[:id].to_s))
           end
         end
 
@@ -38,7 +38,7 @@ module Lair
             authorize! record, :update
 
 
-            Scrap.transaction do
+            MediaScrap.transaction do
               if %w(scraping_canceled scraping_failed).include? record.state
                 record.retry_scraping!
               elsif %w(expansion_failed).include? record.state

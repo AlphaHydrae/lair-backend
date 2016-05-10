@@ -7,6 +7,10 @@ development:
     search_engine_id: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID'] %>
     rate_limit_value: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_VALUE'].to_i %>
     rate_limit_duration: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_DURATION'].to_i %>
+  anidb:
+    enabled: <%= ENV['LAIR_ANIDB_SCRAPER_ENABLED'].to_s.match(/^true$/i) %>
+    client_id: <%= ENV['LAIR_ANIDB_CLIENT_ID'] %>
+    client_version: <%= ENV['LAIR_ANIDB_CLIENT_VERSION'].to_i %>
   scraping:
     interval: <%= ENV['LAIR_SCRAPING_INTERVAL'].to_i %>
   imageUpload:
@@ -20,6 +24,10 @@ test:
     search_engine_id: foo
     rate_limit_value: 100
     rate_limit_duration: 86400 # 1 day (in seconds)
+  anidb:
+    enabled: false
+    client_id: foo
+    client_version: 0
   scraping:
     interval: 5
   imageUpload:
@@ -33,6 +41,10 @@ production:
     search_engine_id: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID'] %>
     rate_limit_value: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_VALUE'].to_i %>
     rate_limit_duration: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_DURATION'].to_i %>
+  anidb:
+    enabled: <%= ENV['LAIR_ANIDB_SCRAPER_ENABLED'].to_s.match(/^true$/i) %>
+    client_id: <%= ENV['LAIR_ANIDB_CLIENT_ID'] %>
+    client_version: <%= ENV['LAIR_ANIDB_CLIENT_VERSION'].to_i %>
   scraping:
     interval: <%= ENV['LAIR_SCRAPING_INTERVAL'].to_i %>
   imageUpload:

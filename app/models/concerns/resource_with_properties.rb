@@ -35,11 +35,9 @@ module ResourceWithProperties
     self.properties
   end
 
-  private
-
   def clean_properties
     self.properties.delete_if{ |k,v| v.nil? }
-    write_attribute :properties, nil if self.properties.blank?
+    write_attribute :properties, nil if read_attribute(:properties).blank?
     true
   end
 end

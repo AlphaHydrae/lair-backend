@@ -1,24 +1,26 @@
-class Scrap < ActiveRecord::Base
+class MediaScrap < ActiveRecord::Base
   CONTENT_TYPES = %i(application/json application/xml)
 
   include SimpleStates
   include ResourceWithIdentifier
-
-  attr_accessor :job_to_queue
+  include ResourceWithJobs
 
   before_create :set_identifier
+  before_save :clean_warnings
+  before_save :clean_data
   after_commit :queue_scrap_job, on: :create
-  after_commit :auto_queue_job, on: :update
+
+  auto_queueable_jobs :scrap, :expansion
 
   states :created, :scraping, :scraping_canceled, :scraping_failed, :scraped, :expanding, :expansion_failed, :expanded
   event :start_scraping, to: :scraping
   event :cancel_scraping, to: :canceled
   event :fail_scraping, to: :scraping_failed
   event :retry_scraping, to: :created, after: :set_scrap_job_required
-  event :finish_scraping, to: :scraped, after: :set_expand_job_required
+  event :finish_scraping, to: :scraped, after: :set_expansion_job_required
   event :start_expansion, to: :expanding
   event :fail_expansion, to: :expansion_failed
-  event :retry_expansion, to: :scraped, after: :set_expand_job_required
+  event :retry_expansion, to: :scraped, after: :set_expansion_job_required
   event :finish_expansion, to: :expanded
 
   scope :without_contents, ->{ select column_names - %w(contents) }
@@ -33,35 +35,44 @@ class Scrap < ActiveRecord::Base
   validates :content_type, presence: { if: :contents }, absence: { unless: :contents }, inclusion: { in: CONTENT_TYPES.collect(&:to_s), allow_blank: true }
   validates :media_url, presence: true, uniqueness: true
 
-  def scraping_event
-    events.where(event_type: 'job').first
+  def data
+    if p = read_attribute(:data)
+      p
+    else
+      write_attribute :data, {}
+      read_attribute :data
+    end
+  end
+
+  def warnings
+    data['warnings'] ||= []
+  end
+
+  def last_scrap_event
+    ::Event.where(trackable: self).order('created_at DESC').first.tap do |event|
+      raise "No scrap event saved for scrap #{api_id}" unless event
+    end
+  end
+
+  def create_scrap_event
+    ::Event.new(event_type: 'scrap', user: creator, trackable: self, trackable_api_id: api_id).tap &:save!
   end
 
   private
 
-  def set_scrap_job_required
-    self.job_to_queue = :scrap
-  end
-
-  def set_expand_job_required
-    self.job_to_queue = :expand
-  end
-
-  def auto_queue_job
-    if job_to_queue == :scrap
-      queue_scrap_job
-    elsif job_to_queue == :expand
-      queue_expansion_job
-    end
-
-    self.job_to_queue = nil
-  end
-
   def queue_scrap_job
-    ScrapJob.enqueue self
+    ScrapMediaJob.enqueue self
   end
 
   def queue_expansion_job
     ExpandScrapJob.enqueue self
+  end
+
+  def clean_warnings
+    data.delete 'warnings' if data['warnings'].blank?
+  end
+
+  def clean_data
+    write_attribute :data, nil if read_attribute(:data).blank?
   end
 end

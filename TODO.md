@@ -4,7 +4,6 @@
 * test authorization for collections and ownerships
 * remove image from s3 when deleted
 * fix save and add part
-* remove uniqueness constraints for work relationships (person can have multiple relations)
 
 # Medium Priority
 

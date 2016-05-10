@@ -2,15 +2,18 @@ class MediaScan < ActiveRecord::Base
   include SimpleStates
   include ResourceWithIdentifier
   include ResourceWithProperties
+  include ResourceWithJobs
 
   before_create :set_identifier
+
+  auto_queueable_jobs :process, :analyze
 
   self.initial_state = :started
   states :started, :canceled, :scanned, :failed, :processed, :analysis_failed, :analyzed
   event :cancel_scan, to: :canceled
-  event :close_scan, to: :scanned, after: :process_scan
+  event :close_scan, to: :scanned, after: %i(create_scan_event set_process_job_required)
   event :fail_scan, to: :failed
-  event :finish_scan, to: :processed
+  event :finish_scan, to: :processed, after: :set_analyze_job_required
   event :fail_analysis, to: :analysis_failed
   event :finish_analysis, to: :analyzed
 
@@ -25,10 +28,24 @@ class MediaScan < ActiveRecord::Base
   validate :files_count_should_be_correct
   validate :scanned_files_should_be_processed
 
+  def last_scan_event
+    ::Event.where(trackable: self).order('created_at DESC').first.tap do |event|
+      raise "No scan event saved for media scan #{api_id}" unless event
+    end
+  end
+
   private
 
-  def process_scan
+  def queue_process_job
     ProcessMediaScanJob.enqueue self
+  end
+
+  def queue_analyze_job
+    AnalyzeMediaFilesJob.enqueue self
+  end
+
+  def create_scan_event
+    ::Event.new(event_type: 'scan', user: source.user, trackable: self, trackable_api_id: api_id).tap &:save!
   end
 
   def files_count_should_be_correct

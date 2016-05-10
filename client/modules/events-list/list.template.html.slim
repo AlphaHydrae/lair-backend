@@ -14,9 +14,9 @@
           td {{ event.createdAt | amDateFormat: 'lll' }}
           td
             strong
-              span.text-info ng-if='event.type == "job" && event.resource == "scraps"' Scraping job
-              span ng-if='event.type == "job" && event.resource != "scraps"' Background job ({{ event.resource }})
-              span ng-if='event.type != "job"' ng-class='{"text-success": event.type == "create", "text-warning": event.type == "update", "text-danger": event.type == "delete"}'
+              span.text-info ng-if='event.type == "scan"' Files scan
+              span.text-info ng-if='event.type == "scrap"' Media scraping
+              span ng-if='event.type == "create" || event.type == "update" || event.type == "delete"' ng-class='{"text-success": event.type == "create", "text-warning": event.type == "update", "text-danger": event.type == "delete"}'
                 span> {{ event.resource | singularize | humanize }}
                 span ng-if='event.type == "create"' creation
                 span ng-if='event.type == "update"' update

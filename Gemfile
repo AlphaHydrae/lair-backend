@@ -38,6 +38,9 @@ gem 'redcarpet'
 gem 'iso'
 gem 'library_stdnums'
 
+# Data
+gem 'ox'
+
 # API & Services
 gem 'jwt'
 gem 'grape'

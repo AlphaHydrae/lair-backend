@@ -4,7 +4,8 @@ module Lair
       helpers do
         def serialization_options *args
           {
-            include_scrap: include_in_response?(:scrap)
+            include_scrap: include_in_response?(:scrap),
+            include_work: include_in_response?(:work)
           }
         end
 
@@ -25,7 +26,7 @@ module Lair
 
           if params[:scrapStates].present?
             states = Array.wrap(params[:scrapStates]).collect(&:to_s).collect &:underscore
-            rel = rel.where 'scraps.state IN (?)', states
+            rel = rel.where 'media_scraps.state IN (?)', states
           end
 
           rel

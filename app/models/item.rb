@@ -14,7 +14,7 @@ class Item < ActiveRecord::Base
   belongs_to :language
   belongs_to :custom_title_language, class_name: 'Language'
   belongs_to :media_url
-  belongs_to :scrap
+  belongs_to :media_scrap
   has_many :ownerships, dependent: :destroy
   has_many :collection_items
   has_many :collections, through: :collection_items
@@ -64,6 +64,10 @@ class Item < ActiveRecord::Base
     else
       [ title.contents, range ].compact.join ' '
     end
+  end
+
+  def tree_new_or_changed?
+    ([ self ]).any?{ |r| r.new_record? || r.changed? }
   end
 
   private

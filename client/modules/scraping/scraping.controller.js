@@ -7,7 +7,7 @@ angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $locati
   tables.create($scope, 'mediaUrlsList', {
     url: '/media/urls',
     params: {
-      include: 'scrap'
+      include: [ 'scrap', 'work' ]
     }
   });
 

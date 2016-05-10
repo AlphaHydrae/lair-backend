@@ -1,6 +1,6 @@
 class MediaUrlPolicy < ApplicationPolicy
   def index?
-    true
+    authenticated?
   end
 
   class Scope < Scope

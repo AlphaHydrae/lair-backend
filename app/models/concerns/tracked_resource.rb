@@ -3,6 +3,7 @@ module TrackedResource
 
   included do
     attr_writer :deleter
+    attr_accessor :creator_optional
 
     after_create :track_create
     after_destroy :track_destroy
@@ -10,7 +11,7 @@ module TrackedResource
     belongs_to :creator, class_name: 'User'
     has_many :events, as: :trackable
 
-    validates :creator, presence: true
+    validates :creator, presence: { unless: :creator_optional }
   end
 
   def cache_previous_version

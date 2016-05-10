@@ -35,12 +35,13 @@
         tr
           th.provider Provider
           th.url Media
+          th.work Work
           th.status Status
       tbody
         tr.loading ng-if='!mediaUrlsList.initialized'
-          td colspan=3 Loading...
+          td colspan=4 Loading...
         tr.empty ng-if='mediaUrlsList.initialized && !mediaUrlsList.records.length'
-          td colspan=3
+          td colspan=4
             span ng-if='mediaUrlsList.pagination.filtered' No matching media found.
             span ng-if='!mediaUrlsList.pagination.filtered' No media scraped.
         tr ng-repeat='url in mediaUrlsList.records'
@@ -51,6 +52,11 @@
               .label.label-default ng-if='url.provider == "imdb"' IMDB
           td
             a href='{{ url.url }}' {{ url.url }}
+          td
+            span ng-if='!url.work'
+              | -
+            span ng-if='url.work'
+              | {{ url.work.titles[0].text }}
           td
             a href='#' ng-click='showSupportedScrapers()'
               .label.label-default ng-if='!url.scrap' Scraping not yet supported
@@ -72,4 +78,4 @@
             .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
       tfoot
         tr
-          td.text-center st-pagination=true st-items-by-page=15 st-template='/templates/modules/tables/tables.pagination.template.html' colspan=3
+          td.text-center st-pagination=true st-items-by-page=15 st-template='/templates/modules/tables/tables.pagination.template.html' colspan=4

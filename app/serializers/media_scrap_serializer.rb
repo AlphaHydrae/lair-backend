@@ -1,4 +1,4 @@
-class ScrapSerializer < ApplicationSerializer
+class MediaScrapSerializer < ApplicationSerializer
   def build json, options = {}
     json.id record.api_id
     json.state record.state.to_s.camelize(:lower)

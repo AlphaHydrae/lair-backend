@@ -1,6 +1,7 @@
 class Person < ActiveRecord::Base
   include ResourceWithIdentifier
   include TrackedMutableResource
+
   before_create :set_identifier
 
   strip_attributes

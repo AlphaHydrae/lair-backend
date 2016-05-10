@@ -1,6 +1,6 @@
 angular.module('lair.events.list').controller('EventsListCtrl', function(api, $log, moment, $q, $scope) {
 
-  var resourceEventTypes = [ 'create', 'update', 'delete', 'job' ];
+  var resourceEventTypes = [ 'create', 'update', 'delete', 'scan', 'scrap' ];
 
   $scope.eventFilters = {
     resource: ''
@@ -20,6 +20,10 @@ angular.module('lair.events.list').controller('EventsListCtrl', function(api, $l
       var version = ownership.eventVersion;
       if (ownership.type == 'delete') {
         version = ownership.previousVersion;
+      }
+
+      if (!version) {
+        return [];
       }
 
       return api({
@@ -42,7 +46,13 @@ angular.module('lair.events.list').controller('EventsListCtrl', function(api, $l
 
       if (!version) {
         return '-';
-      } else if (event.resource == 'scraps') {
+      } else if (event.type == 'scan') {
+        if (version.changedFilesCount) {
+          return version.changedFilesCount + ' ' + inflection.inflect('file', version.changedFilesCount) + ' scanned';
+        } else {
+          return '-';
+        }
+      } else if (event.type == 'scrap') {
         if (version.mediaUrl) {
 
           var description = 'Scraping ' + version.mediaUrl.url;

@@ -1,40 +1,28 @@
 class ImdbScraper < ApplicationScraper
 
-  def self.scraps? media_url
-    media_url.provider.to_s == 'imdb'
-  end
-
   def self.provider
     :imdb
   end
 
   def self.scrap scrap
-    parsed_contents = fetch_data scrap.media_url
-    scrap.contents = JSON.dump parsed_contents
+    contents = fetch_data scrap.media_url
+    scrap.contents = contents
     scrap.content_type = 'application/json'
   end
 
   def self.expand scrap
+
+    scrap.warnings.clear
     media_url = scrap.media_url
 
     data = JSON.parse scrap.contents
     data_type = data['Type'].to_s.downcase
 
-    raise "Unsupported OMDB data type #{data_type.inspect}: #{scrap.contents}" if data_type != 'movie'
-
-    work = find_existing_work media_url
-
-    if work.present?
-      work.cache_previous_version
-      work.updater = scrap.creator
-    else
-      work = Work.new
-      work.media_url = media_url
-      work.creator = scrap.creator
+    if data_type != 'movie'
+      raise "Unsupported OMDB data type #{data_type.inspect}: #{scrap.contents}"
     end
 
-    work.scrap = scrap
-    work.category = media_url.category
+    work = find_or_build_work scrap
 
     title = data['Title'].to_s.strip
     if title.blank?
@@ -55,20 +43,19 @@ class ImdbScraper < ApplicationScraper
     work.start_year = year.to_i
     work.end_year = year.to_i
 
-    # TODO: parse director, writer, actors
-
     description = data['Plot'].to_s.strip
-    if description.present?
-      work.descriptions << WorkDescription.new(work: work, contents: description.truncate(5000), language: data_language)
-    end
+    add_work_description scrap: scrap, work: work, description: description, language: data_language
 
     work.language = data_language
-    language = data['Language'].to_s.strip
-    if language.present?
-      language = Language.full_list.find{ |l| l.name == language }
+    language_string = data['Language'].to_s.strip
+    if language_string.present?
+
+      language = Language.full_list.find{ |l| l.name == language_string }
       if language.present?
         language.save! if language.new_record?
         work.language = language
+      else
+        scrap.warnings << %/Could not resolve language from "Language" property "#{language_string}"/
       end
     end
 
@@ -82,8 +69,16 @@ class ImdbScraper < ApplicationScraper
     rating = data['Rated'].to_s.strip
     work.properties['rating'] = rating if rating.present?
 
-    genres = data['Genre'].to_s.strip.split(', ').collect(&:downcase)
-    work.properties['genres'] = genres if genres.present?
+    genres_string = data['Genre'].to_s.strip
+    if genres_string.present?
+      if match = genres_string.match(/^[^,]+(?:, [^,]+)*$/i)
+        work.genres = genres_string.split(', ').collect(&:capitalize).map do |name|
+          Genre.where(normalized_name: name.downcase).first || Genre.new(name: name).tap(&:save!)
+        end
+      else
+        scrap.warnings << %/The "Genre" property is not in the expected comma-delimited format: "#{genres_string}"/
+      end
+    end
 
     countries = data['Country'].to_s.strip.split(', ')
     work.properties['countries'] = countries if countries.present?
@@ -100,8 +95,15 @@ class ImdbScraper < ApplicationScraper
     imdb_votes = data['imdbVotes'].to_s.strip.gsub(/,/, '')
     work.properties['imdbVotes'] = imdb_votes if imdb_votes.present?
 
-    work.save!
-    work.update_columns original_title_id: work.titles.where(display_position: 0).first.id
+    parse_people scrap: scrap, work: work, property: 'Director', string: data['Director'], relation: 'director'
+    parse_people scrap: scrap, work: work, property: 'Writer', string: data['Writer'], relation: 'writer'
+    parse_people scrap: scrap, work: work, property: 'Actors', string: data['Actors'], relation: 'actor'
+
+    work.clean_properties
+    if work.tree_new_or_changed?
+      work.save!
+      work.update_columns original_title_id: work.titles.where(display_position: 0).first.id
+    end
 
     item = find_existing_item work, media_url
 
@@ -132,7 +134,10 @@ class ImdbScraper < ApplicationScraper
       item.length ||= match[1].to_i
     end
 
-    item.save!
+    item.clean_properties
+    if item.tree_new_or_changed?
+      item.save!
+    end
   end
 
   private
@@ -140,13 +145,15 @@ class ImdbScraper < ApplicationScraper
   OMDB_URL = 'http://www.omdbapi.com'
 
   def self.fetch_data media_url
+
     res = HTTParty.get(OMDB_URL, query: {
       'i' => media_url.provider_id,
       'plot' => 'full',
       'r' => 'json'
     })
 
-    result = JSON.parse res.body
+    json = res.body
+    result = JSON.parse json
 
     response_successful = result.key?('Response') && result['Response'].to_s.match(/^true$/i)
     if !response_successful
@@ -158,6 +165,51 @@ class ImdbScraper < ApplicationScraper
       raise "Received unexpected OMDB response with IMDB ID mismatch: #{res.body}"
     end
 
-    result
+    json
+  end
+
+  def self.parse_people scrap:, work:, property:, string:, relation:
+
+    string = string.to_s.strip
+    return if string.blank?
+
+    person_regexp = /^([a-z]+ [a-z]+)(?: \(([^\(\)]+)\))?/i
+
+    person_strings = string.split /, /
+    unless person_strings.all?{ |p| p.match person_regexp }
+      scrap.warnings << %/Format of "#{property}" property is not supported: #{string}/
+      return
+    end
+
+    relationships = work.person_relationships.where(relation: relation).includes(:person).to_a
+
+    relationships_data = person_strings.inject({}) do |memo,person_string|
+      match = person_string.match person_regexp
+      full_name = match[1]
+      details = match[2]
+
+      memo[full_name] = [ memo[full_name], details ].compact.flatten
+      memo
+    end
+
+    relationships_data.each do |full_name,details|
+
+      first_name, last_name = full_name.split(/ /)
+      details = details.join ', '
+
+      person = Person.where(first_names: first_name, last_name: last_name).first
+      if person.blank?
+        person = Person.new first_names: first_name, last_name: last_name
+        person.creator_optional = true
+        person.save!
+      end
+
+      if existing_relationship = relationships.find{ |r| r.person == person && r.relation == relation }
+        existing_relationship.details = details
+      else
+        relationship = WorkPerson.new work: work, person: person, relation: relation, details: details
+        work.person_relationships << relationship
+      end
+    end
   end
 end

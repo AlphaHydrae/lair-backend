@@ -51,14 +51,16 @@ form#workForm role='form' novalidate=true ng-controller='WorkFormCtrl' name='wor
           help-icon help-title='Work number of items' help-message="Only set this number when the work is completed and you know the final number of episodes/issues/volumes. This will be used to track how many items are missing when they have not yet all been registered."
         input#workNumberOfItems.form-control type='text' size=5 placeholder='Final number (see help)' ng-model='modifiedWork.numberOfItems'
   .row
-    .col-xs-12
+    .col-xs-12.relationships
       .form-group
         .pull-right dropdown=true
           button.btn.btn-default.btn-xs type='button' dropdown-toggle=true tooltip='Add a relationship to a person or company' tooltip-append-to-body='true'
             span.glyphicon.glyphicon-plus
           ul.dropdown-menu role='menu'
-            li role='menuitem' ng-repeat='relation in relations'
-              a href='#' ng-click='addRelationship(relation)' {{ relation.name | underscore | humanize }}
+            li role='menuitem'
+              a href='#' ng-click='addRelationship("person")' Person
+            li role='menuitem'
+              a href='#' ng-click='addRelationship("company")' Company
         label
           | Relationships 
           help-icon help-title='Work relationships' help-message='Link the work with people (e.g. book authors, movie actors) or companies (e.g. book publishers, movie production companies).'

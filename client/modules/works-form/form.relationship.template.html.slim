@@ -1,28 +1,35 @@
 ng-form name='relationshipForm'
-  .col-xs-12.col-sm-4.col-md-3
-    .form-control
-      label {{ relationship.relation | underscore | humanize }}
-  .col-xs-12.col-sm-7.col-md-8 ng-class='{"has-error": relationshipForm.personId.$invalid || relationshipForm.companyId.$invalid}'
-    ui-select ng-if='resource == "people"' ng-model='relationship.personId' name='personId' required=true
-      ui-select-match placeholder='Find someone...'
-        div ng-if='$select.selected.id !== -1'
-          person-name person='$select.selected'
-        div ng-if='$select.selected.id === -1'
-          em Creating a new person...
-      ui-select-choices repeat='person.id as person in matchingPeople' refresh='fetchPeople($select.search)' refresh-delay='350'
-        div ng-if='person.id !== -1'
-          person-name person='person'
-        div ng-if='person.id === -1'
-          em Add a new person
-    ui-select ng-if='resource == "companies"' ng-model='relationship.companyId' name='companyId' required=true
-      ui-select-match placeholder='Find a company...'
-        div ng-if='$select.selected.id !== -1' {{ $select.selected.name }}
-        div ng-if='$select.selected.id === -1'
-          em Creating a new company...
-      ui-select-choices repeat='company.id as company in matchingCompanies' refresh='fetchCompanies($select.search)' refresh-delay='350'
-        div ng-if='company.id !== -1' {{ company.name }}
-        div ng-if='company.id === -1'
-          em Add a new company
-  .col-xs-12.col-sm-1
-    button.btn.btn-default.btn-block type='button' ng-click='remove()'
-      span.glyphicon.glyphicon-remove
+  .relationship
+    .col-xs-12.col-sm-4.col-md-3
+      .form-group ng-class='{"has-error": relationshipForm.relation.$invalid}'
+        label.sr-only Relationship
+        input.form-control type='text' name='relation' ng-model='relationship.relation' required=true maxlength=50 typeahead='relation.relation for relation in relations | filter: $viewValue'
+    .col-xs-12.col-sm-7.col-md-8 ng-class='{"has-error": relationshipForm.personId.$invalid || relationshipForm.companyId.$invalid}'
+      ui-select ng-if='relationship.personId !== undefined' ng-model='relationship.personId' name='personId' required=true
+        ui-select-match placeholder='Find someone...'
+          div ng-if='$select.selected.id === false'
+            em Find someone...
+          div ng-if='$select.selected.id && $select.selected.id !== -1'
+            person-name person='$select.selected'
+          div ng-if='$select.selected.id === -1'
+            em Creating a new person...
+        ui-select-choices repeat='person.id as person in matchingPeople' refresh='fetchPeople($select.search)' refresh-delay='350'
+          div ng-if='person.id !== -1'
+            person-name person='person'
+          div ng-if='person.id === -1'
+            em Add a new person
+      ui-select ng-if='relationship.companyId !== undefined' ng-model='relationship.companyId' name='companyId' required=true
+        ui-select-match placeholder='Find a company...'
+          div ng-if='$select.selected.id === false'
+            em Find a company...
+          div ng-if='$select.selected.id && $select.selected.id !== -1'
+            | {{ $select.selected.name }}
+          div ng-if='$select.selected.id === -1'
+            em Creating a new company...
+        ui-select-choices repeat='company.id as company in matchingCompanies' refresh='fetchCompanies($select.search)' refresh-delay='350'
+          div ng-if='company.id !== -1' {{ company.name }}
+          div ng-if='company.id === -1'
+            em Add a new company
+    .col-xs-12.col-sm-1
+      button.btn.btn-default.btn-block type='button' ng-click='remove()'
+        span.glyphicon.glyphicon-remove
