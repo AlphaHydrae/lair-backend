@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160510133731) do
+ActiveRecord::Schema.define(version: 20160511172815) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -360,6 +360,19 @@ ActiveRecord::Schema.define(version: 20160510133731) do
     t.datetime "updated_at",              null: false
   end
 
+  create_table "tags", force: :cascade do |t|
+    t.string   "name",            null: false
+    t.string   "normalized_name", null: false
+    t.datetime "created_at",      null: false
+  end
+
+  create_table "tags_works", id: false, force: :cascade do |t|
+    t.integer "tag_id",  null: false
+    t.integer "work_id", null: false
+  end
+
+  add_index "tags_works", ["tag_id", "work_id"], name: "index_tags_works_on_tag_id_and_work_id", unique: true, using: :btree
+
   create_table "users", force: :cascade do |t|
     t.string   "api_id",          limit: 12,                  null: false
     t.string   "email",           limit: 255,                 null: false
@@ -501,6 +514,8 @@ ActiveRecord::Schema.define(version: 20160510133731) do
   add_foreign_key "ownerships", "users", on_delete: :restrict
   add_foreign_key "people", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "people", "users", column: "updater_id", on_delete: :restrict
+  add_foreign_key "tags_works", "tags", on_delete: :cascade
+  add_foreign_key "tags_works", "works", on_delete: :cascade
   add_foreign_key "work_companies", "companies", on_delete: :cascade
   add_foreign_key "work_companies", "works", on_delete: :cascade
   add_foreign_key "work_descriptions", "languages", on_delete: :restrict

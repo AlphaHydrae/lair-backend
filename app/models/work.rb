@@ -27,6 +27,7 @@ class Work < ActiveRecord::Base
   has_many :collection_works
   has_many :collections, through: :collection_works
   has_and_belongs_to_many :genres
+  has_and_belongs_to_many :tags
 
   strip_attributes
   validates :category, presence: true, inclusion: { in: CATEGORIES, allow_blank: true }

@@ -72,9 +72,7 @@ class ImdbScraper < ApplicationScraper
     genres_string = data['Genre'].to_s.strip
     if genres_string.present?
       if match = genres_string.match(/^[^,]+(?:, [^,]+)*$/i)
-        work.genres = genres_string.split(', ').collect(&:capitalize).map do |name|
-          Genre.where(normalized_name: name.downcase).first || Genre.new(name: name).tap(&:save!)
-        end
+        add_work_genres genres_string.split(', ').collect(&:capitalize)
       else
         scrap.warnings << %/The "Genre" property is not in the expected comma-delimited format: "#{genres_string}"/
       end
@@ -95,15 +93,11 @@ class ImdbScraper < ApplicationScraper
     imdb_votes = data['imdbVotes'].to_s.strip.gsub(/,/, '')
     work.properties['imdbVotes'] = imdb_votes if imdb_votes.present?
 
-    parse_people scrap: scrap, work: work, property: 'Director', string: data['Director'], relation: 'director'
-    parse_people scrap: scrap, work: work, property: 'Writer', string: data['Writer'], relation: 'writer'
-    parse_people scrap: scrap, work: work, property: 'Actors', string: data['Actors'], relation: 'actor'
+    add_people scrap: scrap, work: work, property: 'Director', string: data['Director'], relation: 'Director'
+    add_people scrap: scrap, work: work, property: 'Writer', string: data['Writer'], relation: 'Writer'
+    add_people scrap: scrap, work: work, property: 'Actors', string: data['Actors'], relation: 'Actor'
 
-    work.clean_properties
-    if work.tree_new_or_changed?
-      work.save!
-      work.update_columns original_title_id: work.titles.where(display_position: 0).first.id
-    end
+    save_work! work
 
     item = find_existing_item work, media_url
 
@@ -168,7 +162,7 @@ class ImdbScraper < ApplicationScraper
     json
   end
 
-  def self.parse_people scrap:, work:, property:, string:, relation:
+  def self.add_people scrap:, work:, property:, string:, relation:
 
     string = string.to_s.strip
     return if string.blank?
@@ -181,9 +175,7 @@ class ImdbScraper < ApplicationScraper
       return
     end
 
-    relationships = work.person_relationships.where(relation: relation).includes(:person).to_a
-
-    relationships_data = person_strings.inject({}) do |memo,person_string|
+    details_by_name = person_strings.inject({}) do |memo,person_string|
       match = person_string.match person_regexp
       full_name = match[1]
       details = match[2]
@@ -192,24 +184,16 @@ class ImdbScraper < ApplicationScraper
       memo
     end
 
-    relationships_data.each do |full_name,details|
+    relationships_data = details_by_name.inject([]) do |memo,(full_name,details)|
+      name_parts = full_name.split(/ /)
 
-      first_name, last_name = full_name.split(/ /)
-      details = details.join ', '
-
-      person = Person.where(first_names: first_name, last_name: last_name).first
-      if person.blank?
-        person = Person.new first_names: first_name, last_name: last_name
-        person.creator_optional = true
-        person.save!
-      end
-
-      if existing_relationship = relationships.find{ |r| r.person == person && r.relation == relation }
-        existing_relationship.details = details
-      else
-        relationship = WorkPerson.new work: work, person: person, relation: relation, details: details
-        work.person_relationships << relationship
-      end
+      {
+        first_names: name_parts[0],
+        last_name: name_parts[1],
+        relation: relation
+      }
     end
+
+    add_work_relationships relationships_data
   end
 end

@@ -11,7 +11,7 @@ class AnidbScraper < ApplicationScraper
   def self.scrap scrap
     contents = fetch_data scrap.media_url
     scrap.contents = contents
-    scrap.wnt_type = 'application/xml'
+    scrap.content_type = 'application/xml'
   end
 
   def self.expand scrap
@@ -36,7 +36,11 @@ class AnidbScraper < ApplicationScraper
     end
 
     work = find_or_build_work scrap
-    data_language = Language.find_or_create_by!(tag: 'en')
+
+    data_language = Language.find_or_create_by! tag: 'en'
+    anidb_default_language = Language.find_or_create_by! tag: 'ja'
+
+    work.language = anidb_default_language
 
     start_date = parse_date element_text(locate_one(root, 'startdate'))
     work.start_year = start_date.try(:year)
@@ -47,7 +51,7 @@ class AnidbScraper < ApplicationScraper
     work.number_of_items = element_text(locate_one(root, 'episodecount')).try(:to_i)
 
     title_elements = locate root, 'titles/title', min: 1
-    set_titles work, title_elements
+    add_titles work: work, title_elements: title_elements
 
     description = parse_anidb_text element_text(locate_one(root, 'description'))
     add_work_description scrap: scrap, work: work, description: description, language: data_language
@@ -75,8 +79,16 @@ class AnidbScraper < ApplicationScraper
       work.properties['anidbReviewVotesCount'] = review_rating_element['count']
     end
 
-    # TODO: parse <creators> into relatinoships
-    # TODO: parse tags
+    link_url = element_text locate_one(root, 'url')
+    add_work_link scrap: scrap, work: work, link_url: link_url
+
+    creator_name_elements = locate(root, 'creators/name')
+    add_people scrap: scrap, work: work, name_elements: creator_name_elements
+
+    add_tags scrap: scrap, work: work, tag_elements: locate(root, 'tags/tag')
+
+    save_work! work
+
     # TODO: parse episodes
 
     raise "Not yet supported"
@@ -114,7 +126,8 @@ class AnidbScraper < ApplicationScraper
     xml
   end
 
-  def self.set_titles work, title_elements
+  def self.add_titles work:, title_elements:
+    return if title_elements.blank?
 
     title_data = title_elements.inject([]) do |memo,title_element|
 
@@ -148,6 +161,76 @@ class AnidbScraper < ApplicationScraper
         work.titles.build contents: title[:text], language: title[:language], display_position: n + i
       end
     end
+  end
+
+  def self.add_people scrap:, work:, name_elements:
+    return if name_elements.blank?
+
+    data_by_name = name_elements.inject({}) do |memo,name_element|
+
+      relation = name_element['type'].strip.humanize
+      full_name = element_text name_element
+
+      if relation.blank?
+        scrap.warnings << "Did not include creator because no type was found: #{Ox.dump(name_element)}"
+        next memo
+      end
+
+      first_names = nil
+      last_name = nil
+      pseudonym = nil
+
+      if match = full_name.match(/^\w+$/)
+        pseudonym = full_name
+      elsif match = full_name.match(/^(\w+) (\w+)$/i)
+        first_names = match[1]
+        last_name = match[0]
+      else
+        scrap.warnings << "Did not include creator because name does not have the expected format: #{Ox.dump(name_element)}"
+        next memo
+      end
+
+      memo[full_name] ||= {
+        first_names: first_names,
+        last_name: last_name,
+        pseudonym: pseudonym,
+        relations: []
+      }
+
+      memo[full_name][:relations] << relation
+
+      memo
+    end
+
+    relationships_data = data_by_name.inject([]) do |memo,(full_name,data)|
+      data[:relations].uniq.each do |relation|
+        memo << data.slice(:first_names, :last_name, :pseudonym).merge(relation: relation)
+      end
+
+      memo
+    end
+
+    add_work_relationships scrap: scrap, work: work, relationships_data: relationships_data
+  end
+
+  def self.add_tags scrap:, work:, tag_elements:
+    return if tag_elements.blank?
+
+    tags = tag_elements.each.with_index.inject([]) do |memo,(tag_element,i)|
+
+      tag_name = element_text locate_one(tag_element, 'name', current_path: "/anime/tags/tag[#{i}]")
+      if tag_name.blank?
+        scrap.warnings << "Did not include tag because name is blank: #{Ox.dump(tag_element)}"
+        next memo
+      end
+
+      weight = tag_element['weight'].to_i
+      next memo if weight <= 0
+
+      memo << tag_name
+    end
+
+    add_work_tags work: work, tags: tags.uniq.collect(&:humanize) if tags.present?
   end
 
   def self.element_text element
@@ -196,7 +279,7 @@ class AnidbScraper < ApplicationScraper
       "at most #{max}"
     end
 
-    path = "#{current_path}/path"
+    path = "#{current_path}/#{path}"
     raise "Expected to find #{expected} element(s) at path #{path}, got #{n}" if n < min || (max && n > max)
 
     result

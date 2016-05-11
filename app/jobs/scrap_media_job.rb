@@ -17,7 +17,7 @@ class ScrapMediaJob < ApplicationJob
     :scraping
   end
 
-  def self.perform id, options = {}
+  def self.perform id
     scrap = MediaScrap.includes(:media_url).find id
 
     if scrap.contents.blank?
