@@ -35,6 +35,7 @@ class Item < ActiveRecord::Base
   validates :edition, length: { maximum: 25, allow_blank: true }
   validates :format, length: { maximum: 25, allow_blank: true }
   validates :length, numericality: { only_integer: true, minimum: 1, allow_blank: true }
+  validates :special, inclusion: { in: [ true, false ] }
   validate :title_belongs_to_parent
   validate :type_must_be_included_in_work_category
   validate :release_date_must_be_after_original_release_date

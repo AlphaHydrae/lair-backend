@@ -99,20 +99,7 @@ class ImdbScraper < ApplicationScraper
 
     save_work! work
 
-    item = find_existing_item work, media_url
-
-    if item.present?
-      item.cache_previous_version
-      item.updater = scrap.creator
-    else
-      item = Video.new
-      item.work = work
-      item.media_url = media_url
-      item.creator = scrap.creator
-    end
-
-    item.title ||= work.original_title
-    item.language ||= work.language
+    item = find_or_build_single_item
 
     if item.image.blank? && work.image.present?
       item.build_image.url = work.image.url
@@ -128,10 +115,7 @@ class ImdbScraper < ApplicationScraper
       item.length ||= match[1].to_i
     end
 
-    item.clean_properties
-    if item.tree_new_or_changed?
-      item.save!
-    end
+    save_item! item
   end
 
   private

@@ -23,16 +23,15 @@ class AnidbScraper < ApplicationScraper
 
     root = document.root
 
-    type_elements = root.locate('type')
-    if type_elements.empty?
-      raise "Could not find required /anime/type element"
-    elsif type_elements.length >= 2
-      raise "Found #{type_elements.length} /anime/type elements"
-    end
+    type_element = locate_one(root, 'type', required: true)
+    anidb_type = element_text type_element
 
-    data_type = element_text type_elements.first
-    if data_type != 'TV Series'
-      raise "Unsupported AniDB data type #{data_type.inspect}"
+    anidb_type = if anidb_type == 'TV Series'
+      :tv_series
+    elsif anidb_type == 'Movie'
+      :movie
+    else
+      raise "Unsupported AniDB data type #{Ox.dump(type_element)}"
     end
 
     work = find_or_build_work scrap
@@ -42,18 +41,21 @@ class AnidbScraper < ApplicationScraper
 
     work.language = anidb_default_language
 
-    start_date = parse_date element_text(locate_one(root, 'startdate'))
+    start_date = parse_anidb_date element_text(locate_one(root, 'startdate')), path: '/anime/startdate'
     work.start_year = start_date.try(:year)
 
-    end_date = parse_date element_text(locate_one(root, 'enddate'))
+    end_date = parse_anidb_date element_text(locate_one(root, 'enddate')), path: '/anime/enddate'
     work.end_year = end_date.try(:year)
 
-    work.number_of_items = element_text(locate_one(root, 'episodecount')).try(:to_i)
+    episode_count = element_text(locate_one(root, 'episodecount')).try(:to_i)
+    if episode_count.present? && episode_count >= 2
+      work.number_of_items = episode_count
+    end
 
     title_elements = locate root, 'titles/title', min: 1
     add_titles work: work, title_elements: title_elements
 
-    description = parse_anidb_text element_text(locate_one(root, 'description'))
+    description = anidb_text_to_markdown element_text(locate_one(root, 'description'))
     add_work_description scrap: scrap, work: work, description: description, language: data_language
 
     image = element_text locate_one(root, 'picture')
@@ -89,9 +91,51 @@ class AnidbScraper < ApplicationScraper
 
     save_work! work
 
-    # TODO: parse episodes
+    episode_elements = locate(root, 'episodes/episode', required: true)
 
-    raise "Not yet supported"
+    if anidb_type == :movie
+
+      main_item = find_or_build_single_item scrap, work
+      anidb_episode = find_anidb_episode episode_elements, 1
+
+      if episode_count != 1
+        scrap.warnings << "Expected movie episode count to be 1, got #{episode_count}"
+      end
+
+      main_item.image.build url: work.image.url if work.image.present?
+
+      update_item_from_anidb_episode item: main_item, episode: anidb_episode, scrap: scrap
+      save_item! main_item
+    elsif anidb_type == :tv_series
+
+      # TODO: save <episode recap="true"> as property
+      # TODO: save episode titles
+
+      main_episode_elements = filter_anidb_episodes episode_elements, /^\d+$/i
+      if main_episode_elements.length != episode_count
+        scrap.warnings << "Expected series episode count #{episode_count} to match number of numbered <episode> elements #{main_episode_elements.length}"
+      end
+
+      main_episode_elements.each do |episode_element|
+
+        episode_number = element_text(locate_one(episode_element, 'epno', required: true)).to_i
+        episode_item = find_or_build_item scrap, work, episode_number, episode_number
+
+        update_item_from_anidb_episode item: episode_item, episode: episode_element, scrap: scrap
+        save_item! episode_item
+      end
+    end
+
+    special_episode_elements = filter_anidb_episodes episode_elements, /^S\d+$/i
+
+    special_episode_elements.each do |episode_element|
+
+      episode_number = element_text(locate_one(episode_element, 'epno', required: true)).to_s.sub(/^S/, '').to_i
+      episode_item = find_or_build_item scrap, work, episode_number, episode_number, true
+
+      update_item_from_anidb_episode item: episode_item, episode: episode_element, scrap: scrap
+      save_item! episode_item
+    end
   end
 
   private
@@ -180,11 +224,11 @@ class AnidbScraper < ApplicationScraper
       last_name = nil
       pseudonym = nil
 
-      if match = full_name.match(/^\w+$/)
+      if match = full_name.match(/^[a-z]+$/i)
         pseudonym = full_name
-      elsif match = full_name.match(/^(\w+) (\w+)$/i)
-        first_names = match[1]
-        last_name = match[0]
+      elsif match = full_name.match(/^([a-z]+) ([a-z]+)$/i)
+        first_names = match[2]
+        last_name = match[1]
       else
         scrap.warnings << "Did not include creator because name does not have the expected format: #{Ox.dump(name_element)}"
         next memo
@@ -233,12 +277,58 @@ class AnidbScraper < ApplicationScraper
     add_work_tags work: work, tags: tags.uniq.collect(&:humanize) if tags.present?
   end
 
+  def self.update_item_from_anidb_episode item:, episode:, scrap:
+
+    item.length = element_text(locate_one(episode, 'length')).try(:to_i)
+
+    item.original_release_date = parse_anidb_date element_text(locate_one(episode, 'airdate', required: true)), path: '//episode/airdate'
+    item.original_release_date_precision = 'd'
+
+    rating_element = locate_one episode, 'rating'
+    if rating_element.present?
+      item.properties['rating'] = element_text(rating_element).to_f
+      votes = rating_element['votes'].to_s
+      item.properties['ratingVotes'] = votes.to_i if votes.present?
+    end
+
+    title_elements = locate episode, 'title', required: true
+    title_elements.select! do |title_element|
+      language = title_element['xml:lang'].to_s.downcase
+      language == 'x-jat' || !!language.match(/^[a-z]{2}$/)
+    end
+
+    main_title_element = find_anidb_title(title_elements, 'x-jat') || title_elements.first
+    language = main_title_element['xml:lang']
+    language = 'ja' if language == 'x-jat'
+
+    item.custom_title = element_text main_title_element
+    item.custom_title_language = Language.find_or_create_by!(tag: language)
+  end
+
+  def self.find_anidb_title title_elements, language
+    title_elements.find do |title_element|
+      title_element['xml:lang'].to_s.downcase == language.to_s.downcase
+    end
+  end
+
+  def self.find_anidb_episode episode_elements, number
+    episode_elements.find do |episode_element|
+      element_text(locate_one(episode_element, 'epno')).try(:downcase) == number.to_s.downcase
+    end
+  end
+
+  def self.filter_anidb_episodes episode_elements, number_regexp
+    episode_elements.select do |episode_element|
+      !!element_text(locate_one(episode_element, 'epno')).try(:downcase).try(:match, number_regexp)
+    end
+  end
+
   def self.element_text element
     return nil unless element
     element.nodes.collect{ |e| e.respond_to?(:text) ? e.text : e.to_s }.compact.join(' ').strip
   end
 
-  def self.parse_date text
+  def self.parse_anidb_date text, path:
 
     date_string = text.to_s.strip
     return nil if date_string.blank?
@@ -246,12 +336,12 @@ class AnidbScraper < ApplicationScraper
     if match = date_string.match(/^\d{4}-\d{2}-\d{2}$/)
       Time.parse match[0]
     else
-      scrap.warnings << "The /anime/startdate element is not in the expected YYYY-MM-DD format: #{date_string}"
+      scrap.warnings << "#{path} element is not in the expected YYYY-MM-DD format: #{date_string}"
       nil
     end
   end
 
-  def self.parse_anidb_text text
+  def self.anidb_text_to_markdown text
     return nil if text.blank?
     text.gsub(/\n{1}/, "\n\n").gsub(/(https?:\/\/[^\s]+) \[([^\[\]]+)\]/i, '[\2](\1)')
   end

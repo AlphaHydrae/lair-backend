@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160511172815) do
+ActiveRecord::Schema.define(version: 20160511204811) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -156,16 +156,16 @@ ActiveRecord::Schema.define(version: 20160511172815) do
   end
 
   create_table "items", force: :cascade do |t|
-    t.string   "api_id",                          limit: 12,  null: false
-    t.string   "type",                            limit: 6,   null: false
-    t.integer  "work_id",                                     null: false
+    t.string   "api_id",                          limit: 12,                  null: false
+    t.string   "type",                            limit: 6,                   null: false
+    t.integer  "work_id",                                                     null: false
     t.integer  "title_id"
     t.integer  "image_id"
     t.string   "custom_title",                    limit: 150
     t.integer  "custom_title_language_id"
     t.integer  "range_start"
     t.integer  "range_end"
-    t.integer  "language_id",                                 null: false
+    t.integer  "language_id",                                                 null: false
     t.string   "edition",                         limit: 25
     t.integer  "version"
     t.string   "format",                          limit: 25
@@ -173,19 +173,20 @@ ActiveRecord::Schema.define(version: 20160511172815) do
     t.json     "properties"
     t.string   "publisher",                       limit: 50
     t.string   "isbn",                            limit: 13
-    t.integer  "creator_id",                                  null: false
-    t.integer  "updater_id",                                  null: false
-    t.datetime "created_at",                                  null: false
-    t.datetime "updated_at",                                  null: false
+    t.integer  "creator_id",                                                  null: false
+    t.integer  "updater_id",                                                  null: false
+    t.datetime "created_at",                                                  null: false
+    t.datetime "updated_at",                                                  null: false
     t.date     "release_date"
-    t.date     "original_release_date",                       null: false
+    t.date     "original_release_date",                                       null: false
     t.string   "release_date_precision",          limit: 1
     t.string   "original_release_date_precision", limit: 1
-    t.text     "sortable_title",                              null: false
+    t.text     "sortable_title",                                              null: false
     t.integer  "last_image_search_id"
     t.string   "issn",                            limit: 8
     t.integer  "media_scrap_id"
     t.integer  "media_url_id"
+    t.boolean  "special",                                     default: false, null: false
   end
 
   add_index "items", ["api_id"], name: "index_items_on_api_id", unique: true, using: :btree

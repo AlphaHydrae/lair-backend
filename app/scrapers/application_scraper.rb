@@ -7,10 +7,6 @@ class ApplicationScraper
     Work.joins(:media_url).where('media_urls.id = ?', media_url.id).first
   end
 
-  def self.find_existing_item work, media_url
-    Item.joins(:media_url).where(work_id: work.id).where('media_urls.id = ?', media_url.id).first
-  end
-
   def self.find_or_build_work scrap
     work = find_existing_work scrap.media_url
 
@@ -27,6 +23,51 @@ class ApplicationScraper
     work.category = scrap.media_url.category
 
     work
+  end
+
+  def self.find_existing_single_item work, media_url
+    Item.joins(:media_url).where('items.range_start IS NULL AND items.range_end IS NULL AND items.work_id = ?', work.id).where('media_urls.id = ?', media_url.id).first
+  end
+
+  def self.find_or_build_single_item scrap, work
+    item = find_existing_single_item work, media_url
+    initialize_item item: item, work: work, scrap: scrap
+  end
+
+  def self.find_existing_item work, media_url, range_start, range_end, special = false
+    Item.joins(:media_url).where('items.range_start = ? AND items.range_end = ? AND items.special = ? AND items.work_id = ?', range_start, range_end, special, work.id).where('media_urls.id = ?', media_url.id).first
+  end
+
+  def self.find_or_build_item scrap, work, range_start, range_end, special = false
+    item = find_existing_item work, scrap.media_url, range_start, range_end, special
+    item = initialize_item item: item, work: work, scrap: scrap
+
+    if item.new_record?
+      item.range_start = range_start
+      item.range_end = range_end
+      item.special = special
+    end
+
+    item
+  end
+
+  def self.initialize_item scrap:, work:, item:
+    if item.present?
+      item.cache_previous_version
+      item.updater = scrap.creator
+    else
+      item = Video.new
+      item.work = work
+      item.media_url = scrap.media_url
+      item.creator = scrap.creator
+      work.items << item
+    end
+
+    item.media_scrap = scrap
+    item.title ||= work.original_title
+    item.language ||= work.language
+
+    item
   end
 
   def self.add_work_link scrap:, work:, link_url:
@@ -114,6 +155,13 @@ class ApplicationScraper
     if work.tree_new_or_changed?
       work.save!
       work.update_columns original_title_id: work.titles.where(display_position: 0).first.id
+    end
+  end
+
+  def self.save_item! item
+    item.clean_properties
+    if item.tree_new_or_changed?
+      item.save!
     end
   end
 end
