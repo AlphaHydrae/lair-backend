@@ -1,4 +1,4 @@
-angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works, $log, $modal, $scope, $state, $stateParams) {
+angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works, languages, $log, $modal, $q, $scope, $state, $stateParams) {
 
   $scope.workCategories = works.categories.slice();
 
@@ -15,27 +15,28 @@ angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works
     });
   };
 
-  $scope.titleSortOptions = {
-    handle: '.move',
-    cancel: '' // disable default jquery ui sortable behavior preventing elements of type ":input,button" to be used as handles
-  };
+  languages.addLanguages($scope);
 
-  api({
-    url: '/languages'
-  }).then(function(response) {
-    $scope.languages = response.data;
-  });
+  $scope.searchForExistingTitle = function(text) {
+    if (!$scope.modifiedWork) {
+      return $q.when(false);
+    }
+
+    return api({
+      url: '/works',
+      params: {
+        category: $scope.modifiedWork.category,
+        title: text
+      }
+    }).then(function(res) {
+      return _.some(res.data, function(work) {
+        return !$scope.modifiedWork.id || work.id != $scope.modifiedWork.id;
+      });
+    });
+  };
 
   $scope.workChanged = function() {
     return !angular.equals($scope.work, $scope.modifiedWork);
-  };
-
-  $scope.addTitle = function() {
-    $scope.modifiedWork.titles.push({});
-  };
-
-  $scope.removeTitle = function(title) {
-    $scope.modifiedWork.titles.splice($scope.modifiedWork.titles.indexOf(title), 1);
   };
 
   $scope.addLink = function() {

@@ -8,13 +8,15 @@ class Item < ActiveRecord::Base
   before_save :set_sortable_title
   before_destroy :cache_dependent_previous_versions
   after_save :update_work_years
+  after_save :update_original_title_id
 
   belongs_to :work
-  belongs_to :title, class_name: 'WorkTitle'
+  belongs_to :work_title
+  belongs_to :original_title, class_name: 'ItemTitle'
   belongs_to :language
-  belongs_to :custom_title_language, class_name: 'Language'
   belongs_to :media_url
   belongs_to :media_scrap
+  has_many :titles, class_name: 'ItemTitle', dependent: :destroy, autosave: true
   has_many :ownerships, dependent: :destroy
   has_many :collection_items
   has_many :collections, through: :collection_items
@@ -25,9 +27,7 @@ class Item < ActiveRecord::Base
 
   strip_attributes
   validates :work, presence: true
-  validates :title, presence: true
-  validates :custom_title, length: { maximum: 255 }
-  validates :custom_title_language, presence: { if: :custom_title }, absence: { unless: :custom_title }
+  validates :work_title, presence: true
   validates :original_release_date, presence: true
   validates :range_start, numericality: { only_integer: true, minimum: 1, maximum: 10000, allow_blank: true }
   validates :range_end, presence: { if: Proc.new{ |p| p.range_start.present? } }, numericality: { only_integer: true, minimum: 1, maximum: 10000, allow_blank: true }
@@ -36,17 +36,17 @@ class Item < ActiveRecord::Base
   validates :format, length: { maximum: 25, allow_blank: true }
   validates :length, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :special, inclusion: { in: [ true, false ] }
-  validate :title_belongs_to_parent
+  validate :work_title_belongs_to_parent
   validate :type_must_be_included_in_work_category
   validate :release_date_must_be_after_original_release_date
 
   def default_image_search_query
     parts = []
 
-    if custom_title.present?
-      parts << custom_title
+    if original_title = titles.first
+      parts << original_title.contents
     else
-      parts << title.contents
+      parts << work_title.contents
       if range_start && range_end != range_start
         parts << "#{range_start}-#{range_end}"
       elsif range_start
@@ -60,15 +60,23 @@ class Item < ActiveRecord::Base
   end
 
   def effective_title
-    if custom_title.present?
-      custom_title
+    if original_title = titles.first
+      original_title.contents
     else
-      [ title.contents, range ].compact.join ' '
+      [ work_title.contents, range ].compact.join ' '
+    end
+  end
+
+  def effective_title_language
+    if original_title = titles.first
+      original_title.language
+    else
+      work_title.language
     end
   end
 
   def tree_new_or_changed?
-    ([ self ]).any?{ |r| r.new_record? || r.changed? }
+    ([ self ] + titles).any?{ |r| r.new_record? || r.changed? }
   end
 
   private
@@ -78,8 +86,8 @@ class Item < ActiveRecord::Base
     range_end != range_start ? "#{range_start}-#{range_end}" : range_start.to_s
   end
 
-  def title_belongs_to_parent
-    errors.add :title, :must_belong_to_parent if work.present? && title.present? && title.work != work
+  def work_title_belongs_to_parent
+    errors.add :work_title_id, :must_belong_to_parent if work.present? && work_title.present? && work_title.work != work
   end
 
   def type_must_be_included_in_work_category
@@ -106,9 +114,14 @@ class Item < ActiveRecord::Base
   end
 
   def set_sortable_title
+
     sortable_range = "#{range_start.to_s.rjust(5, '0')}-#{range_end.to_s.rjust(5, '0')}"
-    title_parts = [ title.contents, sortable_range ]
-    title_parts << custom_title if custom_title.present?
+    title_parts = [ work_title.contents, sortable_range ]
+
+    if original_title = titles.first
+      title_parts << original_title.contents
+    end
+
     self.sortable_title = title_parts.join(' ').downcase
   end
 
@@ -136,8 +149,12 @@ class Item < ActiveRecord::Base
       work.start_year = original_release_date.year if update_start_year
       work.end_year = original_release_date.year if update_end_year
       work.updater = updater
-      # TODO: set event cause
+      # FIXME: set event cause
       work.save!
     end
+  end
+
+  def update_original_title_id
+    update_column :original_title_id, titles.first.try(:id)
   end
 end

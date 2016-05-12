@@ -18,6 +18,10 @@ class Language < ActiveRecord::Base
     end
   end
 
+  def self.language tag
+    Language.where(tag: tag).first_or_create!
+  end
+
   strip_attributes
   validates :tag, presence: true, uniqueness: true, format: { with: /\A[a-z]{2}(?:\-[A-Z]{2})?\Z/, allow_blank: true }
   validate :tag_must_be_valid

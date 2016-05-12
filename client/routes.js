@@ -102,7 +102,7 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('scraping', {
-        url: '^/scraping?show',
+        url: '^/scraping?show&warnings',
         reloadOnSearch: false,
         controller: 'ScrapingCtrl',
         templateUrl: '/templates/modules/scraping/scraping.template.html'

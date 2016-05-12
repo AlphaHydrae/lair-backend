@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160511204811) do
+ActiveRecord::Schema.define(version: 20160512210128) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -155,17 +155,25 @@ ActiveRecord::Schema.define(version: 20160511204811) do
     t.datetime "uploaded_at"
   end
 
+  create_table "item_titles", force: :cascade do |t|
+    t.string  "api_id",           null: false
+    t.string  "contents",         null: false
+    t.integer "display_position", null: false
+    t.integer "item_id",          null: false
+    t.integer "language_id",      null: false
+  end
+
+  add_index "item_titles", ["contents", "item_id", "language_id"], name: "index_item_titles_on_contents_and_item_id_and_language_id", unique: true, using: :btree
+
   create_table "items", force: :cascade do |t|
-    t.string   "api_id",                          limit: 12,                  null: false
-    t.string   "type",                            limit: 6,                   null: false
-    t.integer  "work_id",                                                     null: false
-    t.integer  "title_id"
+    t.string   "api_id",                          limit: 12,                 null: false
+    t.string   "type",                            limit: 6,                  null: false
+    t.integer  "work_id",                                                    null: false
+    t.integer  "work_title_id"
     t.integer  "image_id"
-    t.string   "custom_title",                    limit: 150
-    t.integer  "custom_title_language_id"
     t.integer  "range_start"
     t.integer  "range_end"
-    t.integer  "language_id",                                                 null: false
+    t.integer  "language_id",                                                null: false
     t.string   "edition",                         limit: 25
     t.integer  "version"
     t.string   "format",                          limit: 25
@@ -173,20 +181,21 @@ ActiveRecord::Schema.define(version: 20160511204811) do
     t.json     "properties"
     t.string   "publisher",                       limit: 50
     t.string   "isbn",                            limit: 13
-    t.integer  "creator_id",                                                  null: false
-    t.integer  "updater_id",                                                  null: false
-    t.datetime "created_at",                                                  null: false
-    t.datetime "updated_at",                                                  null: false
+    t.integer  "creator_id",                                                 null: false
+    t.integer  "updater_id",                                                 null: false
+    t.datetime "created_at",                                                 null: false
+    t.datetime "updated_at",                                                 null: false
     t.date     "release_date"
-    t.date     "original_release_date",                                       null: false
+    t.date     "original_release_date",                                      null: false
     t.string   "release_date_precision",          limit: 1
     t.string   "original_release_date_precision", limit: 1
-    t.text     "sortable_title",                                              null: false
+    t.text     "sortable_title",                                             null: false
     t.integer  "last_image_search_id"
     t.string   "issn",                            limit: 8
     t.integer  "media_scrap_id"
     t.integer  "media_url_id"
-    t.boolean  "special",                                     default: false, null: false
+    t.boolean  "special",                                    default: false, null: false
+    t.integer  "original_title_id"
   end
 
   add_index "items", ["api_id"], name: "index_items_on_api_id", unique: true, using: :btree
@@ -282,14 +291,14 @@ ActiveRecord::Schema.define(version: 20160511204811) do
   add_index "media_scans", ["api_id"], name: "index_media_scans_on_api_id", unique: true, using: :btree
 
   create_table "media_scraps", force: :cascade do |t|
-    t.string   "api_id",               limit: 12, null: false
-    t.string   "provider",             limit: 20, null: false
-    t.string   "state",                limit: 20, null: false
+    t.string   "api_id",               limit: 12,             null: false
+    t.string   "provider",             limit: 20,             null: false
+    t.string   "state",                limit: 20,             null: false
     t.json     "data"
     t.text     "contents"
     t.string   "content_type",         limit: 50
-    t.integer  "media_url_id",                    null: false
-    t.integer  "creator_id",                      null: false
+    t.integer  "media_url_id",                                null: false
+    t.integer  "creator_id",                                  null: false
     t.datetime "scraping_at"
     t.datetime "scraping_canceled_at"
     t.datetime "scraping_failed_at"
@@ -298,8 +307,9 @@ ActiveRecord::Schema.define(version: 20160511204811) do
     t.datetime "expanded_at"
     t.text     "error_message"
     t.text     "error_backtrace"
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
+    t.datetime "created_at",                                  null: false
+    t.datetime "updated_at",                                  null: false
+    t.integer  "warnings_count",                  default: 0, null: false
   end
 
   add_index "media_scraps", ["api_id"], name: "index_media_scraps_on_api_id", unique: true, using: :btree
@@ -479,15 +489,17 @@ ActiveRecord::Schema.define(version: 20160511204811) do
   add_foreign_key "genres_works", "genres", on_delete: :cascade
   add_foreign_key "genres_works", "works", on_delete: :cascade
   add_foreign_key "image_searches", "users", on_delete: :restrict
+  add_foreign_key "item_titles", "items", on_delete: :cascade
+  add_foreign_key "item_titles", "languages", on_delete: :restrict
   add_foreign_key "items", "image_searches", column: "last_image_search_id", on_delete: :nullify
   add_foreign_key "items", "images", on_delete: :nullify
-  add_foreign_key "items", "languages", column: "custom_title_language_id", on_delete: :restrict
+  add_foreign_key "items", "item_titles", column: "original_title_id", on_delete: :nullify
   add_foreign_key "items", "languages", on_delete: :restrict
   add_foreign_key "items", "media_scraps", on_delete: :nullify
   add_foreign_key "items", "media_urls", on_delete: :nullify
   add_foreign_key "items", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "items", "users", column: "updater_id", on_delete: :restrict
-  add_foreign_key "items", "work_titles", column: "title_id", on_delete: :nullify
+  add_foreign_key "items", "work_titles", on_delete: :nullify
   add_foreign_key "items", "works", on_delete: :cascade
   add_foreign_key "items_audio_languages", "items", column: "video_id", on_delete: :cascade
   add_foreign_key "items_audio_languages", "languages", on_delete: :restrict

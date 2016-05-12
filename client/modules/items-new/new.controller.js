@@ -11,8 +11,6 @@ angular.module('lair.items.new').controller('NewItemCtrl', function(api, $log, $
 
   function dumpItem(item) {
     return _.extend({}, item, {
-      customTitle: item.customTitle && item.customTitle.length ? item.customTitle : null,
-      customTitleLanguage: item.customTitle && item.customTitle.length ? item.customTitleLanguage : null,
       properties: _.reduce(item.properties, function(memo, property) {
         memo[property.key] = property.value;
         return memo;

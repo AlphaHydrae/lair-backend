@@ -1,4 +1,4 @@
-angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms, $log, $modal, $q, items, $scope, $state, $stateParams) {
+angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms, $log, $modal, $q, items, languages, $scope, $state, $stateParams) {
 
   $scope.itemTypes = items.types;
 
@@ -33,7 +33,9 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
       var newWork = _.findWhere($scope.works, { id: $scope.modifiedItem.workId });
       if (newWork) {
         $scope.modifiedItem.work = newWork;
-        $scope.modifiedItem.titleId = newWork.titles[0].id;
+
+        var workTitle = _.findWhere(newWork.titles, { id: $scope.modifiedItem.workTitleId });
+        $scope.modifiedItem.workTitleId = workTitle ? workTitle.id : newWork.titles[0].id;
 
         $scope.itemTypes = items.typesForWork(newWork);
         if (!$scope.modifiedItem.type || !_.includes($scope.itemTypes, $scope.modifiedItem.type)) {
@@ -41,6 +43,35 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
         }
       }
     }
+  });
+
+  $scope.$watchGroup([ 'modifiedItem.workTitleId', 'modifiedItem.start', 'modifiedItem.end' ], function(values) {
+
+    var workTitleId = values[0],
+        start = values[1],
+        end = values[2];
+
+    if (!workTitleId || !$scope.modifiedItem || !$scope.modifiedItem.work) {
+      $scope.defaultTitle = '-';
+      return;
+    }
+
+    var workTitle = _.findWhere($scope.modifiedItem.work.titles, { id: workTitleId });
+    if (!workTitle) {
+      $scope.defaultTitle = '-';
+      return;
+    }
+
+    var defaultTitle = workTitle.text;
+    if (start || start === 0) {
+      defaultTitle += ' ' + start;
+
+      if ((end || end === 0) && end != start) {
+        defaultTitle += '-' + end;
+      }
+    }
+
+    $scope.defaultTitle = defaultTitle;
   });
 
   $scope.multiItem = false;
@@ -113,7 +144,11 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
     });
   };
 
-  $q.all(fetchEditions(), fetchFormats(), fetchLanguages(), fetchPublishers());
+  fetchFormats();
+  fetchEditions();
+  fetchPublishers();
+
+  languages.addLanguages($scope);
 
   $scope.fetchWorks = function(search) {
     if (!search || !search.trim().length) {
@@ -177,18 +212,6 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
       $scope.formats = res.data;
     }, function(res) {
       $log.warn('Could not fetch item formats');
-      $log.debug(res);
-    });
-  }
-
-  function fetchLanguages() {
-    return api({
-      url: '/languages'
-    }).then(function(res) {
-      $scope.languages = res.data;
-    }, function(res) {
-      // TODO: handle error
-      $log.warn('Could not fetch languages');
       $log.debug(res);
     });
   }

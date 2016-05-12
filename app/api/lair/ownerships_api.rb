@@ -73,7 +73,7 @@ module Lair
 
         includes = []
         includes << :user if options[:with_user]
-        includes << { item: [ :work, { title: :language }, :language, :custom_title_language ] } if options[:with_item]
+        includes << { item: [ :work, { titles: :language, work_title: :language }, :language ] } if options[:with_item]
 
         resources = load_resources relation.preload(includes)
 

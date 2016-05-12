@@ -12,8 +12,8 @@ screen -t vim 4
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
 screen -t zsh 5
 stuff "direnv reload\012"
-screen -t console 6
+screen -t log 6
+stuff "tail -n 1000 -f log/development.log\012"
+screen -t console 7
 stuff "bundle exec rails console\012"
-screen -t jshint 7
-stuff "grunt watch:jshint\012"
 select vim

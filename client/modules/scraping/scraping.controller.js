@@ -12,7 +12,8 @@ angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $locati
   });
 
   $scope.filters = {
-    show: $stateParams.show
+    show: $stateParams.show,
+    warnings: !!$stateParams.warnings
   };
 
   $scope.$watch('filters', function(value, oldValue) {
@@ -23,6 +24,10 @@ angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $locati
 
       if (value.show != search.show) {
         $location.search('show', value.show);
+      }
+
+      if (value.warnings != search.warnings) {
+        $location.search('warnings', value.warnings ? 'true' : null);
       }
     }
   }, true);
@@ -35,13 +40,24 @@ angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $locati
     if (search.show != filters.show) {
       filters.show = search.show;
     }
+
+    if (!!search.warnings != filters.warnings) {
+      filters.warnings = search.warnings;
+    }
   });
 
   function applyFilters() {
+
     if ($scope.filters.show) {
       $scope.mediaUrlsList.params.scrapStates = showToStates($scope.filters.show);
     } else {
       delete $scope.mediaUrlsList.params.scrapStates;
+    }
+
+    if ($scope.filters.warnings) {
+      $scope.mediaUrlsList.params.scrapWarnings = 1;
+    } else {
+      delete $scope.mediaUrlsList.params.scrapWarnings;
     }
   }
 

@@ -25,6 +25,11 @@ class MediaScrapSerializer < ApplicationSerializer
       end
     end
 
+    json.warningsCount record.warnings_count
+    if options[:include_warnings] && policy.admin?
+      json.warnings record.warnings
+    end
+
     json.createdAt record.created_at.iso8601(3)
     json.updatedAt record.updated_at.iso8601(3)
   end

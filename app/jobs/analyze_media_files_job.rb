@@ -112,7 +112,8 @@ class AnalyzeMediaFilesJob < ApplicationJob
         scan.finish_analysis!
 
         media_urls_to_check = MediaUrl.where(id: media_url_ids_to_check).find_each batch_size: BATCH_SIZE do |media_url|
-          UpdateMediaOwnershipsJob.enqueue media_url, user: scan.source.user, event: event
+          Rails.logger.debug "TODO: update media ownerships after media files analysis (only for existing media URLs)"
+          #UpdateMediaOwnershipsJob.enqueue media_url, user: scan.source.user, event: event
         end
       end
     end

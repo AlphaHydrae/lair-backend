@@ -4,24 +4,31 @@ class ItemSerializer < ApplicationSerializer
   def build json, options = {}
     json.id record.api_id
     json.type record.type.to_s.camelize(:lower)
+
     json.workId record.work.api_id
     json.work serialize(record.work, options.slice(:image_from_search)) if options[:with_work]
+    json.workTitleId record.work_title.api_id if record.work_title
+
+    json.titles serialize(record.titles.order(:display_position).to_a)
+
     json.title do
-      json.id record.title.api_id if record.title.present?
+      json.type record.titles.present? ? 'itemTitle' : 'workTitle'
       json.text record.effective_title
-      json.language record.custom_title.present? ? record.custom_title_language.tag : record.title.language.tag
+      json.language record.effective_title_language.tag
     end
-    json.titleId record.title.api_id if record.title
-    json.customTitle record.custom_title if record.custom_title
-    json.customTitleLanguage record.custom_title_language.tag if record.custom_title_language
+
     json.releaseDate serialize_date_with_precision(record, :release_date) if record.release_date
     json.originalReleaseDate serialize_date_with_precision(record, :original_release_date)
+
     json.language record.language.tag
+
     json.start record.range_start if record.range_start
     json.end record.range_end if record.range_end
+
     json.edition record.edition if record.edition
     json.format record.format if record.format
     json.length record.length if record.length
+
     json.properties record.properties.dup
 
     if policy.user && options[:ownerships]

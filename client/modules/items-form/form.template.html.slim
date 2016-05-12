@@ -22,22 +22,15 @@ form#editItem role='form' novalidate=true name='itemForm' ng-controller='ItemFor
           ui-select-match {{ $select.selected | humanize }}
           ui-select-choices repeat='type in itemTypes'
             span ng-bind-html='type | humanize'
-      .title.form-group form-error='itemForm.titleId'
+      .title.form-group form-error='itemForm.workTitleId'
         label for='itemTitle'
           | Title 
           required-icon
-        ui-select#itemTitle ng-disabled='!modifiedItem.work' ng-model='modifiedItem.titleId' name='titleId' required=true
+        ui-select#itemTitle ng-disabled='!modifiedItem.work' ng-model='modifiedItem.workTitleId' name='workTitleId' required=true
           ui-select-match placeholder='{{ modifiedItem.workId ? "Select a title..." : "You must select a work first..." }}' {{ $select.selected.text }}
           ui-select-choices repeat='title.id as title in modifiedItem.work.titles | filter: $select.search'
             span ng-bind-html='title.text | highlight: $select.search'
-      .col-xs-8
-        .customTitle.form-group
-          label for='itemCustomTitle' Custom Title
-          input#itemCustomTitle.form-control ng-model='modifiedItem.customTitle'
-      .col-xs-4
-        .customTitleLanguage.form-group form-error='itemForm.customTitleLanguage'
-          label.control-label for='itemCustomTitleLanguage' Title Language
-          language-select#itemCustomTitleLanguage languages='languages' ng-model='modifiedItem.customTitleLanguage' name='customTitleLanguage' ng-required='modifiedItem.customTitle.length'
+      titles-form record='modifiedItem' label='Custom title' placeholder='defaultTitle' help-message="Add a custom title if the item has its own title different from its parent work's (e.g. Raiders of the Lost Ark would be the custom title of an Indiana Jones item)."
     .col-xs-4
       .range.form-group
         label for='itemStart'
@@ -57,7 +50,7 @@ form#editItem role='form' novalidate=true name='itemForm' ng-controller='ItemFor
     .col-xs-2
       .form-group form-error='itemForm.originalReleaseDate'
         label for='itemOriginalReleaseDate'
-          | Original Release Date 
+          span> Original Release Date
           required-icon
         input#itemOriginalReleaseDate.form-control ng-model='modifiedItem.originalReleaseDate' type='string' ng-pattern='/^\d+(-[01]\d(-[0123]\d)?)?$/' name='originalReleaseDate' required=true placeholder='YYYY(-MM)(-DD)'
     .col-xs-2
@@ -69,7 +62,7 @@ form#editItem role='form' novalidate=true name='itemForm' ng-controller='ItemFor
     .col-xs-4
       .form-group form-error='itemForm.language'
         label for='itemLanguage'
-          | Language 
+          span> Language
           required-icon
         language-select#itemLanguage languages='languages' ng-model='modifiedItem.language' name='language' required=true
     .col-xs-4

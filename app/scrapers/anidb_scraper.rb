@@ -109,7 +109,6 @@ class AnidbScraper < ApplicationScraper
     elsif anidb_type == :tv_series
 
       # TODO: save <episode recap="true"> as property
-      # TODO: save episode titles
 
       main_episode_elements = filter_anidb_episodes episode_elements, /^\d+$/i
       if main_episode_elements.length != episode_count
@@ -284,13 +283,6 @@ class AnidbScraper < ApplicationScraper
     item.original_release_date = parse_anidb_date element_text(locate_one(episode, 'airdate', required: true)), path: '//episode/airdate'
     item.original_release_date_precision = 'd'
 
-    rating_element = locate_one episode, 'rating'
-    if rating_element.present?
-      item.properties['rating'] = element_text(rating_element).to_f
-      votes = rating_element['votes'].to_s
-      item.properties['ratingVotes'] = votes.to_i if votes.present?
-    end
-
     title_elements = locate episode, 'title', required: true
     title_elements.select! do |title_element|
       language = title_element['xml:lang'].to_s.downcase
@@ -298,11 +290,33 @@ class AnidbScraper < ApplicationScraper
     end
 
     main_title_element = find_anidb_title(title_elements, 'x-jat') || title_elements.first
-    language = main_title_element['xml:lang']
-    language = 'ja' if language == 'x-jat'
+    if main_title_element != title_elements.first
+      title_elements.delete main_title_element
+      title_elements.unshift main_title_element
+    end
 
-    item.custom_title = element_text main_title_element
-    item.custom_title_language = Language.find_or_create_by!(tag: language)
+    i = 0
+    title_elements.each do |title_element|
+
+      contents = element_text title_element
+      language = title_element['xml:lang']
+      language = 'ja' if language == 'x-jat'
+
+      unless item.titles.find{ |t| t.contents == contents && t.language.tag == language }
+        item.titles.build contents: contents, language: Language.language(language), display_position: 0
+        i += 1
+      end
+    end
+
+    rating_element = locate_one episode, 'rating'
+    if rating_element.present?
+      item.properties['rating'] = element_text(rating_element).to_f
+      votes = rating_element['votes'].to_s
+      item.properties['ratingVotes'] = votes.to_i if votes.present?
+    end
+
+    recap = episode['recap'].to_s.match(/^true$/i)
+    item.properties['recap'] = true if recap
   end
 
   def self.find_anidb_title title_elements, language

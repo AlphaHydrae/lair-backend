@@ -1,5 +1,7 @@
 module Lair
   class WorksApi < Grape::API
+    helpers TitleHelpers
+
     namespace :works do
       post do
         authorize! Work, :create
@@ -12,9 +14,7 @@ module Lair
           set_image! work, params[:image] if params[:image].kind_of? Hash
           work.set_properties_from_params params[:properties]
 
-          params[:titles].each.with_index do |title,i|
-            work.titles.build contents: title[:text], language: language(title[:language]), display_position: i
-          end
+          update_titles_from_params work
 
           if params[:descriptions].kind_of?(Array)
             params[:descriptions].each.with_index do |description,i|
@@ -202,27 +202,7 @@ module Lair
             set_image! work, params[:image] if params[:image].kind_of? Hash
             work.set_properties_from_params params[:properties]
 
-            if params.key? :titles
-              titles_to_delete = []
-              titles_to_add = params[:titles].dup
-
-              work.titles.each do |title|
-                title_data = params[:titles].find{ |h| h[:id] == title.api_id }
-
-                if title_data
-                  title.contents = title_data[:text] if title_data.key? :text
-                  title.language = language title_data[:language] if title_data.key? :language
-                  title.display_position = params[:titles].index title_data
-                  titles_to_add.delete title_data
-                else
-                  title.mark_for_destruction
-                end
-              end
-
-              titles_to_add.each do |title|
-                work.titles.build(contents: title[:text], language: language(title[:language]), display_position: params[:titles].index(title))
-              end
-            end
+            update_titles_from_params work
 
             update_relationships work, :person
             update_relationships work, :company

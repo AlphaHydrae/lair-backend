@@ -1,16 +1,7 @@
 form#workForm role='form' novalidate=true ng-controller='WorkFormCtrl' name='workForm'
   .row
     .col-xs-12
-      .titles.form-group
-        button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addTitle()' tooltip='Add a title' tooltip-append-to-body='true'
-          span.glyphicon.glyphicon-plus
-        div form-error='workForm.titleForm.text'
-          label.control-label for='workTitle-0'
-            | Title 
-            required-icon message='At least one title is required. A language must be set for all titles.'
-        ul.list-group ui-sortable='titleSortOptions' ng-model='modifiedWork.titles'
-          li.list-group-item.clearfix ng-repeat='title in modifiedWork.titles'
-            work-title title='title' title-index='$index' title-work='modifiedWork' category='modifiedWork.category' deletable='modifiedWork.titles.length >= 2' on-remove='removeTitle(title)'
+      titles-form record='modifiedWork' title-search='searchForExistingTitle(text)' title-search-watch='modifiedWork.category' title-required='true'
   .row
     .col-xs-6
       .form-group

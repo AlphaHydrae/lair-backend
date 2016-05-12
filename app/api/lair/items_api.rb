@@ -1,5 +1,7 @@
 module Lair
   class ItemsApi < Grape::API
+    helpers TitleHelpers
+
     helpers do
       def update_languages! item, type
 
@@ -31,9 +33,9 @@ module Lair
       def update_record_from_params record
         record.work = Work.where(api_id: params[:workId]).first! if params.key? :workId
 
-        record.title = params[:titleId].present? ? record.work.titles.where(api_id: params[:titleId]).first! : nil if params.key? :titleId
-        record.custom_title = params[:customTitle] if params.key? :customTitle
-        record.custom_title_language = params[:customTitleLanguage].present? ? language(params[:customTitleLanguage]) : nil if params.key? :customTitleLanguage
+        record.work_title = params[:workTitleId].present? ? record.work.titles.where(api_id: params[:workTitleId]).first! : nil if params.key? :workTitleId
+
+        update_titles_from_params record
 
         set_image! record, params[:image] if params[:image].kind_of? Hash
 
@@ -192,7 +194,7 @@ module Lair
         with_ownerships = true_flag? :ownerships
         image_from_search = true_flag? :imageFromSearch
 
-        includes = [ :image, :language, { title: :language } ]
+        includes = [ :image, :language, { titles: :language, work_title: :language } ]
         includes << :last_image_search if image_from_search
 
         if with_work
@@ -202,7 +204,6 @@ module Lair
           includes << :work
         end
 
-        # TODO: test preload
         items = rel.preload(includes).to_a
 
         ownerships = if current_user
@@ -220,7 +221,7 @@ module Lair
         helpers do
           # TODO: rename to record
           def fetch_item!
-            Item.where(api_id: params[:itemId]).includes([ :title, :language ]).first!
+            Item.where(api_id: params[:itemId]).includes([ :language, { titles: :language, work_title: :language } ]).first!
           end
         end
 

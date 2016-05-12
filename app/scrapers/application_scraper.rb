@@ -64,7 +64,7 @@ class ApplicationScraper
     end
 
     item.media_scrap = scrap
-    item.title ||= work.original_title
+    item.work_title ||= work.original_title
     item.language ||= work.language
 
     item

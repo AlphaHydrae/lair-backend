@@ -1,0 +1,16 @@
+ng-form name='titleForm'
+  .col-sm-8.col-xs-7 form-error='titleForm.text'
+    .input-group
+      .input-group-btn
+        button.move.btn.btn-default type='button'
+          span.glyphicon.glyphicon-move
+      input.form-control type='text' placeholder='{{ titleIndex === 0 ? "Original title" : "Additional title" }}' ng-model='title.text' ng-model-options='{updateOn: "default blur", debounce: {default: 350, blur: 0}}' ng-attr-id='title-{{ titleIndex }}' name='text' required=true maxlength=150
+    p.help-block ng-if='titleExists'
+      span.text-warning
+        strong Please make sure you are creating something new.
+        |  There's already an item with the same title.
+  .col-sm-3.col-xs-4 form-error='titleForm.language'
+    language-select ng-model='title.language' languages='languages' name='language' required=true
+  .col-xs-1
+    button.btn.btn-default type='button' ng-click='onRemove()' ng-disabled='!deletable'
+      span.glyphicon.glyphicon-remove

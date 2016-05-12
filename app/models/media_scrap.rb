@@ -6,6 +6,7 @@ class MediaScrap < ActiveRecord::Base
   include ResourceWithJobs
 
   before_create :set_identifier
+  before_save :set_warnings_count
   before_save :clean_warnings
   before_save :clean_data
   after_commit :queue_scrap_job, on: :create
@@ -66,6 +67,10 @@ class MediaScrap < ActiveRecord::Base
 
   def queue_expansion_job
     ExpandScrapJob.enqueue self
+  end
+
+  def set_warnings_count
+    self.warnings_count = warnings.length
   end
 
   def clean_warnings

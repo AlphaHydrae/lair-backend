@@ -5,7 +5,8 @@ module Lair
         def serialization_options *args
           {
             include_error: include_in_response?(:error),
-            include_contents: include_in_response?(:contents)
+            include_contents: include_in_response?(:contents),
+            include_warnings: include_in_response?(:warnings)
           }
         end
 
@@ -13,10 +14,6 @@ module Lair
           rel = rel.without_contents if request.get? && !include_in_response?(:contents)
           rel = rel.includes :media_url
           rel
-        end
-
-        def update_record_from_params record
-          record.state = params[:state].to_s if params.key? :state
         end
       end
 
@@ -36,7 +33,6 @@ module Lair
         namespace :retry do
           post do
             authorize! record, :update
-
 
             MediaScrap.transaction do
               if %w(scraping_canceled scraping_failed).include? record.state
