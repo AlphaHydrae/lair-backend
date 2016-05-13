@@ -30,46 +30,54 @@ class AnalyzeMediaFilesJob < ApplicationJob
         media_url_ids_to_check = Set.new
 
         # Handle deleted NFO files.
-        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: true, state: %w(deleted)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
+        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: true, state: %w(deleted)).includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
+          files.each do |file|
 
-          nfo_files = nfo_files_for_directory file.directory, file
+            nfo_files = nfo_files_for_directory file.directory, file
 
-          if nfo_files.length == 1 && nfo_files.first.state == 'duplicated'
-            # If after deleting the NFO file, exactly one other NFO file applies
-            # to this directory and it is marked as duplicated, process that NFO file
-            # and other files in its directory.
-            process_nfo_file nfo_files.first, media_url_ids_to_check
-          elsif nfo_files.blank?
-            # If after deleting the NFO file, no other NFO file applies to this directory,
-            # mark all its files as unlinked.
-            directory_files_rel = media_files_for_directory file.directory
-            mark_files directory_files_rel, :mark_as_unlinked
+            if nfo_files.length == 1 && nfo_files.first.state == 'duplicated'
+              # If after deleting the NFO file, exactly one other NFO file applies
+              # to this directory and it is marked as duplicated, process that NFO file
+              # and other files in its directory.
+              process_nfo_file nfo_files.first, media_url_ids_to_check
+            elsif nfo_files.blank?
+              # If after deleting the NFO file, no other NFO file applies to this directory,
+              # mark all its files as unlinked.
+              directory_files_rel = media_files_for_directory file.directory
+              mark_files directory_files_rel, :mark_as_unlinked
+            end
           end
+
+          sleep 1
         end
 
         # Handle new and modified NFO files.
-        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: false, state: %w(created changed)).includes(:directory).find_each batch_size: BATCH_SIZE do |file|
+        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: false, state: %w(created changed)).includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
+          files.each do |file|
 
-          nfo_files = nfo_files_for_directory file.directory, file
+            nfo_files = nfo_files_for_directory file.directory, file
 
-          if nfo_files.any?
-            if file.state == 'changed'
-              # If the NFO file was modified and other NFO files apply to this directory,
-              # mark the NFO file as duplicated. Do not change the state of other files.
-              file.mark_as_duplicated!
-            else
-              # If the NFO file is new and other NFO files apply to this directory,
-              # mark all these NFO files as duplicated. Do not change the state of other
-              # files.
-              nfo_files.select{ |f| f.state != 'duplicated' }.each do |file|
+            if nfo_files.any?
+              if file.state == 'changed'
+                # If the NFO file was modified and other NFO files apply to this directory,
+                # mark the NFO file as duplicated. Do not change the state of other files.
                 file.mark_as_duplicated!
+              else
+                # If the NFO file is new and other NFO files apply to this directory,
+                # mark all these NFO files as duplicated. Do not change the state of other
+                # files.
+                nfo_files.select{ |f| f.state != 'duplicated' }.each do |file|
+                  file.mark_as_duplicated!
+                end
               end
+
+              next
             end
 
-            next
+            process_nfo_file file, media_url_ids_to_check
           end
 
-          process_nfo_file file, media_url_ids_to_check
+          sleep 1
         end
 
         # Handle new media files.
@@ -105,6 +113,8 @@ class AnalyzeMediaFilesJob < ApplicationJob
           end
 
           processed_directories = nil
+
+          sleep 1
         end
 
         scan.error_message = nil
