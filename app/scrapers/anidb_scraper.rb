@@ -93,22 +93,20 @@ class AnidbScraper < ApplicationScraper
 
     episode_elements = locate(root, 'episodes/episode', required: true)
 
-    if anidb_type == :movie
+    if episode_count == 1
 
       main_item = find_or_build_single_item scrap, work
       anidb_episode = find_anidb_episode episode_elements, 1
 
-      if episode_count != 1
-        scrap.warnings << "Expected movie episode count to be 1, got #{episode_count}"
+      if anidb_episode.blank?
+        raise "Could not find episode 1"
       end
 
       main_item.build_image.url = work.image.url if work.image.present?
 
       update_item_from_anidb_episode item: main_item, episode: anidb_episode, scrap: scrap
       save_item! main_item
-    elsif anidb_type == :tv_series
-
-      # TODO: save <episode recap="true"> as property
+    else
 
       main_episode_elements = filter_anidb_episodes episode_elements, /^\d+$/i
       if main_episode_elements.length != episode_count
@@ -132,8 +130,8 @@ class AnidbScraper < ApplicationScraper
       episode_number = element_text(locate_one(episode_element, 'epno', required: true)).to_s.sub(/^S/, '').to_i
       episode_item = find_or_build_item scrap, work, episode_number, episode_number, true
 
-      update_item_from_anidb_episode item: episode_item, episode: episode_element, scrap: scrap
-      save_item! episode_item
+      valid = update_item_from_anidb_episode item: episode_item, episode: episode_element, scrap: scrap
+      save_item! episode_item if valid
     end
   end
 
@@ -280,8 +278,14 @@ class AnidbScraper < ApplicationScraper
 
     item.length = element_text(locate_one(episode, 'length')).try(:to_i)
 
-    item.original_release_date = parse_anidb_date element_text(locate_one(episode, 'airdate', required: true)), path: '//episode/airdate'
-    item.original_release_date_precision = 'd'
+    airdate_element = locate_one episode, 'airdate'
+    if airdate_element
+      item.original_release_date = parse_anidb_date element_text(airdate_element), path: '//episode/airdate'
+      item.original_release_date_precision = 'd'
+    else
+      scrap.warnings << "Could not include #{Ox.dump(episode)} because it has no airdate"
+      return false
+    end
 
     title_elements = locate episode, 'title', required: true
     title_elements.select! do |title_element|
