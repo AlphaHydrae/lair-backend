@@ -1,16 +1,18 @@
 class Ownership < ActiveRecord::Base
   include ResourceWithIdentifier
-  include ResourceWithTags
+  include ResourceWithProperties
   include TrackedMutableResource
 
   before_create :set_identifier
   before_save :set_owned
 
-  belongs_to :item_part
+  belongs_to :item
   belongs_to :user
+  has_many :collection_ownerships
+  has_many :collections, through: :collection_ownerships
 
   strip_attributes
-  validates :item_part, presence: true
+  validates :item, presence: true
   validates :user, presence: true
   validates :gotten_at, presence: true
   validate :yielded_at_must_be_after_gotten_at

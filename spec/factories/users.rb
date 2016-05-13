@@ -11,5 +11,9 @@ FactoryGirl.define do
     name{ generate :user_name }
     email{ generate :user_email }
     active true
+
+    factory :admin do
+      roles_mask User.mask_for(:admin)
+    end
   end
 end

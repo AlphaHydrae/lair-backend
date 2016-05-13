@@ -40,4 +40,13 @@ Model.new(:lair, 'Lair database backup') do
     local.path = '/var/lib/lair/backup/local'
     local.keep = 12
   end
+
+  notify_by Slack do |slack|
+    slack.on_success = true
+    slack.on_warning = true
+    slack.on_failure = true
+    slack.webhook_url = ENV['LAIR_SLACK_WEBHOOK_URL']
+    slack.username = 'Lair'
+    slack.icon_emoji = ':floppy_disk:'
+  end
 end

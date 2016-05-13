@@ -1,4 +1,3 @@
-
 namespace :assets do
 
   desc "Dump a JSON manifest of application javascript assets for testing"
@@ -7,6 +6,7 @@ namespace :assets do
     main_assets = %w(application.js)
 
     environment = Sprockets::Environment.new Rails.root
+    environment.append_path 'client'
     environment.append_path 'app/assets/javascripts'
     environment.append_path 'vendor/assets/javascripts'
 

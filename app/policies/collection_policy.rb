@@ -1,6 +1,6 @@
 class CollectionPolicy < ApplicationPolicy
   def create?
-    authenticated?
+    admin? || user == record.user
   end
 
   def index?
@@ -12,11 +12,11 @@ class CollectionPolicy < ApplicationPolicy
   end
 
   def update?
-    authenticated?
+    admin? || user == record.user
   end
 
   def destroy?
-    authenticated?
+    admin? || user == record.user
   end
 
   class Scope < Scope

@@ -1,0 +1,27 @@
+.pull-right dropdown=true
+  button.btn.btn-default.btn-xs type='button' dropdown-toggle=true tooltip='Add a custom property' tooltip-append-to-body='true'
+    span.glyphicon.glyphicon-plus
+  ul.dropdown-menu role='menu'
+    li role='menuitem'
+      a href='#' ng-click='addProperty()' Simple property
+    li role='menuitem'
+      a href='#' ng-click='addArrayProperty()' Multi-valued property
+label for='property-0' Properties
+p.text-muted ng-hide='model.properties.length' No properties.
+ul.list-group ng-show='model.properties.length'
+  li.list-group-item.clearfix ng-repeat='property in model.properties'
+    ng-form name='propertyForm'
+      .col-xs-5.col-sm-4.col-md-3 form-error='propertyForm.key'
+        input.form-control type='text' placeholder='Name' ng-model='property.key' name='key' required=true maxlength=50 ng-pattern='/^[a-z0-9]+(-[a-z0-9]+)*$/i'
+        p.help-block.text-danger ng-if='propertyForm.key.$error.pattern'
+          | Property keys can only contain alphanumeric characters separated by single hyphens (e.g. "foo", "Foo-Bar").
+      .col-xs-6.col-sm-7.col-md-8 form-error='propertyForm.value'
+        input.form-control type='text' placeholder='Value' ng-if='propertyType(property) == "string"' ng-attr-id='property-{{ $index }}' ng-model='property.value' name='value' required=true maxlength=255
+        div ng-if='propertyType(property) == "array"'
+          ui-select multiple=true tagging=true tagging-label='false' ng-model='property.value'
+            ui-select-match placeholder='This is a multi-valued property. Start typing and press enter to add an item.' {{ $item }}
+            ui-select-choices repeat='choice in taggingChoices'
+              span ng-bind-html='choice'
+      .col-xs-1
+        button.btn.btn-default type='button' ng-click='removeProperty(property)'
+          span.glyphicon.glyphicon-remove

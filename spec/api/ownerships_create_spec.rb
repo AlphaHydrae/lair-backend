@@ -3,14 +3,14 @@ require 'rails_helper'
 RSpec.describe 'POST /api/ownerships' do
   let(:user){ create :user }
   let!(:auth_headers){ generate_auth_headers user }
-  let(:item){ create :item, creator: user, language: languages[0] }
-  let!(:part){ create :book, creator: user, item: item, language: languages[0] }
+  let(:work){ create :work, creator: user, language: languages[0] }
+  let!(:item){ create :volume, creator: user, work: work, language: languages[0] }
   let(:languages){ create_languages :en }
   let(:now){ Time.now }
 
   let :minimal_ownership do
     {
-      partId: part.api_id,
+      itemId: item.api_id,
       userId: user.api_id,
       gottenAt: now.utc.iso8601(3)
     }
@@ -18,7 +18,7 @@ RSpec.describe 'POST /api/ownerships' do
 
   let :full_ownership do
     minimal_ownership.merge({
-      tags: {
+      properties: {
         foo: 'bar',
         baz: 'qux'
       }
@@ -35,7 +35,7 @@ RSpec.describe 'POST /api/ownerships' do
     end
 
     json = expect_json with_api_id(minimal_ownership).merge({
-      tags: {}
+      properties: {}
     })
 
     ownership = expect_ownership json, creator: user
@@ -48,7 +48,7 @@ RSpec.describe 'POST /api/ownerships' do
       expect(response.status).to eq(201)
     end
 
-    title = item.titles.first
+    title = work.titles.first
     json = expect_json with_api_id(full_ownership)
 
     ownership = expect_ownership json, creator: user

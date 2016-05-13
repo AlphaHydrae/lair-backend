@@ -1,0 +1,2 @@
+class MediaDirectoryPolicy < ApplicationPolicy
+end

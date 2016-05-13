@@ -1,0 +1,55 @@
+.modal-header.clearfix
+  .btn-group.btn-group-sm.pull-right ng-if='currentUser'
+    button.btn.btn-warning type='button' ng-click='edit(work)' tooltip='Edit'
+      span.glyphicon.glyphicon-edit
+    button.btn.btn-success type='button' ng-click='createItem(work)' tooltip='Add Item'
+      span.glyphicon.glyphicon-plus
+  h3.modal-title {{ work.titles[0].text }}
+.modal-body.workInfo
+  .row
+    .col-xs-12.hidden-lg.hidden-md ng-if='work.image'
+      .image
+        img.center-block ng-src='{{ work.image.url }}' alt='Image'
+    .col-md-6.col-xs-7
+      h4 Type
+      p {{ work.category }}
+      h4 ng-if='work.startYear || work.endYear' Year
+      p ng-if='work.startYear || work.endYear'
+        | {{ work.startYear }}
+        span ng-show='work.endYear && work.endYear != work.startYear'
+          | -
+          | {{ work.endYear }}
+      h4 Language
+      p {{ languageName(work.language) }}
+      h4 ng-show='work.titles.length >= 2' Other Titles
+      ul ng-show='work.titles.length >= 2'
+        li ng-repeat='title in work.titles.slice(1)' {{ title.text }}
+      h4 ng-show='work.relationships.length' Authors
+      ul ng-show='work.relationships.length'
+        li ng-repeat='relationship in work.relationships'
+          person-name person='relationship.person'
+      h4 ng-show='work.links.length' Links
+      ul ng-show='work.links.length'
+        li ng-repeat='link in work.links'
+          a href='{{ link.url }}' {{ link.url }}
+    .col-md-6.hidden-sm.hidden-xs ng-if='work.image'
+      .image
+        img.center-block ng-src='{{ work.image.url }}' alt='Image'
+  .items
+    .panel.panel-default ng-repeat='group in work.items' ng-controller='ItemGroupCtrl'
+      .panel-heading
+        .pull-right ng-if='currentUser && currentUserOwnsAny(group.items)'
+          .btn-group.btn-group-xs
+            button.btn.btn-info type='button' ng-click='yield()' popover-template='"/templates/modules/explorer/explorer.yieldGroupDialog.template.html"' popover-placement='left' popover-append-to-body='true' tooltip="I don't own any of these any more" tooltip-append-to-body='true'
+              span.glyphicon.glyphicon-remove-circle
+        | {{ group.name }}
+      .panel-body
+        .row
+          .item.col-md-3.col-sm-4.col-xs-6 ng-repeat-start='item in group.items'
+            a.thumbnail href='#' ng-click='showItem(item)'
+              img ng-if='item.image' ng-src='{{ item.image.thumbnail.url }}' alt='Thumbnail'
+              .caption ng-if='!item.image'
+                h3 {{ item.title.text }}
+          .clearfix.visible-xs-block ng-if='$index % 2 == 1'
+          .clearfix.visible-sm-block ng-if='$index % 3 == 2'
+          .clearfix.visible-md-block.visible-lg-block ng-if='$index % 4 == 3' ng-repeat-end=true

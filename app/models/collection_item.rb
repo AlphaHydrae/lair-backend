@@ -4,7 +4,7 @@ class CollectionItem < ActiveRecord::Base
   before_create :set_identifier
 
   belongs_to :collection, counter_cache: :linked_items_count
-  belongs_to :item
+  belongs_to :item, class_name: 'Item'
 
   validates :collection, presence: true
   validates :item, presence: true

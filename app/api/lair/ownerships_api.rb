@@ -2,19 +2,19 @@ module Lair
   class OwnershipsApi < Grape::API
     namespace :ownerships do
       post do
-        authorize! Ownership, :create
-
-        part = ItemPart.where(api_id: params[:partId]).first!
+        item = Item.where(api_id: params[:itemId]).first!
         user = params.key?(:userId) ? User.where(api_id: params[:userId]).first! : current_user
+        ownership = Ownership.new item: item, user: user, creator: current_user
+
+        authorize! ownership, :create
 
         Ownership.transaction do
-          ownership = Ownership.new item_part: part, user: user, creator: current_user
-          ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
+          ownership.set_properties_from_params params[:properties]
           ownership.gotten_at = Time.parse params[:gottenAt] if params[:gottenAt]
           ownership.save!
 
           options = {
-            with_part: true_flag?(:withPart),
+            with_item: true_flag?(:withItem),
             with_user: true_flag?(:withUser)
           }
 
@@ -25,12 +25,12 @@ module Lair
       get do
         authorize! Ownership, :index
 
-        rel = Ownership.joins(item_part: :item).joins(:user).order('item_parts.effective_title ASC, users.normalized_name ASC, gotten_at DESC')
+        rel = Ownership.joins(item: :work).joins(:user).order('items.sortable_title ASC, users.normalized_name ASC, gotten_at DESC')
 
         relation = paginated rel do |rel|
 
           if params[:categories].present?
-            rel = rel.where 'items.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
+            rel = rel.where 'works.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
           end
 
           if params[:ownerIds].present?
@@ -42,12 +42,12 @@ module Lair
             rel = collection.apply rel
           end
 
-          if params[:partId].present?
-            rel = rel.where item_parts: { api_id: params[:partId].to_s }
+          if params[:itemId].present?
+            rel = rel.where items: { api_id: params[:itemId].to_s }
           end
 
-          if params[:partIds].kind_of? Array
-            rel = rel.where 'item_parts.api_id IN (?)', params[:partIds].collect(&:to_s).select(&:present?).uniq
+          if params[:itemIds].kind_of? Array
+            rel = rel.where 'items.api_id IN (?)', params[:itemIds].collect(&:to_s).select(&:present?).uniq
           end
 
           if params[:userId].present?
@@ -60,25 +60,25 @@ module Lair
 
           if params[:search].present?
             term = "%#{params[:search].downcase}%"
-            rel = rel.where 'LOWER(item_parts.effective_title) LIKE ? OR LOWER(users.email) LIKE ?', term, term
+            rel = rel.where 'LOWER(items.sortable_title) LIKE ? OR LOWER(users.email) LIKE ?', term, term
           end
 
           rel
         end
 
         options = {
-          with_part: true_flag?(:withPart),
+          with_item: true_flag?(:withItem),
           with_user: true_flag?(:withUser)
         }
 
         includes = []
         includes << :user if options[:with_user]
-        includes << { item_part: [ :item, { title: :language }, :language, :custom_title_language ] } if options[:with_part]
+        includes << { item: [ :work, { title: :language }, :language, :custom_title_language ] } if options[:with_item]
 
         resources = load_resources relation.preload(includes)
 
-        if options[:with_part] && current_user
-          options[:ownerships] = Ownership.joins(:item_part).where(item_parts: { id: resources.collect(&:item_part_id) }, ownerships: { user_id: current_user.id }).to_a
+        if options[:with_item] && current_user
+          options[:ownerships] = Ownership.joins(:item).where(items: { id: resources.collect(&:item_id) }, ownerships: { user_id: current_user.id }).to_a
         end
 
         serialize resources, options
@@ -87,40 +87,42 @@ module Lair
       namespace '/:ownershipId' do
 
         helpers do
-          def fetch_ownership!
-            Ownership.where(api_id: params[:ownershipId]).first!
+          def record
+            @record ||= Ownership.where(api_id: params[:ownershipId]).first!
           end
         end
 
         patch do
-          authorize! Ownership, :update
+          authorize! record, :update
 
-          ownership = fetch_ownership!
-          ownership.cache_previous_version
-          ownership.updater = current_user
+          record.cache_previous_version
+          record.updater = current_user
 
-          ownership.item_part = ItemPart.where(api_id: params[:partId]).first! if params.key? :partId
-          ownership.user = User.where(api_id: params[:userId]).first! if params.key? :userId
-          ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
-          ownership.gotten_at = Time.parse params[:gottenAt] if params.key? :gottenAt
-          ownership.yielded_at = Time.parse params[:yieldedAt] if params.key? :yieldedAt
-          ownership.save!
+          if params.key?(:userId) && params[:userId].to_s != record.user.api_id
+            authorize! record, :update_user
+            record.user = User.where(api_id: params[:userId].to_s).first!
+          end
+
+          record.item = Item.where(api_id: params[:itemId]).first! if params.key? :itemId
+          record.set_properties_from_params params[:properties]
+          record.gotten_at = Time.parse params[:gottenAt] if params.key? :gottenAt
+          record.yielded_at = Time.parse params[:yieldedAt] if params.key? :yieldedAt
+          record.save!
 
           options = {
-            with_part: true_flag?(:withPart),
+            with_item: true_flag?(:withItem),
             with_user: true_flag?(:withUser)
           }
 
-          serialize ownership, options
+          serialize record, options
         end
 
         delete do
-          authorize! Ownership, :destroy
+          authorize! record, :destroy
 
-          ownership = fetch_ownership!
-          ownership.cache_previous_version
-          ownership.deleter = current_user
-          ownership.destroy
+          record.cache_previous_version
+          record.deleter = current_user
+          record.destroy
 
           status 204
           nil

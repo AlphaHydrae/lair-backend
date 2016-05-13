@@ -1,0 +1,21 @@
+#profile.container
+
+  .page-header
+    h1
+      | Profile
+      small You are a member since {{ currentUser.createdAt | amDateFormat: 'LL' }}.
+
+  form.clearfix role='form' name='userForm' ng-submit='userForm.$valid && save()'
+    ng-include src='"/templates/modules/users-form/form.template.html"'
+    .pull-right
+      .btn-group
+        button.btn.btn-warning type='button' ng-click='reset()' ng-disabled='!changed()' Reset
+        button.btn.btn-primary type='submit' ng-disabled='!changed() || userForm.$invalid' Save
+
+  .auth-tokens
+    form.clearfix name='tokenForm'
+      button.btn.btn-default ng-click='generateAuthToken()'
+        span.glyphicon.glyphicon-lock
+        |  Generate an authentication token
+      .form-group
+        input.form-control ng-if='authToken' readonly=true value='{{ authToken }}'

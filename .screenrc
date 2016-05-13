@@ -5,12 +5,13 @@ stuff "psql new-lair\012"
 screen -t redis 1
 stuff "redis-cli\012"
 screen -t resque 2
-stuff "LAIR_LOG_TO_STDOUT=1 TERM_CHILD=1 QUEUE=* rake resque:work\012"
+stuff "bundle exec guard start -g resque-pool\012"
 screen -t server 3
 stuff "bundle exec rails server\012"
 screen -t vim 4
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
 screen -t zsh 5
+stuff "direnv reload\012"
 screen -t console 6
 stuff "bundle exec rails console\012"
 screen -t jshint 7

@@ -1,0 +1,32 @@
+form.gallery-filters.clearfix role='form'
+  .row
+    .col-md-4.col-sm-6.col-xs-9
+      .form-group
+        label.sr-only for='gallery-filters-query' Search
+        .input-group
+          input#gallery-filters-query.form-control ng-model='filtersData.search' ng-model-options='{ debounce: 1000 }' type='text' placeholder='Search...'
+          span.input-group-btn
+            button.advanced-search-toggle.btn.btn-default type='button' ng-if='!filtersAdvanced' ng-click='toggleAdvancedSearch()' tooltip='Toggle advanced search'
+              span.glyphicon.glyphicon-cog
+  .row.advanced-search.clearfix ng-show='advancedSearchEnabled || filtersAdvanced'
+    .col-md-4.col-sm-6.col-xs-12 ng-if='categoryChoices.length >= 2'
+      .categories.form-group
+        label for='gallery-filters-categories' Categories
+        ui-select#gallery-filters-categories ng-model='filtersData.categories' multiple=true reset-search-input=true
+          ui-select-match placeholder='All categories' {{ $item.name | humanize }}
+          ui-select-choices repeat='category.name as category in categoryChoices | filter: $select.search'
+            span ng-bind-html='category.name | humanize'
+    .col-md-4.col-sm-6.col-xs-12 ng-if='ownerChoices.length >= 2'
+      .owners.form-group
+        label for='gallery-filters-owners' Owned by
+        ui-select#gallery-filters-owners ng-model='filtersData.ownerIds' multiple=true reset-search-input=true
+          ui-select-match placeholder='Anyone' {{ $item.name }}
+          ui-select-choices repeat='user.id as user in ownerChoices | filter: $select.search'
+            span ng-bind-html='user.name'
+    .col-md-4.col-sm-6.col-xs-12 ng-if='resourceChoices'
+      .resource.form-group
+        label for='gallery-filters-resource' Show
+        ui-select#gallery-filters-resource ng-model='filtersData.resource' reset-search-input=true
+          ui-select-match placeholder='Select a type...' {{ $select.selected | humanize }}
+          ui-select-choices repeat='resource in resourceChoices | filter: $select.search'
+            span ng-bind-html='resource | humanize'

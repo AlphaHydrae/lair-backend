@@ -1,6 +1,6 @@
 class OwnershipPolicy < ApplicationPolicy
   def create?
-    authenticated?
+    authenticated? && (admin? || user == record.user)
   end
 
   def index?
@@ -8,11 +8,15 @@ class OwnershipPolicy < ApplicationPolicy
   end
 
   def update?
-    authenticated?
+    authenticated? && (admin? || user == record.user)
+  end
+
+  def update_user?
+    admin?
   end
 
   def destroy?
-    authenticated?
+    admin? || user == record.user
   end
 
   class Scope < Scope

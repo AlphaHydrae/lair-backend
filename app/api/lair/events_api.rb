@@ -1,9 +1,17 @@
 module Lair
   class EventsApi < Grape::API
     namespace :events do
+      helpers do
+        def serialization_options *args
+          Hash.new.tap do |options|
+            options[:with_user] = true_flag? :withUser
+          end
+        end
+      end
+
       get do
         authorize! Event, :index
-        rel = Event.order('created_at DESC').includes :trackable
+        rel = Event.order('created_at DESC').includes :trackable, :user
 
         rel = paginated rel do |rel|
 

@@ -1,15 +1,15 @@
 require 'rails_helper'
 
 RSpec.describe 'PATCH /api/ownerships/{id}' do
-  let(:user){ create :user }
+  let(:user){ create :admin }
   let(:other_user){ create :user }
   let(:creator){ create :user }
   let!(:auth_headers){ generate_auth_headers user }
   let(:languages){ create_languages :en }
-  let(:item){ create :item, creator: user, language: languages[0] }
-  let(:part){ create :book, creator: user, item: item, language: languages[0] }
-  let(:other_part){ create :book, creator: user, item: item, language: languages[0], range_start: 2, range_end: 2 }
-  let(:ownership){ create :ownership, creator: creator, user: user, item_part: part }
+  let(:work){ create :work, creator: user, language: languages[0] }
+  let(:item){ create :volume, creator: user, work: work, language: languages[0] }
+  let(:other_item){ create :volume, creator: user, work: work, language: languages[0], range_start: 2, range_end: 2 }
+  let(:ownership){ create :ownership, creator: creator, user: user, item: item }
   let(:now){ Time.now }
 
   let! :original_version do
@@ -25,10 +25,10 @@ RSpec.describe 'PATCH /api/ownerships/{id}' do
   let :full_update do
     {
       id: ownership.api_id,
-      partId: other_part.api_id,
+      itemId: other_item.api_id,
       userId: other_user.api_id,
       gottenAt: 7.days.ago.iso8601(3),
-      tags: {
+      properties: {
         foo: 'bar',
         baz: 'qux'
       }

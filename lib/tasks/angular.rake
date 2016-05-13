@@ -1,9 +1,7 @@
 require 'fileutils'
 
 namespace :spec do
-
   namespace :angular do
-
     desc "Pre-compile the main javascript application file and save it to the spec/angular directory"
     task prepare: :environment do
 

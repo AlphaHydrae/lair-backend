@@ -4,10 +4,10 @@ class ImagePolicy < ApplicationPolicy
   end
 
   def update?
-    authenticated?
+    admin?
   end
 
   def destroy?
-    authenticated?
+    admin?
   end
 end

@@ -1,2 +1,6 @@
-class Video < ActiveRecord::Base
+class Video < Item
+  validates :publisher, absence: true
+  validates :version, absence: true
+  validates :isbn, absence: true
+  validates :issn, absence: true
 end

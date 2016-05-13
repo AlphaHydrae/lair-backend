@@ -4,9 +4,7 @@ module Lair
       base.instance_eval do
         helpers do
           def collection_link_target_association_name
-            name = collection_link_target_model.name.underscore
-            name = 'part' if name == 'item_part'
-            name.to_sym
+            collection_link_target_model.name.underscore.to_sym
           end
         end
 

@@ -16,10 +16,6 @@ class User < ActiveRecord::Base
     active
   end
 
-  def generate_auth_token expiration = 2.weeks.from_now
-    JWT.encode({ iss: api_id, exp: expiration.to_i }, Rails.application.secrets.jwt_hmac_key, 'HS512')
-  end
-
   def email= value
     write_attribute :email, value.try(:downcase)
   end

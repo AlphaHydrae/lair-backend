@@ -24,8 +24,9 @@ module TrackedResource
   end
 
   def deleter
-    raise "Destroyer user is not set!" unless @deleter
-    @deleter
+    user = @deleter || Rails.application.destroy_user
+    raise "Destroyer user is not set!" unless user
+    user
   end
 
   private
@@ -44,6 +45,8 @@ module TrackedResource
   end
 
   def track event_type, user, previous_version = false
-    Event.new(event_type: event_type, user: user, trackable: self, previous_version: previous_version ? cached_previous_version : nil).save!
+    event = Event.new event_type: event_type, user: user, trackable: self, trackable_api_id: api_id
+    event.previous_version = cached_previous_version if previous_version
+    event.save!
   end
 end

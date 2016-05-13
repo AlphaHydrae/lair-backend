@@ -10,15 +10,6 @@ RSpec.describe User, :type => :model do
     expect(user.api_id).not_to eq(user2.api_id)
   end
 
-  describe "#generate_auth_token" do
-    it "should generate a JWT token that can be used to authenticate the user" do
-      token = user.generate_auth_token
-      decoded_token = JWT.decode token, Rails.application.secrets.jwt_hmac_key
-      expect(2.weeks.from_now.to_i - decoded_token[0]['exp']).to be <= 5
-      expect(decoded_token[0]['iss']).to eq(user.api_id)
-    end
-  end
-
   describe "validations" do
     it{ should validate_presence_of(:email) }
     it{ should validate_length_of(:email).is_at_most(255) }

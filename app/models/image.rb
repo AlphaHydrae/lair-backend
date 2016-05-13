@@ -5,7 +5,6 @@ class Image < ActiveRecord::Base
   after_create :upload_image
 
   states :created, :uploading, :uploaded, :upload_failed
-
   event :start_upload, from: :created, to: :uploading
   event :finish_upload, from: :uploading, to: :uploaded
   event :fail_upload, from: :uploading, to: :upload_failed
@@ -13,11 +12,11 @@ class Image < ActiveRecord::Base
 
   before_create :set_identifier
 
+  has_many :works
   has_many :items
-  has_many :item_parts
 
-  scope :linked, ->{ joins('LEFT OUTER JOIN items ON images.id = items.image_id').joins('LEFT OUTER JOIN item_parts ON images.id = item_parts.image_id').where('items.id IS NOT NULL OR item_parts.id IS NOT NULL') }
-  scope :orphaned, ->{ joins('LEFT OUTER JOIN items ON images.id = items.image_id').joins('LEFT OUTER JOIN item_parts ON images.id = item_parts.image_id').where('items.id IS NULL AND item_parts.id IS NULL') }
+  scope :linked, ->{ joins('LEFT OUTER JOIN works ON images.id = works.image_id').joins('LEFT OUTER JOIN items ON images.id = items.image_id').where('works.id IS NOT NULL OR items.id IS NOT NULL') }
+  scope :orphaned, ->{ joins('LEFT OUTER JOIN works ON images.id = works.image_id').joins('LEFT OUTER JOIN items ON images.id = items.image_id').where('works.id IS NULL AND items.id IS NULL') }
 
   validates :state, inclusion: { in: %w(created uploading uploaded upload_failed) }
   validates :url, presence: true, length: { maximum: 255 }

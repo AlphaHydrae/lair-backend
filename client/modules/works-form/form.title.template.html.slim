@@ -1,0 +1,16 @@
+ng-form name='titleForm'
+  .col-xs-7.col-sm-8.col-md-9 form-error='titleForm.text'
+    .input-group
+      .input-group-btn
+        button.move.btn.btn-default type='button'
+          span.glyphicon.glyphicon-move
+      input.form-control type='text' placeholder='{{ titleIndex === 0 ? "Original title" : "Additional title" }}' ng-model='title.text' ng-model-options='{updateOn: "default blur", debounce: {default: 350, blur: 0}}' ng-attr-id='workTitle-{{ titleIndex }}' name='text' required=true maxlength=150
+    p.help-block ng-if='titleExists'
+      span.text-warning
+        strong Please make sure this is a new work.
+        |  There's already one in the {{ category }} category with the same title.
+  .col-xs-4.col-sm-3.col-md-2 form-error='titleForm.language'
+    language-select ng-model='title.language' languages='languages' name='language' required=true
+  .col-xs-1
+    button.btn.btn-default type='button' ng-click='onRemove()' ng-disabled='!deletable'
+      span.glyphicon.glyphicon-remove

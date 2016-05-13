@@ -1,0 +1,37 @@
+.modal-header.clearfix
+  .btn-group.btn-group-sm.pull-right
+    button.btn.btn-default type='button' ng-click='showWork()' tooltip='Parent work' tooltip-append-to-body='true'
+      span.glyphicon.glyphicon-arrow-left
+    button.btn.btn-info type='button' own-dialog=true ng-if='currentUser && !item.ownedByMe'
+      span.glyphicon.glyphicon-hand-up
+    button.btn.btn-info type='button' ng-if='currentUser && item.ownedByMe' popover-template='"/templates/modules/explorer/explorer.yieldDialog.template.html"' popover-placement='bottom' popover-append-to-body='true' tooltip="I don't own it any more" tooltip-append-to-body='true'
+      span.glyphicon.glyphicon-remove-circle
+    button.btn.btn-warning type='button' ng-if='currentUser' ng-click='edit(item)' tooltip='Edit' tooltip-append-to-body='true'
+      span.glyphicon.glyphicon-edit
+  h3.modal-title
+    | {{ item.title.text }}
+    span ng-if='item.releaseDate'
+      |  ({{ item.releaseDate }})
+    span ng-if='!item.releaseDate'
+      |  ({{ item.originalReleaseDate }})
+.modal-body.item-info
+  .row
+    .col-xs-12.hidden-lg.hidden-md ng-if='item.image'
+      .image
+        img.center-block ng-src='{{ item.image.url }}' alt='Image'
+    .col-md-6.col-xs-7
+      .description.clearfix
+        dl
+          dt ng-if='item.format' Format
+          dd ng-if='item.format' {{ item.format }}
+          dt ng-if='item.length' Pages
+          dd ng-if='item.length' {{ item.length }}
+          dt ng-if='item.originalReleaseDate' Original Release Date
+          dd ng-if='item.originalReleaseDate' {{ item.originalReleaseDate }}
+          dt ng-if='item.releaseDate' Release Date
+          dd ng-if='item.releaseDate' {{ item.releaseDate }}
+          dt ng-if='item.isbn' ISBN
+          dd ng-if='item.isbn' {{ formatIsbn(item.isbn) }}
+    .col-md-6.hidden-sm.hidden-xs ng-if='item.image'
+      .image
+        img.center-block ng-src='{{ item.image.url }}' alt='Image'

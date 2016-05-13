@@ -9,12 +9,11 @@ class Collection < ActiveRecord::Base
   after_destroy :remove_featured
 
   belongs_to :user
-  # TODO: cascade delete in database
-  has_many :collection_items, dependent: :destroy
-  has_many :collection_parts, dependent: :destroy
-  has_many :collection_ownerships, dependent: :destroy
-  has_many :items, through: :collection_items
-  has_many :parts, class_name: 'ItemPart', through: :collection_parts
+  has_many :collection_works
+  has_many :collection_items
+  has_many :collection_ownerships
+  has_many :works, through: :collection_works
+  has_many :items, class_name: 'Item', through: :collection_items
   has_many :ownerships, through: :collection_ownerships
   has_and_belongs_to_many :users
 
@@ -30,27 +29,27 @@ class Collection < ActiveRecord::Base
 
     # Restrict to the categories indicated by the collection.
     if restrictions['categories'].present?
-      rel = rel.where 'items.category IN (?)', restrictions['categories']
+      rel = rel.where 'works.category IN (?)', restrictions['categories']
     end
 
-    # Restrict to items owned by the users indicated by the collection.
-    if restrictions['owners'].present?
-      rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, restrictions['owners']
+    # Restrict to works and items owned by the users indicated by the collection.
+    if restrictions['ownerIds'].present?
+      rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, restrictions['ownerIds']
     end
 
     conditions = []
     values = []
 
-    # Restrict to the items linked to the collection.
+    # Restrict to the works and items linked to the collection.
+    if collection_works.present?
+      conditions << 'works.id IN (?)'
+      values << collection_works.collect(&:work_id)
+    end
+
+    # Restrict to the works and items linked to the collection.
     if collection_items.present?
       conditions << 'items.id IN (?)'
       values << collection_items.collect(&:item_id)
-    end
-
-    # Restrict to the parts linked to the collection.
-    if collection_parts.present?
-      conditions << 'item_parts.id IN (?)'
-      values << collection_parts.collect(&:part_id)
     end
 
     # Restrict to the ownerships linked to the collection.
@@ -97,7 +96,7 @@ class Collection < ActiveRecord::Base
   end
 
   def normalize_name
-    self.normalized_name = name.downcase
+    self.normalized_name = name.to_s.downcase
   end
 
   def clean_data
@@ -107,8 +106,8 @@ class Collection < ActiveRecord::Base
 
   def update_users
     user_ids = []
-    user_ids += data['restrictions'].try(:[], 'owners') || []
-    user_ids += data['defaultFilters'].try(:[], 'owners') || []
+    user_ids += data['restrictions'].try(:[], 'ownerIds') || []
+    user_ids += data['defaultFilters'].try(:[], 'ownerIds') || []
     self.users = User.select('id, roles_mask').where(api_id: user_ids.uniq).to_a
   end
 

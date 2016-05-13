@@ -10,7 +10,7 @@ Rails.application.routes.draw do
 
   if %w(development test).include? Rails.env
     mount Resque::Server.new, at: '/resque'
-    get '/templates/:name', to: 'home#template'
+    get '/templates/*template', to: 'home#template'
   end
 
   get '/*path', to: 'home#index'

@@ -4,10 +4,11 @@ module ResourceWithImage
 
   # FIXME: delete image along with resource (if it has no other links)
   # FIXME: delete old image if image is updated and old image has no other links
-  # TODO: delete image searches when image is set
   included do
+    after_save :clean_up_image_searches
+
     belongs_to :image, autosave: true
-    belongs_to :main_image_search, class_name: 'ImageSearch'
+    belongs_to :last_image_search, class_name: 'ImageSearch'
     has_many :image_searches, as: :imageable
   end
 
@@ -15,8 +16,11 @@ module ResourceWithImage
     raise NotImplementedError, "#{self.class.name} does not implement #default_image_search"
   end
 
-  def main_image_search!
-    raise ActiveRecord::RecordNotFound, "Couldn't find last image search of #{self.class.name} #{id}" unless main_image_search.present?
-    main_image_search
+  private
+
+  def clean_up_image_searches
+    image_id_change = changes[:image_id]
+    ImageSearch.where(imageable: self).delete_all if image_id_change.try :[], 1
+    true
   end
 end

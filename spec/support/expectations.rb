@@ -1,5 +1,5 @@
 module SpecExpectationsHelper
-  MODELS = [ Event, Image, ImageSearch, Item, ItemDescription, ItemLink, ItemPart, ItemPerson, ItemTitle, Language, Ownership, Person, User ]
+  MODELS = [ Event, Image, ImageSearch, Work, WorkDescription, WorkLink, Item, WorkPerson, WorkTitle, Language, Ownership, Person, User ]
 
   def expect_json expected, path = '', actual = nil
     json = path.empty? ? JSON.parse(response.body) : actual
@@ -12,7 +12,7 @@ module SpecExpectationsHelper
       end
     elsif expected.kind_of? Array
       expect(json).to be_a_kind_of(Array)
-      expect(json).to have(expected.length).items
+      expect(json).to have(expected.length).items, ->{ "expected JSON at #{path} to have #{expected.length} items, got #{json.length} (#{json.inspect})" }
       expected.each.with_index do |v,i|
         expect_json v, "#{path}/#{i}", json[i]
       end

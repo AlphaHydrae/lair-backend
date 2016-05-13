@@ -2,9 +2,9 @@ require 'paint'
 
 namespace :templates do
 
-  desc 'Compile all templates in app/views/templates to public/templates'
+  desc 'Compile all templates in client to public/templates'
   task precompile: :environment do
-    templates_dir = Rails.root.join 'app', 'views', 'templates'
+    templates_dir = Rails.root.join 'client'
 
     Dir.chdir templates_dir
     templates = Dir.glob('**/*.slim').reject{ |t| t.match /^(?:\.|_)/ }
@@ -20,6 +20,7 @@ namespace :templates do
       options = {}
       rendered = Slim::Template.new(source, options).render(scope)
 
+      FileUtils.mkdir_p File.dirname(target)
       File.open(target, 'w'){ |f| f.write rendered }
 
       puts Paint["#{Pathname.new(source).relative_path_from Rails.root} -> #{Pathname.new(target).relative_path_from Rails.root}", :green]

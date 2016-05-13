@@ -4,6 +4,8 @@ class EventSerializer < ApplicationSerializer
     json.apiVersion record.api_version
     json.type record.event_type
     json.createdAt record.created_at.iso8601(3)
+    json.userId record.user.api_id
+    json.user serialize(record.user) if options[:with_user]
 
     if %w(create update delete).include? record.event_type
       json.resource record.trackable_type.pluralize.underscore.gsub(/_/, '-')

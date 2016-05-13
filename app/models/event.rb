@@ -1,8 +1,12 @@
 class Event < ActiveRecord::Base
+  TRACKED_MODELS = [ Company, Work, Item, Ownership, Person ]
+
   include ResourceWithIdentifier
+  include Wisper::Publisher
 
   before_create :set_api_version
   before_create{ set_identifier{ SecureRandom.uuid } }
+  after_create :broadcast_created
 
   belongs_to :user
   belongs_to :trackable, polymorphic: true
@@ -22,5 +26,9 @@ class Event < ActiveRecord::Base
 
   def set_api_version
     self.api_version = Rails.application.api_version
+  end
+
+  def broadcast_created
+    broadcast :event_created, self
   end
 end

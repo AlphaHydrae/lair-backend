@@ -1,0 +1,51 @@
+.container
+  .page-header
+    h1 Your Files
+
+  #file-explorer
+
+    .col-xs-4
+      form role='form' novalidate=true
+        .form-group
+          label for='file-explorer-sourceId' Source
+          ui-select#file-explorer-sourceId ng-model='mediaSource' reset-search-input=true
+            ui-select-match placeholder='Source' {{ $select.selected.name }}
+            ui-select-choices repeat='source in mediaSources | filter: $select.search'
+              span ng-bind-html='source.name'
+      dl ng-if='mediaSource.id'
+        dt Number of files
+        dd.empty ng-if='sourceFilesCount === undefined' Loading...
+        dd ng-if='sourceFilesCount !== undefined' {{ sourceFilesCount | number: 0 }}
+        dt Last scan date
+        dd
+          span ng-if='mediaSource.scannedAt' {{ mediaSource.scannedAt | amDateFormat: 'lll' }}
+          em.text-muted ng-if='!mediaSource.scannedAt' You've never scanned this source.
+        dt Creation date
+        dd {{ mediaSource.createdAt | amDateFormat: 'lll' }}
+        dt Scan paths
+        dd ng-if='!mediaSource.scanPaths.length'
+          em.text-muted No scan paths defined.
+        dd ng-repeat='scanPath in mediaSource.scanPaths | orderBy: "path"'
+          a href='#' ng-if='scanPath.path != mediaFilesList.httpSettings.params.directory' ng-click='openScanPath(scanPath.path)'
+            | {{ scanPath.path }}
+          span ng-if='scanPath.path == mediaFilesList.httpSettings.params.directory'
+            | {{ scanPath.path }}
+
+    .col-xs-8
+      ol.breadcrumb ng-if='mediaFilesList.httpSettings.params.sourceId'
+        li ng-class='{active: !breadcrumbs.length}'
+          a href='#' ng-if='breadcrumbs.length' ng-click='openRoot()' {{ mediaSource.name }}
+          span ng-if='!breadcrumbs.length' {{ mediaSource.name }}
+        li ng-repeat='directory in breadcrumbs' ng-class='{active: $index == breadcrumbs.length - 1}'
+          a href='#' ng-if='$index < breadcrumbs.length - 1' ng-click='open(directory)' {{ directory.path | basename }}
+          span ng-if='$index == breadcrumbs.length - 1' {{ directory.path | basename }}
+      infinite records='mediaFilesList.records' http-settings='mediaFilesList.httpSettings' infinite-options='mediaFilesList.infiniteOptions'
+        ul.list-group
+          li.list-group-item ng-repeat='file in mediaFilesList.records'
+            span.badge ng-if='file.type == "file"' {{ file.size | prettyBytes }}
+            span.glyphicon.glyphicon-folder-open ng-if='file.type == "directory"'
+            a href='#' ng-if='file.type == "directory"' ng-click='open(file)'
+              | {{ file.path | basename }}
+            span.glyphicon.glyphicon-file ng-if='file.type == "file"'
+            span ng-if='file.type == "file"'
+              | {{ file.path | basename }}

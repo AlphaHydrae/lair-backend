@@ -1,0 +1,2 @@
+class VolumePolicy < ApplicationPolicy
+end

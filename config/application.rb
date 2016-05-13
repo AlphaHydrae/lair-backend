@@ -11,6 +11,8 @@ module Lair
     VERSION = File.read Rails.root.join('VERSION')
     API_VERSION = 1
 
+    attr_reader :destroy_user
+
     def version
       VERSION
     end
@@ -24,6 +26,49 @@ module Lair
       config = config_for :services
       raise "Missing configuration for service #{service}" unless config[service.to_s]
       config[service.to_s].with_indifferent_access
+    end
+
+    def destroy record, current_user, options = {}
+      hard = options.fetch :hard, false
+
+      record.class.transaction do
+        @destroy_user = current_user
+
+        observer = DeletionObserver.new
+        Wisper.subscribe observer do
+          yield if block_given?
+
+          if hard
+            record.class.where(id: record.id).delete_all
+          else
+            record.cache_previous_version
+            record.deleter = current_user
+            record.destroy
+          end
+        end
+
+        @destroy_user = nil
+
+        if hard
+          raise "#{observer.events.length} events were stored" if observer.events.any?
+        else
+          event = Event.where(trackable_type: record.class.name, trackable_id: record.id, event_type: 'delete').first
+          side_effects = observer.events.select{ |e| e.id != event.id }
+          Event.where(id: side_effects.collect(&:id)).update_all cause_id: event.id if side_effects.any?
+        end
+      end
+    end
+
+    class DeletionObserver
+      attr_reader :events
+
+      def initialize
+        @events = []
+      end
+
+      def event_created event
+        @events << event
+      end
     end
 
     # Settings in config/environments/* take precedence over those specified here.
@@ -41,6 +86,7 @@ module Lair
     # For not swallow errors in after_commit/after_rollback callbacks.
     config.active_record.raise_in_transactional_callbacks = true
 
+    config.assets.paths << Rails.root.join('client')
     config.assets.paths << Rails.root.join('app', 'assets', 'fonts')
     config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
     config.assets.precompile << /\.(?:svg|eot|woff|woff2|ttf|otf|png|gif)\z/

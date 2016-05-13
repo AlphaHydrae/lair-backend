@@ -1,5 +1,5 @@
 class StatsPolicy < ApplicationPolicy
   def images?
-    authenticated?
+    admin?
   end
 end

@@ -1,47 +1,92 @@
 module Lair
   class ItemsApi < Grape::API
+    helpers do
+      def update_languages! item, type
+
+        json_key = "#{type.to_s.camelize(:lower)}Languages".to_sym
+        return unless params[json_key].kind_of? Array
+
+        association = "#{type}_languages".to_sym
+        item.send "#{association}=", params[json_key].collect{ |l| language(l.to_s) }
+      end
+
+      def set_date_with_precision! record, attr
+        value = params[attr.to_s.camelize(:lower)]
+        if value.to_s.try :match, /\A\d+(?:-[01]\d(?:-[0123]\d)?)?\Z/
+
+          date_string, precision = case value.split('-').length
+          when 1
+            [ "#{value}-01-01", 'y' ]
+          when 2
+            [ "#{value}-01", 'm' ]
+          else
+            [ value.to_s, 'd' ]
+          end
+
+          record.send "#{attr}=", Date.iso8601(date_string)
+          record.send "#{attr}_precision=", precision
+        end
+      end
+
+      def update_record_from_params record
+        record.work = Work.where(api_id: params[:workId]).first! if params.key? :workId
+
+        record.title = params[:titleId].present? ? record.work.titles.where(api_id: params[:titleId]).first! : nil if params.key? :titleId
+        record.custom_title = params[:customTitle] if params.key? :customTitle
+        record.custom_title_language = params[:customTitleLanguage].present? ? language(params[:customTitleLanguage]) : nil if params.key? :customTitleLanguage
+
+        set_image! record, params[:image] if params[:image].kind_of? Hash
+
+        record.language = language params[:language] if params.key? :language
+
+        record.range_start = params[:start] if params.key? :start
+        record.range_end = params[:end] if params.key? :end
+
+        %i(edition version format length publisher isbn).each do |attr|
+          record.send "#{attr.to_s.underscore}=", params[attr] if params.key? attr
+        end
+
+        record.set_properties_from_params params[:properties]
+
+        set_date_with_precision! record, :release_date
+        set_date_with_precision! record, :original_release_date
+
+        if record.kind_of? Volume
+          record.publisher = params[:publisher] if params.key? :publisher
+          record.version = params[:version] if params.key? :version
+          record.isbn = params[:isbn] if params.key? :isbn
+        elsif record.kind_of? Issue
+          record.publisher = params[:publisher] if params.key? :publisher
+          record.issn = params[:issn] if params.key? :issn
+        elsif record.kind_of? Video
+          update_languages! record, :audio
+          update_languages! record, :subtitle
+        end
+      end
+    end
+
     namespace :items do
       post do
         authorize! Item, :create
-        language = language(params[:language])
+
+        type = params[:type].to_s
+
+        item = if type == 'volume'
+          Volume.new creator: current_user
+        elsif type == 'issue'
+          Issue.new creator: current_user
+        elsif type == 'video'
+          Video.new creator: current_user
+        else
+          raise "Unsupported item type #{type.inspect}"
+        end
 
         Item.transaction do
-          item = Item.new category: params[:category], start_year: params[:startYear], language: language, creator: current_user
-          item.end_year = params[:endYear] if params.key?(:endYear)
-          item.number_of_parts = params[:numberOfParts] if params.key?(:numberOfParts)
-          set_image! item, params[:image] if params[:image].kind_of? Hash
-          # TODO: check only strings in tags
-          item.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != item.tags
-
-          params[:titles].each.with_index do |title,i|
-            item.titles.build contents: title[:text], language: language(title[:language]), display_position: i
-          end
-
-          if params[:descriptions].kind_of?(Array)
-            params[:descriptions].each.with_index do |description,i|
-              item.descriptions.build contents: description[:text], language: language(description[:language])
-            end
-          end
-
-          if params[:relationships].kind_of?(Array)
-            params[:relationships].each do |p|
-              item.relationships.build relationship: p[:relation], person: Person.where(api_id: p[:personId]).first!
-            end
-          end
-
-          if params[:links].kind_of?(Array)
-            params[:links].each.with_index do |link,i|
-              options = { url: link[:url] }
-              options[:language] = language(link[:language]) if link.key? :language
-              item.links.build options
-            end
-          end
-
+          update_record_from_params item
           item.save!
-          item.update_columns original_title_id: item.titles.first.id
-
-          serialize item
         end
+
+        serialize item
       end
 
       helpers do
@@ -50,47 +95,68 @@ module Lair
 
           rel = paginated rel do |rel|
 
+            work_joined = false
             ownerships_joined = false
 
             if params[:categories].present?
-              rel = rel.where 'items.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
+              rel = rel.joins :work unless work_joined
+              work_joined = true
+              rel = rel.where 'works.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
             end
 
             if params[:ownerIds].present?
               unless ownerships_joined
                 ownerships_joined = true
-                rel = rel.joins parts: { ownerships: :user }
+                rel = rel.joins ownerships: :user
               end
 
-              rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, Array.wrap(params[:ownerIds]).collect(&:to_s).select(&:present?)
+              rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, Array.wrap(params[:ownerIds]).collect(&:to_s)
             end
 
             if params[:collectionId].present?
               collection = Collection.where(api_id: params[:collectionId].to_s).first!
 
+              unless work_joined
+                work_joined = true
+                rel = rel.joins :work
+              end
+
               unless ownerships_joined
                 ownerships_joined = true
-                rel = rel.joins parts: { ownerships: :user }
+                rel = rel.joins ownerships: :user
               end
 
               rel = collection.apply rel
             end
 
-            if params[:image].to_s.match /\A(?:1|y|yes|t|true)\Z/i
-              rel = rel.where 'items.image_id is not null'
-            elsif params[:image].to_s.match /\A(?:0|n|no|f|false)\Z/i
-              rel = rel.where 'items.image_id is null'
+            if true_flag? :image
+              rel = rel.where 'image_id is not null'
+            elsif false_flag? :image
+              rel = rel.where 'image_id is null'
             end
 
-            if params[:category].present?
-              rel = rel.where 'items.category = ?', params[:category].to_s
+            if params[:workId].present?
+              rel = rel.joins :work unless work_joined
+              work_joined = true
+              rel = rel.where('works.api_id = ?', params[:workId].to_s)
+            end
+
+            if params[:language].present?
+              rel = rel.joins(:language).where 'languages.tag = ?', params[:language].to_s
+            end
+
+            if params[:rangeStart].present?
+              rel = rel.where 'items.range_start = ?', params[:rangeStart].to_s.to_i
+            end
+
+            if params[:rangeEnd].present?
+              rel = rel.where 'items.range_end = ?', params[:rangeEnd].to_s.to_i
             end
 
             if params[:search].present?
-              rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
+              search = "%#{params[:search].to_s.downcase}%"
+              rel = rel.where 'LOWER(items.sortable_title) LIKE ?', search
             end
-
-            @pagination_filtered_count = rel.count 'distinct items.id'
 
             rel
           end
@@ -107,136 +173,88 @@ module Lair
 
       get do
         authorize! Item, :index
+
         rel = search_items
 
-        grouped = params[:search].present? || params[:collectionId].present? || params[:ownerIds].present?
-
-        if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
-          rel = rel.order 'RANDOM()'
-          rel = rel.group 'items.id' if grouped
-        else
-          rel = rel.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc')
-          rel = rel.group 'items.id, original_titles.id' if grouped
+        if params[:collectionId].present?
+          rel = rel.group 'items.id'
         end
 
-        includes = [ :language, :links, { relationships: :person, titles: :language } ]
+        if true_flag? :random
+          rel = rel.order 'RANDOM()'
+        elsif true_flag? :latest # TODO: implement generic order
+          rel = rel.order 'items.range_start DESC, items.created_at DESC'
+        else
+          rel = rel.order 'items.sortable_title'
+        end
 
+        with_work = true_flag? :withWork
+        with_ownerships = true_flag? :ownerships
         image_from_search = true_flag? :imageFromSearch
-        includes << :main_image_search if image_from_search
 
-        options = { image_from_search: image_from_search }
-        rel = rel.includes(includes)
-        serialize load_resources(rel)
+        includes = [ :image, :language, { title: :language } ]
+        includes << :last_image_search if image_from_search
+
+        if with_work
+          includes << { work: [ :language, :links, { person_relationships: :person, company_relationships: :company, titles: :language } ] }
+          includes.last[:work] << :last_image_search if image_from_search
+        else
+          includes << :work
+        end
+
+        # TODO: test preload
+        items = rel.preload(includes).to_a
+
+        ownerships = if current_user
+          Ownership.joins(:item).where(items: { id: items.collect(&:id) }, ownerships: { owned: true, user_id: current_user.id }).to_a
+        else
+          nil
+        end
+
+        options = { with_work: with_work, ownerships: ownerships, image_from_search: image_from_search }
+        serialize items, options
       end
 
       namespace '/:itemId' do
 
         helpers do
-          def fetch_item! options = {}
-            rel = Item.where(api_id: params[:itemId])
-
-            if options[:includes] == true
-              rel = rel.includes([ :language, { links: [ :language ], relationships: [ :person ], titles: [ :language ] } ])
-            elsif options[:includes]
-              rel = rel.includes options[:includes]
-            end
-
-            rel.first!
-          end
-
-          def current_imageable
-            fetch_item!
+          # TODO: rename to record
+          def fetch_item!
+            Item.where(api_id: params[:itemId]).includes([ :title, :language ]).first!
           end
         end
 
         get do
           authorize! Item, :show
-          serialize fetch_item!(includes: true)
-        end
 
-        include ImageSearchesApi
-        include MainImageSearchApi
+          item = fetch_item!
+
+          # TODO: handle includes
+          with_work = true_flag? :withWork
+
+          ownerships = if current_user
+            Ownership.joins(:item).where(items: { id: item }, ownerships: { owned: true, user_id: current_user.id }).to_a
+          else
+            nil
+          end
+
+          serialize item, current_user: current_user, with_work: with_work, ownerships: ownerships
+        end
 
         patch do
           authorize! Item, :update
-          item = fetch_item! includes: true
+
+          item = fetch_item!
           item.cache_previous_version
           item.updater = current_user
-          original_title = nil
 
           Item.transaction do
-            %i(startYear endYear numberOfParts).each do |attr|
-              item.send "#{attr.to_s.underscore}=".to_sym, params[attr] if params.key? attr
-            end
-            item.language = language params[:language] if params.key? :language
-            set_image! item, params[:image] if params[:image].kind_of? Hash
-            item.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != item.tags
-
-            if params.key? :titles
-              titles_to_delete = []
-              titles_to_add = params[:titles].dup
-
-              item.titles.each do |title|
-                title_data = params[:titles].find{ |h| h[:id] == title.api_id }
-
-                if title_data
-                  title.contents = title_data[:text] if title_data.key? :text
-                  title.language = language title_data[:language] if title_data.key? :language
-                  title.display_position = params[:titles].index title_data
-                  titles_to_add.delete title_data
-                else
-                  title.mark_for_destruction
-                end
-              end
-
-              titles_to_add.each do |title|
-                item.titles.build(contents: title[:text], language: language(title[:language]), display_position: params[:titles].index(title))
-              end
-            end
-
-            if params.key? :relationships
-              relationships_to_add = params[:relationships]
-
-              item.relationships.each do |relationship|
-                if relationship_data = params[:relationships].find{ |r| r[:relation] == relationship.relationship && r[:personId] == relationship.person.api_id }
-                  relationships_to_add.delete relationship_data
-                else
-                  relationship.mark_for_destruction
-                end
-              end
-
-              relationships_to_add.each do |relationship|
-                item.relationships.build(relationship: relationship[:relation], person: Person.where(api_id: relationship[:personId]).first!)
-              end
-            end
-
-            if params.key? :links
-              links_to_add = params[:links]
-
-              item.links.each do |link|
-                if link_data = params[:links].find{ |l| l[:url] == link.url }
-                  link.language = language link_data[:language] if link_data.key? :language
-                  links_to_add.delete link_data
-                else
-                  link.mark_for_destruction
-                end
-              end
-
-              links_to_add.each do |link|
-                item.links.build(url: link[:url], language: link[:language] ? language(link[:language]) : nil)
-              end
-            end
-
+            update_record_from_params item
             item.save!
-
-            original_title = item.titles.find{ |t| t.display_position == 0 }
-            if item.original_title_id != original_title.id
-              item.original_title = original_title
-              item.update_columns original_title_id: original_title.id
-            end
           end
 
-          serialize item
+          with_work = true_flag? :withWork
+          serialize item, with_work: with_work
         end
       end
     end

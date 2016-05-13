@@ -1,14 +1,14 @@
 class ImageSearch < ActiveRecord::Base
   include ResourceWithIdentifier
-  include TrackedImmutableResource
 
   attr_accessor :rate_limit
   # TODO: delete previous unattached image searches
 
   before_create :set_identifier
-  after_create :set_imageable_main_search
+  after_create :set_last_image_search
+  after_create :clean_up_previous_searches
 
-  belongs_to :creator, class_name: 'User'
+  belongs_to :user
   belongs_to :imageable, polymorphic: true
 
   strip_attributes
@@ -35,7 +35,17 @@ class ImageSearch < ActiveRecord::Base
 
   private
 
-  def set_imageable_main_search
-    imageable.class.where(id: imageable.id).update_all main_image_search_id: id if imageable.present?
+  def set_last_image_search
+    imageable_type.constantize.where(id: imageable_id).update_all last_image_search_id: self.id if imageable.present?
+    true
+  end
+
+  def clean_up_previous_searches
+    if imageable.present?
+      ImageSearch.where(imageable: imageable).where('id != ?', self.id).delete_all
+    else
+      ImageSearch.where(user_id: self.user_id).where('imageable_id IS NULL AND id != ?', self.id).delete_all
+    end
+    true
   end
 end

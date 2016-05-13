@@ -1,0 +1,2 @@
+class CollectionWorkPolicy < ApplicationPolicy
+end

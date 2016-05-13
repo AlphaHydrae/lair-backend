@@ -4,18 +4,23 @@ gem 'rails', '4.2.1'
 
 # Database
 gem 'pg'
-gem 'strip_attributes'
-gem 'simple_states'
-gem 'role_model'
+gem 'activerecord-import'
 
 # Memory Database
 gem 'redis'
 gem 'hiredis'
 gem 'redis-namespace'
 
+# Models
+gem 'strip_attributes'
+gem 'simple_states'
+gem 'role_model'
+gem 'wisper'
+
 # Background Jobs
 gem 'resque'
 gem 'resque-scheduler'
+gem 'resque-workers-lock'
 
 # Templates & Assets
 gem 'slim-rails'
@@ -29,7 +34,7 @@ gem 'redcarpet'
 
 # Standards
 gem 'iso'
-gem 'isbn'
+gem 'library_stdnums'
 
 # API & Services
 gem 'jwt'
@@ -85,4 +90,7 @@ group :development, :test do
 
   gem 'guard'
   gem 'guard-rake'
+  gem 'guard-process'
+
+  gem 'resque-pool'
 end

@@ -6,6 +6,7 @@ module ApiPaginationHelper
 
     limit = params[:number].to_i
     limit = options.fetch :default_number, 15 if limit < 1
+    limit = 0 if params[:number] == '0'
 
     header 'X-Pagination-Start', offset.to_s
     header 'X-Pagination-Number', limit.to_s
@@ -27,6 +28,8 @@ module ApiPaginationHelper
 
       header 'X-Pagination-Filtered-Total', filtered_count.to_s
     end
+
+    filtered_rel = filtered_rel.none if limit == 0
 
     filtered_rel.offset(offset).limit(limit)
   end

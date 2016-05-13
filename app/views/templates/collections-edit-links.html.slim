@@ -1,7 +1,0 @@
-.pull-right
-  .btn-group
-    button.btn.btn-warning type='button' ng-click='unselectAll()' ng-disabled='noneSelected()' tooltip='Unselect all' tooltip-append-to-body='true'
-      span.glyphicon.glyphicon-remove
-    button.btn.btn-success type='button' ng-click='selectAll()' ng-disabled='!records.length || allSelected()' tooltip='Select all' tooltip-append-to-body='true'
-      span.glyphicon.glyphicon-ok
-items-display records='records' collection='collection' collection-modified='true' display-type='displayOptions.type' display-enabled='enabled' on-select='select(type, record)' selected='selected(type, record)'

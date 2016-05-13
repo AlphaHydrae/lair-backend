@@ -1,2 +1,0 @@
-class ItemTitlePolicy < ApplicationPolicy
-end

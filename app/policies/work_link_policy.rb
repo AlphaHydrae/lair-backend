@@ -1,0 +1,2 @@
+class WorkLinkPolicy < ApplicationPolicy
+end

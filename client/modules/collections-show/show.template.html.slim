@@ -1,0 +1,16 @@
+.container-fluid
+  .show-collection
+    .row
+      .col-xs-12.text-center
+        h1
+          | {{ collection.displayName }}
+          small
+            span ng-if='!totalWorks && !totalItems' Loading...
+            span ng-if='totalWorks >= 2' {{ totalWorks}} works, 
+            ng-pluralize ng-if='totalItems' count='totalItems' when='{"1": "{} item", "other": "{} items"}'
+    .btn-group.pull-right
+      a.btn.btn-warning ng-if='currentUser.id == collection.userId || currentUserIs("admin")' ui-sref='collections.edit({ id: collection.id })' tooltip='Edit collection' tooltip-append-to-body='true'
+        span.glyphicon.glyphicon-edit
+      a.btn.btn-default ui-sref='collections.list' tooltip='See all collections' tooltip-append-to-body='true'
+        span.glyphicon.glyphicon-list
+    gallery ng-if='collection' collection='collection' display-type='displayOptions.type'

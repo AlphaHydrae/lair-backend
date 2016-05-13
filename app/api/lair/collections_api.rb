@@ -1,21 +1,29 @@
 module Lair
   class CollectionsApi < Grape::API
     namespace :collections do
-      post do
-        authorize! Collection, :create
+      helpers do
+        def with_serialization_includes rel
+          rel = rel.includes :user
+          rel
+        end
 
-        Collection.transaction do
-          record = Collection.new creator: current_user, user: current_user
+        def serialization_options *args
+          {
+            with_links: true_flag?(:withLinks),
+            with_user: true_flag?(:withUser)
+          }
+        end
 
-          record.name = params[:name].to_s
-          record.display_name = params[:displayName].to_s
-          record.public_access = !!params[:public]
-          record.featured = !!params[:featured]
+        def update_record_from_params record
+          record.name = params[:name].to_s if params.key? :name
+          record.display_name = params[:displayName].to_s if params.key? :displayName
+          record.public_access = !!params[:public] if params.key? :public
+          record.featured = !!params[:featured] if params.key? :featured
 
           restrictions = params[:restrictions]
           if restrictions.kind_of? Hash
 
-            categories = restrictions[:categories]
+            categories = restrictions['categories']
             if categories.kind_of? Array
               record.restrictions['categories'] = categories.collect(&:to_s).select(&:present?).uniq
               record.restrictions.delete 'categories' if record.restrictions['categories'].blank?
@@ -23,14 +31,58 @@ module Lair
               record.restrictions.delete 'categories'
             end
 
-            owners = restrictions[:owners]
-            if owners.kind_of? Array
-              record.restrictions['owners'] = owners.collect(&:to_s).select(&:present?).uniq
-              record.restrictions.delete 'owners' if record.restrictions['owners'].blank?
+            owner_ids = restrictions[:ownerIds]
+            if owner_ids.kind_of? Array
+              record.restrictions['ownerIds'] = owner_ids.collect(&:to_s).select(&:present?).uniq
+              record.restrictions.delete 'ownerIds' if record.restrictions['ownerIds'].blank?
             else
-              record.restrictions.delete 'owners'
+              record.restrictions.delete 'ownerIds'
             end
           end
+
+          default_filters = params[:defaultFilters]
+          if default_filters.kind_of? Hash
+
+            search = default_filters['search']
+            if search.present?
+              record.default_filters['search'] = search
+            else
+              record.default_filters.delete 'search'
+            end
+
+            resource = default_filters['resource']
+            if resource.present?
+              record.default_filters['resource'] = resource
+            else
+              record.default_filters.delete 'resource'
+            end
+
+            categories = default_filters['categories']
+            if categories.kind_of? Array
+              record.default_filters['categories'] = categories.collect(&:to_s).select(&:present?).uniq
+              record.default_filters.delete 'categories' if record.default_filters['categories'].blank?
+            else
+              record.default_filters.delete 'categories'
+            end
+
+            owner_ids = default_filters[:ownerIds]
+            if owner_ids.kind_of? Array
+              record.default_filters['ownerIds'] = owner_ids.collect(&:to_s).select(&:present?).uniq
+              record.default_filters.delete 'ownerIds' if record.default_filters['ownerIds'].blank?
+            else
+              record.default_filters.delete 'ownerIds'
+            end
+          end
+        end
+      end
+
+      post do
+        user = params.key?(:userId) ? User.where(api_id: params[:userId].to_s).first! : current_user
+        record = Collection.new creator: current_user, user: user
+        authorize! record, :create
+
+        Collection.transaction do
+          update_record_from_params record
 
           record.save!
           serialize record
@@ -112,31 +164,7 @@ module Lair
           Collection.transaction do
             record.cache_previous_version
             record.updater = current_user
-
-            record.name = params[:name].to_s if params.key? :name
-            record.display_name = params[:displayName].to_s if params.key? :displayName
-            record.public_access = !!params[:public] if params.key? :public
-            record.featured = !!params[:featured] if params.key? :featured
-
-            restrictions = params[:restrictions]
-            if restrictions.kind_of? Hash
-
-              categories = restrictions['categories']
-              if categories.kind_of? Array
-                record.restrictions['categories'] = categories.collect(&:to_s).select(&:present?).uniq
-                record.restrictions.delete 'categories' if record.restrictions['categories'].blank?
-              else
-                record.restrictions.delete 'categories'
-              end
-
-              owners = restrictions[:owners]
-              if owners.kind_of? Array
-                record.restrictions['owners'] = owners.collect(&:to_s).select(&:present?).uniq
-                record.restrictions.delete 'owners' if record.restrictions['owners'].blank?
-              else
-                record.restrictions.delete 'owners'
-              end
-            end
+            update_record_from_params record
 
             record.save!
             serialize record
@@ -163,6 +191,20 @@ module Lair
             end
           end
 
+          namespace :works do
+            helpers do
+              def collection_link_model
+                CollectionWork
+              end
+
+              def collection_link_target_model
+                Work
+              end
+            end
+
+            include CollectionLinksApi
+          end
+
           namespace :items do
             helpers do
               def collection_link_model
@@ -171,20 +213,6 @@ module Lair
 
               def collection_link_target_model
                 Item
-              end
-            end
-
-            include CollectionLinksApi
-          end
-
-          namespace :parts do
-            helpers do
-              def collection_link_model
-                CollectionPart
-              end
-
-              def collection_link_target_model
-                ItemPart
               end
             end
 

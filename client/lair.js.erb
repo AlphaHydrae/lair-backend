@@ -1,0 +1,58 @@
+angular.module('lair', [
+  'angularMoment',
+  'ngInflection',
+  'ngSanitize',
+  'prettyBytes',
+  'satellizer',
+  'smart-table',
+  'ui.bootstrap',
+  'ui.date',
+  'ui.router',
+  'ui.select',
+  'ui.sortable',
+  'lair.auth',
+  'lair.collections.edit',
+  'lair.collections.list',
+  'lair.collections.show',
+  'lair.files.explorer',
+  'lair.events.list',
+  'lair.home',
+  'lair.people',
+  'lair.profile',
+  'lair.routes',
+  'lair.images',
+  'lair.images.missing',
+  'lair.works.new',
+  'lair.works.edit',
+  'lair.works.list',
+  'lair.items.new',
+  'lair.items.edit',
+  'lair.ownerships.list',
+  'lair.status',
+  'lair.users.edit',
+  'lair.users.list',
+  'lair.users.new'
+])
+
+  // configuration
+  .constant('version', <%= JSON.dump Lair::Application::VERSION %>)
+  .constant('env', <%= JSON.dump Rails.env %>)
+  .constant('config.googleOAuth2ClientId', <%= JSON.dump Rails.application.secrets.google_oauth2_client_id.to_s %>)
+
+  // enable debug log unless in production
+  .config(function(env, $logProvider) {
+    $logProvider.debugEnabled(env !== 'production');
+  })
+
+  // satellizer
+  .config(['config.googleOAuth2ClientId', '$authProvider', function(googleOAuth2ClientId, $authProvider) {
+    $authProvider.google({
+      clientId: googleOAuth2ClientId
+    });
+  }])
+
+  // angular-ui-select
+  .config(function(uiSelectConfig) {
+    uiSelectConfig.theme = 'bootstrap';
+  })
+;

@@ -1,38 +1,41 @@
 # High Priority
 
-* rename tags to properties
+* add footer with version
+* test authorization for collections and ownerships
+* remove image from s3 when deleted
+* fix save and add part
+* remove uniqueness constraints for work relationships (person can have multiple relations)
 
 # Medium Priority
 
+* show recent activity on home page
+* improve ownership yield dialog behavior (does not close)
+* allow admin to set collection user
+* update item/part with imageUrl attribute
+* rename book version to edition number
+* change ownership datetime to date
+* add properties to collections
+* add api filters for resources with properties
 * when cycling through items on home page, retry request if item is already shown
-* add item/part name for image upload errors
 * write RAML API doc
-* simplify image search api (one resource, update item/part with imageUrl attribute)
 * notifications
-* update item years when parts are created/updated
 * people edition
 * optimize queries
 * add form validations
 * check responsiveness
-* auditing
+* auditing ui
 * add alt attribute to all img tags
 * use sydcanem/bootstrap-contextmenu to preview images
 * remove csrf tokens
-* simplify api service
-* add author to auto search
 
 # Low Priority
 
+* add full text search
 * add list of search engines to api
 * use https://github.com/rcullito/searchbing
 * allow to search for more results
 * delete parts
 * delete items
 * add missing translations for custom validations
-* use https://github.com/kikonen/ngannotate-rails
-* replace all "Controller" by "Ctrl"
 * in item search, show rate limit reset duration updating in real time
-* item descriptions
-* allow greater precision than just the year for parts and items
-* api signature
 * facebook login

@@ -1,6 +1,21 @@
 module Lair
   class ImagesApi < Grape::API
     namespace :images do
+      helpers do
+        def with_serialization_includes rel
+          rel = rel.includes :works if true_flag? :withWorks
+          rel = rel.includes :items if true_flag? :withItems
+          rel
+        end
+
+        def serialization_options *args
+          Hash.new.tap do |options|
+            options[:with_image_works] = true_flag? :withWorks
+            options[:with_image_items] = true_flag? :withItems
+          end
+        end
+      end
+
       get do
         authorize! Image, :index
 
@@ -54,9 +69,9 @@ module Lair
         delete do
           authorize! Image, :destroy
 
-          if record.items.count >= 1 || record.item_parts.count >= 1
+          if record.works.count >= 1 || record.items.count >= 1
             status 409
-            return { errors: [ { message: 'Image cannot be deleted because it is still linked to an item.' } ] }
+            return { errors: [ { message: 'Image cannot be deleted because it is still linked to a work or item.' } ] }
           end
 
           record.destroy

@@ -12,27 +12,29 @@ nav.navbar.navbar-default role='navigation'
         li
           a href='#' ui-sref='collections.list' Collections
         li ng-if='currentUser'
-          a href='#' ui-sref='items.list' Items
+          a href='#' ui-sref='works.list' Works
         li ng-if='currentUser' dropdown=true
           a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
             | Admin
             span.caret
           ul.dropdown-menu role='menu'
             li
-              a href='#' ui-sref='items.create' Create Item
+              a href='#' ui-sref='works.new' Create Work
             li
-              a href='#' ui-sref='parts.create' Create Part
+              a href='#' ui-sref='items.new' Create Item
             li
               a href='#' ui-sref='ownerships.list' Ownerships
             li
               a href='#' ui-sref='images.missing' Set Missing Images
             li
+              a href='#' ui-sref='files.explorer' Files
+            li
               a href='#' ui-sref='events.list' Events
-            li
+            li ng-if='currentUserIs("admin")'
               a href='#' ui-sref='status' Status
-            li
+            li ng-if='currentUserIs("admin")'
               a href='#' ui-sref='users.list' Users
-      ul#auth.nav.navbar-nav.navbar-right ng-controller='AuthController'
+      ul#auth.nav.navbar-nav.navbar-right ng-controller='AuthCtrl'
         li ng-if='!isAuthenticated()'
           a href='#' ng-click='showLoginDialog()' Sign in
         li ng-if='isAuthenticated()' dropdown=true

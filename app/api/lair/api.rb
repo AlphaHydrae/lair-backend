@@ -13,17 +13,25 @@ module Lair
         puts e.backtrace.join("\n")
       end
 
-      code = if e.kind_of? LairError
-        e.http_status_code
+      code = 500
+      errors = [ { message: e.message } ]
+
+      if e.kind_of? LairError
+        code = e.http_status_code
       elsif e.kind_of? Pundit::NotAuthorizedError
-        403
+        code = 403
       elsif e.kind_of? ActiveRecord::RecordNotFound
-        404
+        code = 404
       elsif e.kind_of? ActiveRecord::RecordInvalid
-        422
+        code = 422
+        errors.clear
+        e.record.errors.each do |attr,errs|
+          Array.wrap(errs).each do |err|
+            errors << { message: "#{attr.to_s.humanize} #{err}", path: "/#{attr.to_s.camelize(:lower).gsub(/\./, '/')}" }
+          end
+        end
       else
-        Rails.logger.error e
-        500
+        Rails.logger.error %/#{e.message}\n#{e.backtrace.join("\n")}/
       end
 
       headers = { 'Content-Type' => 'application/json' }
@@ -31,7 +39,7 @@ module Lair
         headers.merge! e.headers
       end
 
-      Rack::Response.new([ JSON.dump({ errors: [ { message: e.message } ] }) ], code, headers).finish
+      Rack::Response.new([ JSON.dump({ errors: errors }) ], code, headers).finish
     end
 
     helpers ApiAuthenticationHelper
@@ -41,7 +49,6 @@ module Lair
     helpers ApiParamsHelper
     helpers ApiResourceHelper
     helpers ApiSerializationHelper
-    helpers ImageSearchHelper::Api
 
     helpers do
       def language tag
@@ -53,37 +60,53 @@ module Lair
       authenticate
     end
 
-    include ImageSearchesApi
     mount CollectionsApi
+    mount CompaniesApi
     mount EventsApi
     mount ImagesApi
-    mount ItemsApi
+    mount ImageSearchesApi
+    mount WorksApi
     mount LanguagesApi
     mount OwnershipsApi
-    mount PartsApi
+    mount ItemsApi
     mount PeopleApi
     mount StatsApi
+    mount TokensApi
     mount UsersApi
+
+    namespace :media do
+      mount MediaFilesApi
+      mount MediaScannersApi
+      mount MediaScansApi
+      mount MediaSourcesApi
+    end
+
+    get do
+      {
+        version: Rails.application.version,
+        apiVersion: Rails.application.api_version,
+        authenticated: current_user.present?
+      }
+    end
 
     get :ping do
       authorize! :api, :ping
       'pong'
     end
 
-    get :bookPublishers do
-      authorize! ItemPart, :index
-      Book.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
+    get :itemPublishers do
+      authorize! Item, :index
+      Item.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
     end
 
-    get :partEditions do
-      authorize! ItemPart, :index
-      Book.order(:publisher).pluck('distinct(publisher)').compact.collect{ |publisher| { name: publisher } }
-      ItemPart.order(:edition).pluck('distinct(edition)').compact.collect{ |edition| { name: edition } }
+    get :itemEditions do
+      authorize! Item, :index
+      Item.order(:edition).pluck('distinct(edition)').compact.collect{ |edition| { name: edition } }
     end
 
-    get :partFormats do
-      authorize! ItemPart, :index
-      ItemPart.order(:format).pluck('distinct(format)').compact.collect{ |format| { name: format } }
+    get :itemFormats do
+      authorize! Item, :index
+      Item.order(:format).pluck('distinct(format)').compact.collect{ |format| { name: format } }
     end
   end
 end

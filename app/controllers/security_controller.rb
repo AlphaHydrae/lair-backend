@@ -36,11 +36,11 @@ class SecurityController < ApplicationController
     end
 
     token = JSON.parse res.body
-    access_token = token['access_token']
+    google_access_token = token['access_token']
 
     Rails.logger.debug "Requesting user information from Google People API"
 
-    res = HTTParty.get GOOGLE_PEOPLE_API_URL, headers: { 'Authorization' => "Bearer #{access_token}" }
+    res = HTTParty.get GOOGLE_PEOPLE_API_URL, headers: { 'Authorization' => "Bearer #{google_access_token}" }
 
     if res.code != 200
       # TODO: log message from people api error
@@ -58,7 +58,7 @@ class SecurityController < ApplicationController
 
     User.increment_counter :sign_in_count, user.id
 
-    render json: { token: user.generate_auth_token, user: serialize(user) }
+    render json: { token: AccessToken.new(user).encode, user: serialize(user) }
   end
 
   private

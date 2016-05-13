@@ -1,0 +1,6 @@
+.container
+  h1
+    | Edit
+    span ng-show='item'  {{ item.title.text }}
+  div ng-if='item'
+    ng-include src='"/templates/modules/items-form/form.template.html"'
