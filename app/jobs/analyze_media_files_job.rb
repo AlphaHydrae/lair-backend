@@ -160,7 +160,7 @@ class AnalyzeMediaFilesJob < ApplicationJob
       nfo_file.path.index("#{sp.path}/") == 0
     end
 
-    media_url = MediaUrl.resolve nfo_file.url, source, scan_path.try(:category)
+    media_url = MediaUrl.resolve url: nfo_file.url, default_category: scan_path.try(:category), save: true, creator: source.creator
     if media_url.blank?
       nfo_file.mark_as_invalid!
       mark_files directory_files_rel, :mark_as_unlinked

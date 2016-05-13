@@ -13,20 +13,22 @@ class MediaUrl < ActiveRecord::Base
   has_many :files, class_name: 'MediaFile'
 
   validates :provider, presence: true, inclusion: { in: PROVIDERS.collect(&:to_s), allow_blank: true }
+  # TODO: resolve category after scraping
   validates :category, presence: true, inclusion: { in: Work::CATEGORIES, allow_blank: true }
   validates :provider_id, presence: true, length: { maximum: 100 }, uniqueness: { scope: :provider, case_sensitive: false }
 
   # IMDB URL example: http://www.imdb.com/title/tt0120815/
   # AniDB URL example: http://anidb.net/perl-bin/animedb.pl?show=anime&aid=4
-  def self.resolve url, source, default_category = nil
-    if match = url.match(/^(?:https?:\/\/)?(?:www\.)?imdb\.com\/title\/([a-z0-9]+)/i)
+  def self.resolve url:, default_category: nil, save: false, creator: nil
+
+    media_url = if match = url.match(/^(?:https?:\/\/)?(?:www\.)?imdb\.com\/title\/([a-z0-9]+)/i)
       attrs = {
         provider: 'imdb',
         category: %w(movie show).include?(default_category) ? default_category : 'movie',
         provider_id: match[1]
       }
 
-      MediaUrl.where(attrs).first_or_create! creator: source.user
+      MediaUrl.where(attrs).first_or_initialize creator: creator
     elsif match = url.match(/^(?:https?:\/\/)?(?:www\.)?anidb\.net\/?.*\?.*aid=([a-z0-9]+).*/i)
       attrs = {
         provider: 'anidb',
@@ -34,8 +36,11 @@ class MediaUrl < ActiveRecord::Base
         provider_id: match[1]
       }
 
-      MediaUrl.where(attrs).first_or_create! creator: source.user
+      MediaUrl.where(attrs).first_or_initialize creator: creator
     end
+
+    media_url.save! if media_url.present? && save
+    media_url
   end
 
   def queue_scraping

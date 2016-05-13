@@ -1,9 +1,9 @@
 class MediaUrlSerializer < ApplicationSerializer
   def build json, options = {}
-    json.id record.api_id
+    json.id record.api_id unless record.new_record?
 
     json.provider record.provider
-    json.category record.category
+    json.category record.category if record.category.present?
     json.providerId record.provider_id
     json.url record.url
 
@@ -17,7 +17,7 @@ class MediaUrlSerializer < ApplicationSerializer
       json.scrap serialize(record.scrap, (options[:scrap_options] || {}).merge(options.slice(:event)).merge(include_media_url: false)) if options.fetch(:include_scrap, options[:event])
     end
 
-    json.createdAt record.created_at.iso8601(3)
-    json.updatedAt record.updated_at.iso8601(3)
+    json.createdAt record.created_at.iso8601(3) if record.created_at.present?
+    json.updatedAt record.updated_at.iso8601(3) if record.updated_at.present?
   end
 end

@@ -25,7 +25,7 @@ class ImdbScraper < ApplicationScraper
     work = find_or_build_work scrap
 
     title = data['Title'].to_s.strip
-    if title.blank?
+    if imdb_blank?(title)
       raise "OMDB data has no title: #{scrap.contents}"
     end
 
@@ -36,7 +36,7 @@ class ImdbScraper < ApplicationScraper
     end
 
     year = data['Year'].to_s.strip
-    if year.blank?
+    if imdb_blank?(year)
       raise "OMDB data has no year: #{scrap.contents}"
     end
 
@@ -44,11 +44,11 @@ class ImdbScraper < ApplicationScraper
     work.end_year = year.to_i
 
     description = data['Plot'].to_s.strip
-    add_work_description scrap: scrap, work: work, description: description, language: data_language
+    add_work_description scrap: scrap, work: work, description: description, language: data_language unless imdb_blank?(description)
 
     work.language = data_language
     language_string = data['Language'].to_s.strip
-    if language_string.present?
+    unless imdb_blank?(language_string)
 
       language = Language.full_list.find{ |l| l.name == language_string }
       if language.present?
@@ -60,38 +60,36 @@ class ImdbScraper < ApplicationScraper
     end
 
     if work.image.blank?
-      image = data['Poster'].to_s.strip
-      if image.present?
-        work.build_image.url = image
-      end
+      image_url = data['Poster'].to_s.strip
+      work.build_image.url = image_url unless imdb_blank?(image_url)
     end
 
     rating = data['Rated'].to_s.strip
-    work.properties['rating'] = rating if rating.present?
+    work.properties['rating'] = rating unless imdb_blank?(rating)
 
     genres_string = data['Genre'].to_s.strip
-    if genres_string.present?
+    unless imdb_blank?(genres_string)
       if match = genres_string.match(/^[^,]+(?:, [^,]+)*$/i)
-        add_work_genres genres_string.split(', ').collect(&:capitalize)
+        add_work_genres work: work, genres: genres_string.split(', ').collect(&:capitalize)
       else
         scrap.warnings << %/The "Genre" property is not in the expected comma-delimited format: "#{genres_string}"/
       end
     end
 
-    countries = data['Country'].to_s.strip.split(', ')
-    work.properties['countries'] = countries if countries.present?
+    countries = data['Country'].to_s.strip
+    work.properties['countries'] = countries.split(', ') unless imdb_blank?(countries)
 
     awards = data['Awards'].to_s.strip
-    work.properties['awards'] = awards if awards.present?
+    work.properties['awards'] = awards unless imdb_blank?(awards)
 
     metascore = data['Metascore'].to_s.strip
-    work.properties['metascore'] = metascore if metascore.present?
+    work.properties['metascore'] = metascore unless imdb_blank?(metascore)
 
     imdb_rating = data['imdbRating'].to_s.strip
-    work.properties['imdbRating'] = imdb_rating if imdb_rating.present?
+    work.properties['imdbRating'] = imdb_rating unless imdb_blank?(imdb_rating)
 
     imdb_votes = data['imdbVotes'].to_s.strip.gsub(/,/, '')
-    work.properties['imdbVotes'] = imdb_votes if imdb_votes.present?
+    work.properties['imdbVotes'] = imdb_votes unless imdb_blank?(imdb_votes)
 
     add_people scrap: scrap, work: work, property: 'Director', string: data['Director'], relation: 'Director'
     add_people scrap: scrap, work: work, property: 'Writer', string: data['Writer'], relation: 'Writer'
@@ -99,7 +97,7 @@ class ImdbScraper < ApplicationScraper
 
     save_work! work
 
-    item = find_or_build_single_item
+    item = find_or_build_single_item scrap, work
 
     if item.image.blank? && work.image.present?
       item.build_image.url = work.image.url
@@ -149,7 +147,7 @@ class ImdbScraper < ApplicationScraper
   def self.add_people scrap:, work:, property:, string:, relation:
 
     string = string.to_s.strip
-    return if string.blank?
+    return if imdb_blank?(string)
 
     person_regexp = /^([a-z]+ [a-z]+)(?: \(([^\(\)]+)\))?/i
 
@@ -171,13 +169,17 @@ class ImdbScraper < ApplicationScraper
     relationships_data = details_by_name.inject([]) do |memo,(full_name,details)|
       name_parts = full_name.split(/ /)
 
-      {
+      memo << {
         first_names: name_parts[0],
         last_name: name_parts[1],
         relation: relation
       }
     end
 
-    add_work_relationships relationships_data
+    add_work_relationships scrap: scrap, work: work, relationships_data: relationships_data
+  end
+
+  def self.imdb_blank? data
+    data.blank? || data.downcase == 'n/a'
   end
 end

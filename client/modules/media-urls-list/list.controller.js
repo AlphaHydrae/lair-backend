@@ -1,4 +1,4 @@
-angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $location, $scope, scrapers, $stateParams, tables) {
+angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(api, $location, newMediaUrlDialog, $scope, scrapers, $stateParams, tables) {
 
   var canceledScrapStates = [ 'scrapingCanceled' ],
       errorScrapStates = [ 'scrapingFailed', 'expansionFailed' ],
@@ -69,6 +69,10 @@ angular.module('lair.scraping').controller('ScrapingCtrl', function(api, $locati
 
   $scope.showScrapingError = function(scrap) {
     scrapers.openErrorModal($scope, scrap.id);
+  };
+
+  $scope.openNewMediaUrlDialog = function() {
+    newMediaUrlDialog.open($scope);
   };
 
   function showToStates(show) {

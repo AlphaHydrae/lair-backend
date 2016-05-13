@@ -101,11 +101,17 @@ angular.module('lair.routes', [ 'ui.router' ])
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
       })
 
-      .state('scraping', {
-        url: '^/scraping?show&warnings',
+      .state('mediaUrls', {
+        abstract: true,
+        url: '^/mediaScraping',
+        template: '<div ui-view />'
+      })
+
+      .state('mediaUrls.list', {
+        url: '?show&warnings',
         reloadOnSearch: false,
-        controller: 'ScrapingCtrl',
-        templateUrl: '/templates/modules/scraping/scraping.template.html'
+        controller: 'MediaUrlsListCtrl',
+        templateUrl: '/templates/modules/media-urls-list/list.template.html'
       })
 
       .state('images', {

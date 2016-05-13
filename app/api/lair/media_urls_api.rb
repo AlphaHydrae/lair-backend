@@ -13,6 +13,24 @@ module Lair
           rel = rel.includes(:work, { scrap: :media_url })
           rel
         end
+
+        def update_record_from_params record
+          %i(provider category providerId).each do |attr|
+            record.send "#{attr.to_s.underscore}=", params[attr]
+          end
+        end
+      end
+
+      post do
+        media_url = MediaUrl.new creator: current_user
+        update_record_from_params media_url
+
+        authorize! media_url, :create
+
+        MediaUrl.transaction do
+          media_url.save!
+          serialize media_url
+        end
       end
 
       get do
@@ -39,6 +57,24 @@ module Lair
         end
 
         serialize load_resources(rel)
+      end
+    end
+
+    namespace :urlResolution do
+      post do
+        authorize! MediaUrl, :resolve
+
+        url = params[:url].to_s
+        media_url = MediaUrl.resolve url: url
+
+        if media_url.blank?
+          return {
+            url: url,
+            resolved: false
+          }
+        end
+
+        serialize(media_url).merge resolved: true
       end
     end
   end

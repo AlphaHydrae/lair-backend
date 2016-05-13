@@ -1,12 +1,9 @@
 #scraping-error
   .modal-header
-    h3 Scraping error
+    h3 Scraping result
   .modal-body
 
     p.loading ng-if='!scrap' Loading...
-
-    p ng-if='scrap && !scrap.error.message'
-      strong.text-danger No scraping error found.
 
     div ng-if='scrap.error.message'
 
@@ -15,17 +12,17 @@
 
       pre.stack-trace ng-if='scrap.error.stackTrace' {{ scrap.error.stackTrace }}
 
-      div ng-if='scrap.contents'
-        .label.label-default.pull-right ng-if='scrap.contentType' {{ scrap.contentType }}
-        h4 Scraped contents
-        .clearfix
-        pre.contents {{ scrap.contents }}
+    div ng-if='scrap.warningsCount >= 1'
+      h4 Warnings
+      ul.list-group
+        li.list-group-item.list-group-item-warning ng-repeat='warning in scrap.warnings'
+          | {{ warning }}
 
-      div ng-if='scrap.warningsCount >= 1'
-        h4 Warnings
-        ul.list-group
-          li.list-group-item.list-group-item-warning ng-repeat='warning in scrap.warnings'
-            | {{ warning }}
+    div ng-if='scrap.contents'
+      .label.label-default.pull-right ng-if='scrap.contentType' {{ scrap.contentType }}
+      h4 Scraped contents
+      .clearfix
+      pre.contents {{ scrap.contents }}
 
   .modal-footer
     .btn-group.pull-right

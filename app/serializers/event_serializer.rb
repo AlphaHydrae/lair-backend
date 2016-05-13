@@ -7,7 +7,7 @@ class EventSerializer < ApplicationSerializer
     json.cause !record.cause_id
     json.sideEffectsCount record.side_effects_count
 
-    json.userId record.user.api_id
+    json.userId record.user.api_id if record.user.present?
     json.user serialize(record.user) if options[:with_user]
 
     if %w(create update delete job).include? record.event_type

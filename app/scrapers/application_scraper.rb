@@ -30,7 +30,7 @@ class ApplicationScraper
   end
 
   def self.find_or_build_single_item scrap, work
-    item = find_existing_single_item work, media_url
+    item = find_existing_single_item work, scrap.media_url
     initialize_item item: item, work: work, scrap: scrap
   end
 
