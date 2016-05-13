@@ -102,7 +102,7 @@ class AnidbScraper < ApplicationScraper
         scrap.warnings << "Expected movie episode count to be 1, got #{episode_count}"
       end
 
-      main_item.image.build url: work.image.url if work.image.present?
+      main_item.build_image.url = work.image.url if work.image.present?
 
       update_item_from_anidb_episode item: main_item, episode: anidb_episode, scrap: scrap
       save_item! main_item
