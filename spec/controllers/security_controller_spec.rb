@@ -17,6 +17,7 @@ RSpec.describe SecurityController, type: :controller do
       expect(res).to eq({
         'token' => token,
         'user' => {
+          'id' => user.api_id,
           'email' => user.email
         }
       })

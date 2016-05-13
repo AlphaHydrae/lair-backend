@@ -49,7 +49,7 @@ module Lair
       def current_user
 
         if @auth_token && !@current_user
-          @current_user = User.where(email: @auth_token['iss']).first
+          @current_user = User.where(api_id: @auth_token['iss']).first
           raise AuthError.new("Unknown user #{@auth_token['iss']}") if @current_user.blank?
         end
 
@@ -62,11 +62,14 @@ module Lair
     end
 
     include ImageSearchesApi
+    mount EventsApi
+    mount ImagesApi
     mount ItemsApi
     mount LanguagesApi
     mount OwnershipsApi
     mount PartsApi
     mount PeopleApi
+    mount StatsApi
     mount UsersApi
 
     get :ping do

@@ -1,11 +1,7 @@
-# Blockers
-
-* update item years when parts are created/updated
-* google image search
-* manual image selection from url
-
 # High Priority
 
+* notifications
+* update item years when parts are created/updated
 * people edition
 * optimize queries
 * add form validations
@@ -13,6 +9,9 @@
 * auditing
 * add alt attribute to all img tags
 * use sydcanem/bootstrap-contextmenu to preview images
+* remove csrf tokens
+* simplify api service
+* add author to auto search
 
 # Low Priority
 

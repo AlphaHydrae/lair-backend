@@ -5,11 +5,13 @@ web:
   links:
     - app
   ports:
+    - "80:80"
     - "443:443"
   volumes:
     - "{{ release_path }}/nginx.conf:/etc/nginx/nginx.conf:ro"
     - "{{ release_path }}/public:/var/lib/lair/public"
     - "/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}:/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}"
+    - "/var/www/blog:/var/www/blog"
   restart: always
 
 # Application in production mode.
@@ -64,7 +66,7 @@ cache:
     - "{{ deploy_to }}/redis/data:/data"
   restart: always
 
-# Pre-compile application assets.
+# Rake task.
 # This is meant to be run as a one-off task (with "run" instead of "up").
 task:
   image: alphahydrae/lair
@@ -75,6 +77,20 @@ task:
   volumes:
     - "{{ release_path }}/public:/usr/src/app/public"
     - "{{ release_path }}/tmp:/usr/src/app/tmp"
+  env_file:
+    - .env
+  restart: no
+
+# Backup script.
+# This is meant to be run as a one-off task (with "run" instead of "up").
+backup:
+  image: alphahydrae/lair-backup
+  links:
+    - db
+    - cache
+  volumes:
+    - "{{ release_path }}/backup:/backup"
+    - "/var/lib/lair/backup:/var/lib/lair/backup"
   env_file:
     - .env
   restart: no

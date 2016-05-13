@@ -57,8 +57,10 @@
                 dd ng-show='part.format' {{ part.format }}
                 dt ng-show='part.length' Pages
                 dd ng-show='part.length' {{ part.length }}
-                dt ng-show='part.year' Original Year
-                dd ng-show='part.year' {{ part.originalYear }}
+                dt ng-show='part.originalYear' Original Year
+                dd ng-show='part.originalYear' {{ part.originalYear }}
+                dt ng-show='part.year' Year
+                dd ng-show='part.year' {{ part.year }}
                 dt ng-show='part.isbn' ISBN
                 dd ng-show='part.isbn' {{ formatIsbn(part.isbn) }}
 .modal-footer

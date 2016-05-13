@@ -5,6 +5,7 @@ gem 'rails', '4.2.1'
 # Database
 gem 'pg'
 gem 'strip_attributes'
+gem 'simple_states'
 
 # Memory Database
 gem 'redis'
@@ -35,6 +36,8 @@ gem 'jbuilder'
 gem 'httparty'
 gem 'google-api-client'
 gem 'pundit'
+gem 'aws-sdk', '~> 2'
+gem 'dragonfly'
 
 # bundle exec rake doc:rails generates the API under doc/api.
 gem 'sdoc', '~> 0.4.0', group: :doc

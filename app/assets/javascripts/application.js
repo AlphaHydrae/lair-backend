@@ -14,6 +14,7 @@
 //= require jquery
 //= require jquery-ui
 //= require moment
+//= require pretty-bytes
 //= require angular
 //= require angular-sanitize
 //= require angular-ui-router
@@ -29,6 +30,7 @@
 //= require angular-ui-select
 //= require angular-moment
 //= require angular-smart-table
+//= require angular-pretty-bytes
 //= require satellizer
 //= require isbn
 //= require isbn-groups

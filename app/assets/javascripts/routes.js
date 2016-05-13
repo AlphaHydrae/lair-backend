@@ -118,6 +118,39 @@ angular.module('lair.routes', [ 'ui.router' ])
           }
         }
       })
+
+      .state('std.events', {
+        abstract: true,
+        url: '^/events',
+        views: {
+          'navbar@std': {
+            templateUrl: '/templates/navbar.html'
+          }
+        }
+      })
+
+      .state('std.events.list', {
+        url: '^/events',
+        views: {
+          'content@std': {
+            templateUrl: '/templates/listEvents.html'
+          }
+        }
+      })
+
+      .state('std.status', {
+        url: '^/status',
+        views: {
+          'navbar@std': {
+            templateUrl: '/templates/navbar.html'
+          },
+          'content@std': {
+            templateUrl: '/templates/status.html',
+            controller: 'StatusCtrl'
+          }
+        }
+      })
+
     ;
 
   }])

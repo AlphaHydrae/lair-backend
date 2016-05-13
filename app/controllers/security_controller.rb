@@ -3,7 +3,8 @@ class SecurityController < ApplicationController
 
   def token
     authenticate_with_header request.headers['Authorization']
-    render json: { token: @raw_auth_token, user: { email: @auth_token['iss'] } }
+    user = User.where(api_id: @auth_token['iss']).first!
+    render json: { token: @raw_auth_token, user: { id: user.api_id, email: user.email } }
   end
 
   def google
@@ -56,7 +57,7 @@ class SecurityController < ApplicationController
 
     User.increment_counter :sign_in_count, user.id
 
-    render json: { token: user.generate_auth_token, user: { email: user.email } }
+    render json: { token: user.generate_auth_token, user: { id: user.api_id, email: user.email } }
   end
 
   private

@@ -5,20 +5,14 @@ stuff "psql new-lair\012"
 screen -t redis 1
 stuff "redis-cli\012"
 screen -t resque 2
-stuff "TERM_CHILD=1 QUEUE=* rake resque:work\012"
+stuff "LAIR_LOG_TO_STDOUT=1 TERM_CHILD=1 QUEUE=* rake resque:work\012"
 screen -t server 3
 stuff "bundle exec rails server\012"
-screen -t spec 4
-stuff "bundle exec rspec"
-screen -t karma 5
-stuff "grunt test"
-screen -t vim 6
+screen -t vim 4
 stuff "\${PROJECT_EDITOR-\$EDITOR}\012"
-screen -t zsh 7
-screen -t console 8
+screen -t zsh 5
+screen -t console 6
 stuff "bundle exec rails console\012"
-screen -t guard 9
-stuff "bundle exec guard\012"
-screen -t jshint 10
+screen -t jshint 7
 stuff "grunt watch:jshint\012"
 select vim

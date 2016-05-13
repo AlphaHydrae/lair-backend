@@ -3,17 +3,25 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
   .controller('PartFormCtrl', ['ApiService', '$log', '$modal', '$q', '$scope', '$state', '$stateParams', function($api, $log, $modal, $q, $scope, $state, $stateParams) {
 
     if ($scope.part) {
-      $scope.items = [ $scope.part.item ];
+      $scope.items = _.compact([ $scope.part.item ]);
     }
 
     $scope.$on('part', function(part) {
       $scope.items = [ part.item ];
     });
 
-    $scope.$watch('modifiedPart.itemId', function() {
-      $scope.modifiedPart.item = _.findWhere($scope.items, { id: $scope.modifiedPart.itemId });
-      if ($scope.modifiedPart.item && !$scope.part.id) {
-        $scope.modifiedPart.titleId = $scope.modifiedPart.item.titles[0].id;
+    $scope.$watch('modifiedPart.itemId', function(value) {
+      if (value) {
+        var newItem = _.findWhere($scope.items, { id: $scope.modifiedPart.itemId });
+        if (newItem) {
+          $scope.modifiedPart.item = newItem;
+        }
+      }
+    });
+
+    $scope.$watch('modifiedPart.item', function(value) {
+      if (value) {
+        $scope.modifiedPart.titleId = value.titles[0].id;
       }
     });
 
@@ -32,6 +40,34 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
       }
     });
 
+    $scope.multiPart = false;
+    var multiPartActive = false;
+
+    $scope.$watch('modifiedPart', function(value) {
+      if (value) {
+        $scope.multiPart = value.start !== undefined && value.end !== undefined && value.start != value.end;
+        multiPartActive = true;
+      }
+    });
+
+    $scope.$watch('modifiedPart.start', function(value) {
+      if (multiPartActive && value !== undefined && !$scope.multiPart) {
+        $scope.modifiedPart.end = $scope.modifiedPart.start;
+      }
+    });
+
+    $scope.$watch('multiPart', function(value) {
+      if (!multiPartActive || value === undefined) {
+        return;
+      }
+
+      if (value && $scope.modifiedPart && $scope.modifiedPart.start !== undefined && $scope.modifiedPart.start == $scope.modifiedPart.end) {
+        $scope.modifiedPart.end++;
+      } else if (!value) {
+        $scope.modifiedPart.end = $scope.modifiedPart.start;
+      }
+    });
+
     $scope.selectImage = function() {
       modal = $modal.open({
         controller: 'SelectImageCtrl',
@@ -43,6 +79,40 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
       modal.result.then(function(image) {
         $scope.modifiedPart.image = image;
       });
+    };
+
+    $q.all(fetchEditions(), fetchFormats(), fetchLanguages(), fetchPublishers());
+
+    $scope.fetchItems = function(search) {
+      if (!search || !search.trim().length) {
+        $scope.items = $scope.part.itemId ? [ $scope.part.item ] : [];
+        return;
+      }
+
+      $api.http({
+        url: '/api/items',
+        params: {
+          pageSize: 100,
+          search: search
+        }
+      }).then(function(res) {
+        $scope.items = res.data;
+      }, function(res) {
+        $log.warn('Could not fetch items matching "' + search + '"');
+        $log.debug(res);
+      });
+    };
+
+    $scope.partChanged = function() {
+      return !angular.equals($scope.part, $scope.modifiedPart);
+    };
+
+    $scope.addTag = function() {
+      $scope.modifiedPart.tags.push({});
+    };
+
+    $scope.removeTag = function(tag) {
+      $scope.modifiedPart.tags.splice($scope.modifiedPart.tags.indexOf(tag), 1);
     };
 
     function fetchPublishers() {
@@ -89,39 +159,5 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
         $log.debug(res);
       });
     }
-
-    $q.all(fetchEditions(), fetchFormats(), fetchLanguages(), fetchPublishers());
-
-    $scope.fetchItems = function(search) {
-      if (!search || !search.trim().length) {
-        $scope.items = $scope.part.itemId ? [ $scope.part.item ] : [];
-        return;
-      }
-
-      $api.http({
-        url: '/api/items',
-        params: {
-          pageSize: 100,
-          search: search
-        }
-      }).then(function(res) {
-        $scope.items = res.data;
-      }, function(res) {
-        $log.warn('Could not fetch items matching "' + search + '"');
-        $log.debug(res);
-      });
-    };
-
-    $scope.partChanged = function() {
-      return !angular.equals($scope.part, $scope.modifiedPart);
-    };
-
-    $scope.addTag = function() {
-      $scope.modifiedPart.tags.push({});
-    };
-
-    $scope.removeTag = function(tag) {
-      $scope.modifiedPart.tags.splice($scope.modifiedPart.tags.indexOf(tag), 1);
-    };
   }])
 ;

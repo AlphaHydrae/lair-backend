@@ -21,8 +21,6 @@ module ApiAuthenticationHelper
 
     @raw_auth_token = m[1]
 
-    return unless options.fetch(:required, true)
-
     begin
       token = JWT.decode @raw_auth_token, Rails.application.secrets.jwt_hmac_key
     rescue JWT::DecodeError

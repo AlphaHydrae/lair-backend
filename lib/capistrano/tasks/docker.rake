@@ -17,4 +17,13 @@ namespace :docker do
       end
     end
   end
+
+  desc 'Build the backup docker image from the checked out release'
+  task :build_backup do
+    on roles(:app) do
+      within "#{fetch(:docker_build_path)}/docker/backup" do
+        execute :docker_build, '-t', "#{fetch(:docker_image)}-backup", '.'
+      end
+    end
+  end
 end

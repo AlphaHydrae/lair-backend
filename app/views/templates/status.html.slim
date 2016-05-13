@@ -1,0 +1,66 @@
+.container
+  h1 Status
+  .col-md-6.col-sm-12
+    #image-stats.panel.panel-default
+      .panel-heading Images
+      table.table
+        tbody
+          tr
+            th Images
+            td
+              | {{ imageStats.total }}
+          tr
+            th Size
+            td
+              span ng-if='imageStats'
+                | {{ imageStats.totalSize | prettyBytes }} (images)
+              span ng-if='imageStats'
+                | , {{ imageStats.thumbnailsSize | prettyBytes }} (thumbnails)
+          tr ng-class='{info: imageStats.uploading}'
+            th Uploaded
+            td
+              | {{ imageStats.uploaded }}
+              span ng-if='imageStats.uploaded'  ({{ (imageStats.uploaded * 100 / imageStats.total) | number: 1 }}%)
+              span ng-if='imageStats.uploading'
+                | ,
+                span.text-info  {{ imageStats.uploading }} uploading...
+          tr ng-class='{warning: imageStats.uploadErrors}'
+            th Upload Errors
+            td
+              | {{ imageStats.uploadErrors }}
+              span ng-if='imageStats.uploadErrors'  ({{ (imageStats.uploadErrors * 100 / imageStats.total) | number: 1 }}%)
+              a.pull-right href='#' ng-if='imageStats.uploadErrors && !imageUploadErrors' ng-click='showImageUploadErrors()' show
+              a.pull-right href='#' ng-if='imageStats.uploadErrors && imageUploadErrors' ng-click='hideImageUploadErrors()' hide
+          tr ng-class='{warning: imageStats.orphaned}'
+            th Orphaned
+            td
+              | {{ imageStats.orphaned }}
+              span ng-if='imageStats.orphaned'  ({{ (imageStats.orphaned * 100 / imageStats.total) | number: 1 }}%)
+              a.pull-right href='#' ng-if='imageStats.orphaned && !orphanedImages' ng-click='showOrphanedImages()' show
+              a.pull-right href='#' ng-if='imageStats.orphaned && orphanedImages' ng-click='hideOrphanedImages()' hide
+          tr ng-if='imageUploadErrors'
+            th.separator colspan=2 Upload Errors
+          tr ng-if='imageUploadErrors && !imageUploadErrors.length'
+            td.empty colspan=2 No more upload errors.
+          tr.upload-error ng-repeat='image in imageUploadErrors'
+            th
+              img ng-src='{{ image.thumbnail.url }}'
+            td
+              a href='#' ng-click='showUploadError(image)' Error
+              |  | 
+              a href='{{ image.url }}' URL
+              |  | 
+              a href='{{ image.thumbnail.url }}' Thumbnail URL
+              button.btn.btn-warning.btn-xs.pull-right ng-click='retryImageUpload(image)' Retry
+          tr ng-if='orphanedImages'
+            th.separator colspan=2 Orphaned Images
+          tr ng-if='orphanedImages && !orphanedImages.length'
+            td.empty colspan=2 No more orphaned images.
+          tr.orphan ng-repeat='image in orphanedImages'
+            th
+              img ng-src='{{ image.thumbnail.url }}'
+            td
+              a href='{{ image.url }}' URL
+              |  | 
+              a href='{{ image.thumbnail.url }}' Thumbnail URL
+              button.btn.btn-warning.btn-xs.pull-right ng-click='deleteOrphanedImage(image)' Delete

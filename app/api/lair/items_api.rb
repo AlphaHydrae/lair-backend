@@ -97,10 +97,14 @@ module Lair
         authorize! Item, :index
         rel = search_items
 
+        grouped = params[:search].present?
+
         if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
           rel = rel.order 'RANDOM()'
+          rel = rel.group 'items.id' if grouped
         else
           rel = rel.joins('INNER JOIN item_titles AS original_titles ON original_titles.id = items.original_title_id').order('original_titles.contents asc')
+          rel = rel.group 'items.id, original_titles.id' if grouped
         end
 
         includes = [ :language, :links, { relationships: :person, titles: :language } ]

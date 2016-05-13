@@ -113,6 +113,15 @@ namespace :compose do
     end
   end
 
+  desc 'Perform a backup'
+  task :backup do
+    on roles(:app) do
+      within release_path do
+        execute :compose_run, 'backup'
+      end
+    end
+  end
+
   desc 'Register an admin user'
   task :admin do
 

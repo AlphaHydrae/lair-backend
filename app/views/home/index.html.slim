@@ -23,6 +23,10 @@ script type='text/ng-template' id='/templates/navbar.html'
                 a href='#' ui-sref='std.ownerships.list' Ownerships
               li
                 a href='#' ui-sref='std.images.missing' Set Missing Images
+              li
+                a href='#' ui-sref='std.events.list' Events
+              li
+                a href='#' ui-sref='std.status' Status
         ul.nav.navbar-nav.navbar-right ng-controller='AuthController'
           li ng-hide='isAuthenticated()'
             a href='#' ng-click='showLoginDialog()' Sign in

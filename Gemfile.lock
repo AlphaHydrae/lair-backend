@@ -45,6 +45,12 @@ GEM
     autoprefixer-rails (5.1.11)
       execjs
       json
+    aws-sdk (2.1.2)
+      aws-sdk-resources (= 2.1.2)
+    aws-sdk-core (2.1.2)
+      jmespath (~> 1.0)
+    aws-sdk-resources (2.1.2)
+      aws-sdk-core (= 2.1.2)
     axiom-types (0.1.1)
       descendants_tracker (~> 0.0.4)
       ice_nine (~> 0.11.0)
@@ -83,6 +89,10 @@ GEM
     dotenv (2.0.1)
     dotenv-rails (2.0.1)
       dotenv (= 2.0.1)
+    dragonfly (1.0.10)
+      addressable (~> 2.3)
+      multi_json (~> 1.0)
+      rack (>= 1.3.0)
     equalizer (0.0.11)
     erubis (2.7.0)
     eventmachine (1.0.7)
@@ -144,6 +154,7 @@ GEM
       therubyracer (~> 0.12.1)
     handlebars-source (3.0.3)
     hashie (3.4.2)
+    hashr (0.0.22)
     hiredis (0.6.0)
     hitimes (1.2.2)
     httparty (0.13.5)
@@ -157,6 +168,8 @@ GEM
     jbuilder (2.2.16)
       activesupport (>= 3.0.0, < 5)
       multi_json (~> 1.2)
+    jmespath (1.0.2)
+      multi_json (~> 1.0)
     json (1.8.3)
     jwt (1.5.0)
     kgio (2.9.3)
@@ -310,6 +323,9 @@ GEM
       faraday (~> 0.9)
       jwt (~> 1.5)
       multi_json (~> 1.10)
+    simple_states (1.0.1)
+      activesupport
+      hashr (~> 0.0.10)
     sinatra (1.4.6)
       rack (~> 1.4)
       rack-protection (~> 1.4)
@@ -387,11 +403,13 @@ PLATFORMS
 
 DEPENDENCIES
   autoprefixer-rails
+  aws-sdk (~> 2)
   byebug
   capistrano
   capybara
   deep_merge
   dotenv-rails
+  dragonfly
   factory_girl_rails
   google-api-client
   grape
@@ -422,6 +440,7 @@ DEPENDENCIES
   sdoc (~> 0.4.0)
   selenium-webdriver
   shoulda-matchers
+  simple_states
   slim-rails
   spring
   strip_attributes

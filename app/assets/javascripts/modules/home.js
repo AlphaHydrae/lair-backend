@@ -146,39 +146,49 @@ angular.module('lair.home', ['lair.api', 'infinite-scroll'])
       });
     }
 
-    function fetchParts() {
+    $scope.item.parts = [];
+
+    function fetchParts(page) {
+
+      page = page || 1;
+
       $api.http({
         method: 'GET',
         url: '/api/parts',
         params: {
-          itemId: $scope.item.id
+          itemId: $scope.item.id,
+          pageSize: 50,
+          page: page
         }
-      }).then(function(response) {
+      }).then(function(res) {
+        addParts(res.data);
+        if (res.pagination().hasMorePages()) {
+          fetchParts(page + 1);
+        }
+      });
+    }
 
-        $scope.item.parts = _.reduce(response.data, function(memo, part) {
+    function addParts(parts) {
+      _.each(parts, function(part) {
+        var parts = [ $scope.languageNames[part.language] ];
 
-          var parts = [ $scope.languageNames[part.language] ];
+        if (part.edition) {
+          parts.push(part.edition + ' Edition');
+        }
 
-          if (part.edition) {
-            parts.push(part.edition + ' Edition');
-          }
+        if (part.publisher) {
+          parts.push('(' + part.publisher + ')');
+        }
 
-          if (part.publisher) {
-            parts.push('(' + part.publisher + ')');
-          }
+        var tabName = _.compact(parts).join(' ');
+        tabName = tabName.length ? tabName : 'Other';
 
-          var tabName = _.compact(parts).join(' ');
-          tabName = tabName.length ? tabName : 'Other';
+        if (!_.findWhere($scope.item.parts, { name: tabName })) {
+          $scope.item.parts.push({ name: tabName, parts: [] });
+        }
 
-          if (!_.findWhere(memo, { name: tabName })) {
-            memo.push({ name: tabName, parts: [] });
-          }
-
-          var tabData = _.findWhere(memo, { name: tabName });
-          tabData.parts.push(part);
-
-          return memo;
-        }, []);
+        var tabData = _.findWhere($scope.item.parts, { name: tabName });
+        tabData.parts.push(part);
       });
     }
 

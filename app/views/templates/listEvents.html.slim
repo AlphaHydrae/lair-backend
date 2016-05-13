@@ -1,0 +1,19 @@
+.container ng-controller='EventListCtrl'
+  div st-pipe='fetchEvents' st-table='events'
+    filter-events filters='eventFilters'
+    table#events.table.table-striped.table-hover
+      thead
+        tr
+          th.time Time
+          th.type Type
+          th.resource Resource
+          th Description
+      tbody
+        tr ng-repeat='event in events'
+          td {{ event.createdAt | amDateFormat: 'LLL' }}
+          td {{ event.type }}
+          td {{ event.resource }}
+          td {{ description(event) }}
+      tfoot
+        tr
+          td.text-center st-pagination=true st-items-by-page=15 st-template='/templates/pagination.html' colspan=4

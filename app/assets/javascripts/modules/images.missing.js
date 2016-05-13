@@ -95,6 +95,7 @@ angular.module('lair.images.missing', [])
     }
 
     $scope.selectImage = function(subject, resource) {
+      $scope.imageSearchesResource = '/api/' + resource + '/' + subject.id + '/image-searches';
       $scope.mainImageSearchResource = '/api/' + resource + '/' + subject.id + '/main-image-search';
 
       modal = $modal.open({
@@ -206,7 +207,7 @@ angular.module('lair.images.missing', [])
 
     function countMissingImages(resource) {
       return $api.http({
-        method: 'HEAD',
+        method: 'GET', // TODO: change to HEAD request when this issue is fixed: https://github.com/intridea/grape/issues/1014
         url: '/api/' + resource,
         params: {
           image: 0,

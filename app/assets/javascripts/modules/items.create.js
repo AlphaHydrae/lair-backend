@@ -34,17 +34,33 @@ angular.module('lair.items.create', ['lair.items.form'])
     $scope.$broadcast('item', $scope.item);
 
     $scope.save = function() {
-      $api.http({
+      save().then(edit);
+    };
+
+    $scope.saveAndAddPart = function() {
+      save().then(addPart);
+    };
+
+    function save() {
+      return $api.http({
         method: 'POST',
         url: '/api/items',
         data: dumpItem($scope.modifiedItem)
       }).then(function(res) {
-        $state.go('std.items.edit', { itemId: res.data.id });
+        return res.data;
       }, function(response) {
         $log.warn('Could not create item');
         $log.debug(response);
       });
-    };
+    }
+
+    function edit(item) {
+      $state.go('std.items.edit', { itemId: item.id });
+    }
+
+    function addPart(item) {
+      $state.go('std.parts.create', { itemId: item.id });
+    }
 
     $scope.cancel = function() {
       $state.go('std.home');

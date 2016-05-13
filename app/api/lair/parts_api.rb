@@ -52,28 +52,26 @@ module Lair
           header 'X-Pagination-Total', ItemPart.count.to_s
 
           rel = ItemPart
-          filtered = false
 
-          if true_flag? :image
-            rel = rel.where 'image_id is not null'
-            filtered = true
-          elsif false_flag? :image
-            rel = rel.where 'image_id is null'
-            filtered = true
+          rel = paginated rel do |rel|
+
+            if true_flag? :image
+              rel = rel.where 'image_id is not null'
+            elsif false_flag? :image
+              rel = rel.where 'image_id is null'
+            end
+
+            if params[:itemId].present?
+              rel = rel.joins(:item).where('items.api_id = ?', params[:itemId].to_s)
+            end
+
+            if params[:search].present?
+              search = "%#{params[:search].to_s.downcase}%"
+              rel = rel.where 'LOWER(item_parts.effective_title) LIKE ?', search
+            end
+
+            rel
           end
-
-          if params[:itemId].present?
-            rel = rel.joins(:item).where('items.api_id = ?', params[:itemId].to_s)
-            filtered = true
-          end
-
-          if params[:search].present?
-            search = "%#{params[:search].to_s.downcase}%"
-            rel = rel.where 'LOWER(item_parts.effective_title) LIKE ?', search
-            filtered = true
-          end
-
-          header 'X-Pagination-FilteredTotal', rel.count.to_s if filtered
 
           rel.offset(offset).limit(limit)
         end
@@ -92,6 +90,8 @@ module Lair
 
         if true_flag? :random
           rel = rel.order 'RANDOM()'
+        elsif true_flag? :latest # TODO: implement generic order
+          rel = rel.order 'item_parts.range_start DESC, item_parts.created_at DESC'
         else
           rel = rel.order 'item_parts.range_start, item_parts.custom_title'
         end

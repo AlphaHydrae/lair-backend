@@ -2,10 +2,12 @@
 /.bundle
 /.env*
 /.vagrant
+/ansible/backup.key
 /ansible/deploy*
 /ansible/certificates
 /ansible/production*
 /bower_components
+/dragonfly*
 /lib/tasks/local*
 /local
 /log/*.log

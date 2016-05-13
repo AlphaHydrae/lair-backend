@@ -1,4 +1,4 @@
-form#editPart role='form' ng-controller='PartFormCtrl'
+form#editPart role='form' name='partForm' ng-controller='PartFormCtrl'
   .row
     .col-xs-4
       .image.text-center
@@ -8,7 +8,7 @@ form#editPart role='form' ng-controller='PartFormCtrl'
     .col-xs-8
       .item.form-group
         label for='partItem' Item
-        ui-select#partItem ng-model='modifiedPart.itemId'
+        ui-select#partItem ng-model='modifiedPart.itemId' required=true
           ui-select-match {{ $select.selected.titles[0].text }}
           ui-select-choices repeat='it.id as it in items' refresh='fetchItems($select.search)' refresh-delay='1000'
             span ng-bind-html='it.titles[0].text'
@@ -30,12 +30,16 @@ form#editPart role='form' ng-controller='PartFormCtrl'
       .range.form-group
         label for='partStart' Range
         input#partStart.form-control ng-model='modifiedPart.start' type='number' size=3
-        |  - 
-        input#partEnd.form-control type='number' ng-model='modifiedPart.end' size=3
+        span ng-if='multiPart'
+          |  - 
+          input#partEnd.form-control type='number' ng-model='modifiedPart.end' size=3
+        .checkbox
+          label
+            input type='checkbox' ng-model='multiPart' multi
     .col-xs-2
       .form-group
         label for='partOriginalYear' Original Year
-        input#partOriginalYear.form-control ng-model='modifiedPart.originalYear' type='number' min='-4000'
+        input#partOriginalYear.form-control ng-model='modifiedPart.originalYear' type='number' min='-4000' required=true
     .col-xs-2
       .form-group
         label for='partYear' Year
@@ -43,7 +47,7 @@ form#editPart role='form' ng-controller='PartFormCtrl'
     .col-xs-4
       .form-group
         label for='partLanguage' Language
-        language-select#partLanguage ng-model='modifiedPart.language' languages='languages'
+        language-select#partLanguage ng-model='modifiedPart.language' languages='languages' required=true
     .col-xs-4
       .length.form-group
         label for='partLength' Length
@@ -51,11 +55,11 @@ form#editPart role='form' ng-controller='PartFormCtrl'
     .col-xs-4
       .publisher.form-group
         label for='partPublisher' Publisher
-        input#partPublisher.form-control ng-model='modifiedPart.publisher' type='text' typeahead='publisher.name for publisher in publishers'
+        input#partPublisher.form-control ng-model='modifiedPart.publisher' type='text' typeahead='publisher.name for publisher in publishers | filter: $viewValue'
     .col-xs-4
       .edition.form-group
         label for='partEdition' Edition
-        input#partEdition.form-control ng-model='modifiedPart.edition' type='text' typeahead='edition.name for edition in editions'
+        input#partEdition.form-control ng-model='modifiedPart.edition' type='text' typeahead='edition.name for edition in editions | filter: $viewValue'
     .col-xs-4
       .version.form-group
         label for='partVersion' Version
@@ -63,7 +67,7 @@ form#editPart role='form' ng-controller='PartFormCtrl'
     .col-xs-4
       .format.form-group
         label for='partFormat' Format
-        input#partFormat.form-control ng-model='modifiedPart.format' type='text' typeahead='format.name for format in formats'
+        input#partFormat.form-control ng-model='modifiedPart.format' type='text' typeahead='format.name for format in formats | filter: $viewValue'
     .col-xs-4
       .isbn.form-group
         label for='partIsbn' ISBN
@@ -84,7 +88,17 @@ form#editPart role='form' ng-controller='PartFormCtrl'
             .col-xs-1
               button.btn.btn-default type='button' ng-click='removeTag(tag)'
                 span.glyphicon.glyphicon-remove
+  .row ng-if='ownership'
+    .col-xs-4
+      .checkbox
+        label
+          input type='checkbox' ng-model='ownershipOptions.ownedByMe' I own it
+    .col-xs-8 ng-if='ownershipOptions.ownedByMe'
+      .form-group
+        label for='ownershipGottenAt' Since when
+        input.form-control ng-model='ownership.gottenAt' ui-date='dateOptions'
   .btn-group.pull-right
     button.btn.btn-default type='button' ng-click='cancel()' Cancel
     button.btn.btn-warning type='button' ng-if='part.id' ng-disabled='!partChanged()' ng-click='reset()' Reset
-    button.btn.btn-primary type='submit' ng-disabled='!partChanged()' ng-click='save()' Save
+    button.btn.btn-info type='button' ng-disabled='!partChanged() || partForm.$invalid' ng-click='partForm.$valid && saveAndAddAnother()' Save and add another
+    button.btn.btn-primary type='submit' ng-disabled='!partChanged() || partForm.$invalid' ng-click='partForm.$valid && save()' Save

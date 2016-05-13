@@ -48,6 +48,7 @@ SSHKit.config.command_map[:docker_build] = "/usr/bin/env docker build"
 SSHKit.config.command_map[:docker_run] = "/usr/bin/env docker run --rm"
 
 # docker-compose command shortcuts
+SSHKit.config.command_map[:compose_run] = "/usr/bin/env docker-compose -p #{fetch(:docker_prefix)} run --rm --no-deps"
 SSHKit.config.command_map[:compose_rake] = "/usr/bin/env docker-compose -p #{fetch(:docker_prefix)} run --rm task rake"
 %w(ps scale up).each do |command|
   SSHKit.config.command_map["compose_#{command}"] = "/usr/bin/env docker-compose -p #{fetch(:docker_prefix)} #{command}"
