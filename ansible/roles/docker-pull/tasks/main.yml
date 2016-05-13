@@ -1,0 +1,7 @@
+---
+- shell: docker images | grep -w {{ image_name }} | grep -w {{ image_tag }}
+  register: docker_image_exists
+  changed_when: docker_image_exists.rc != 0
+  failed_when: false
+- shell: docker pull {{ image_name }}:{{ image_tag }}
+  when: docker_image_exists|changed

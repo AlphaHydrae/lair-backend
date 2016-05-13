@@ -1,0 +1,98 @@
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+
+user nginx;
+worker_processes {{#if LAIR_NGINX_WORKER_PROCESSES}}{{ LAIR_NGINX_WORKER_PROCESSES }}{{else}}5{{/if}};
+daemon off;
+
+error_log /dev/stderr info;
+
+events {
+  worker_connections {{#if LAIR_NGINX_WORKER_CONNECTIONS}}{{ LAIR_NGINX_WORKER_CONNECTIONS }}{{else}}1024{{/if}};
+}
+
+http {
+  include /etc/nginx/mime.types;
+  default_type application/octet-stream;
+
+  log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+  access_log /dev/stdout main;
+
+  sendfile on;
+  server_tokens off;
+
+  keepalive_timeout 65;
+
+  gzip on;
+
+  upstream lair_cluster {
+    {{#each app_containers}}
+    server {{this.name}}:3000;
+    {{/each}}
+  }
+
+  server {
+    listen 443 ssl;
+    server_name {{ LAIR_NGINX_SERVER_NAME }};
+
+    # certs sent to the client in SERVER HELLO are concatenated in ssl_certificate
+    ssl_certificate /web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}/server.crt;
+    ssl_certificate_key /web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}/server.key;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:50m;
+
+    # intermediate configuration. tweak to your needs.
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128-SHA256:AES256-SHA256:AES128-SHA:AES256-SHA:AES:CAMELLIA:DES-CBC3-SHA:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!EDH-DSS-DES-CBC3-SHA:!EDH-RSA-DES-CBC3-SHA:!KRB5-DES-CBC3-SHA';
+    ssl_prefer_server_ciphers on;
+
+    # HSTS (ngx_http_headers_module is required) (15768000 seconds = 6 months)
+    add_header Strict-Transport-Security max-age=15768000;
+
+    root /var/lib/lair/public;
+
+    location / {
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header Host $http_host;
+      proxy_redirect off;
+
+      set $maintenance 0;
+
+      # Set maintenance mode if maintenance directory exists...
+      if (-d $document_root/maintenance) {
+        set $maintenance 1;
+      }
+
+      # but serve everything under the public maintenance directory.
+      if ($uri ~ ^/maintenance/) {
+        set $maintenance 0;
+      }
+
+      # If maintenance mode is set, serve the maintenance page.
+      if ($maintenance) {
+        rewrite (.*) /maintenance/maintenance.html last;
+      }
+
+      # Serve cached index if it exists.
+      if (-f $request_filename/index.html) {
+        rewrite (.*) $1/index.html break;
+      }
+
+      # Serve cached page if it exists.
+      if (-f $request_filename.html) {
+        rewrite (.*) $1.html break;
+      }
+
+      # Pass request to app.
+      if (!-f $request_filename) {
+        proxy_pass http://lair_cluster;
+        break;
+      }
+    }
+  }
+}

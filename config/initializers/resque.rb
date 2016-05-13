@@ -1,7 +1,11 @@
 # This initializer MUST run after the redis initializer.
-Resque.redis = $redis
+Resque.redis = $redis_db
+Resque.redis.namespace = 'lair:resque'
 
-if Rails.env == 'development'
+if ENV['LAIR_LOG_TO_STDOUT']
   Resque.logger = Logger.new STDOUT
-  Resque.logger.level = Logger::DEBUG
+else
+  Resque.logger = Logger.new Rails.root.join('log', "resque.#{Rails.env}.log")
 end
+
+Resque.logger.level = Rails.env == 'production' ? Logger::WARN : Logger::INFO

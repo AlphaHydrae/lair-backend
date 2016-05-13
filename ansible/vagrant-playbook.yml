@@ -1,0 +1,13 @@
+---
+- hosts: all
+  sudo: yes
+  vars_files:
+    - production.yml
+  roles:
+    - role: lair
+  tasks:
+    - name: add vagrant user to docker group
+      user: name=vagrant append=yes groups=docker
+      tags: [vagrant]
+    - name: add local ssh key to root
+      authorized_key: user=root key="{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

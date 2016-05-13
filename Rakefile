@@ -5,9 +5,11 @@ require File.expand_path('../config/application', __FILE__)
 
 Rails.application.load_tasks
 
-require 'rake-version'
-RakeVersion::Tasks.new do |v|
-  v.copy 'bower.json'
-  v.copy 'package.json'
-  v.copy 'spec/angular/unit/version.spec.js'
+if Rails.env != 'production'
+  require 'rake-version'
+  RakeVersion::Tasks.new do |v|
+    v.copy 'bower.json'
+    v.copy 'package.json'
+    v.copy 'spec/angular/unit/version.spec.js'
+  end
 end
