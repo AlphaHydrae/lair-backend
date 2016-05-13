@@ -20,6 +20,7 @@ gem 'wisper'
 
 # Background Jobs
 gem 'resque'
+gem 'resque-web', require: 'resque_web'
 gem 'resque-scheduler'
 gem 'resque-workers-lock'
 gem 'resque-waiting-room'
