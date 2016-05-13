@@ -1,27 +1,25 @@
 angular.module('lair.ownerships', [])
 
-  .controller('OwnershipListCtrl', ['ApiService', '$log', '$modal', '$scope', function($api, $log, $modal, $scope) {
+  .controller('OwnershipListCtrl', function(api, $log, $modal, $scope) {
 
     $scope.fetchOwnerships = function(table) {
 
       table.pagination.start = table.pagination.start || 0;
       table.pagination.number = table.pagination.number || 15;
 
-      var pageSize = table.pagination.number,
-          page = table.pagination.start / pageSize + 1,
-          params = {
-            page: page,
-            pageSize: pageSize,
-            withPart: 1,
-            withUser: 1
-          };
+      var params = {
+        start: table.pagination.start,
+        number: table.pagination.number,
+        withPart: 1,
+        withUser: 1
+      };
 
       if (table.search.predicateObject) {
         params.search = table.search.predicateObject.$;
       }
 
-      $api.http({
-        url: '/api/ownerships',
+      api({
+        url: '/ownerships',
         params: params
       }).then(function(res) {
         $scope.ownerships = res.data;
@@ -81,9 +79,9 @@ angular.module('lair.ownerships', [])
       $scope.modifiedOwnership = angular.copy($scope.ownership);
       $scope.$broadcast('reset');
     };
-  }])
+  })
 
-  .controller('EditOwnershipCtrl', ['ApiService', '$log', '$modalInstance', '$scope', function($api, $log, $modalInstance, $scope) {
+  .controller('EditOwnershipCtrl', function(api, $log, $modalInstance, $scope) {
 
     $scope.dateOptions = {
       dateFormat: 'yy-mm-dd'
@@ -106,10 +104,10 @@ angular.module('lair.ownerships', [])
 
       firstCheck = false;
 
-      $api.http({
-        url: '/api/ownerships',
+      api({
+        url: '/ownerships',
         params: {
-          pageSize: 1,
+          number: 1,
           partId: newValues[0],
           userId: newValues[1]
         }
@@ -127,10 +125,10 @@ angular.module('lair.ownerships', [])
         return;
       }
 
-      $api.http({
-        url: '/api/parts',
+      api({
+        url: '/parts',
         params: {
-          pageSize: 100,
+          number: 100,
           search: search
         }
       }).then(function(res) {
@@ -147,10 +145,10 @@ angular.module('lair.ownerships', [])
         return;
       }
 
-      $api.http({
-        url: '/api/users',
+      api({
+        url: '/users',
         params: {
-          pageSize: 100,
+          number: 100,
           search: search
         }
       }).then(function(res) {
@@ -166,9 +164,9 @@ angular.module('lair.ownerships', [])
     };
 
     $scope.save = function() {
-      $api.http({
+      api({
         method: $scope.ownership.id ? 'PATCH' : 'POST',
-        url: $scope.ownership.id ? '/api/ownerships/' + $scope.ownership.id : '/api/ownerships',
+        url: $scope.ownership.id ? '/ownerships/' + $scope.ownership.id : '/ownerships',
         data: $scope.modifiedOwnership,
         params: {
           withPart: 1,
@@ -187,9 +185,9 @@ angular.module('lair.ownerships', [])
         return;
       }
 
-      $api.http({
+      api({
         method: 'DELETE',
-        url: '/api/ownerships/' + $scope.ownership.id
+        url: '/ownerships/' + $scope.ownership.id
       }).then(function() {
         $modalInstance.close('delete');
       }, function(err) {
@@ -205,5 +203,5 @@ angular.module('lair.ownerships', [])
     function resetUsers() {
       $scope.users = $scope.ownership && $scope.ownership.userId ? [ $scope.ownership.user ] : [];
     }
-  }])
+  })
 ;

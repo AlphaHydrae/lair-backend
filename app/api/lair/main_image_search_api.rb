@@ -5,12 +5,12 @@ module Lair
         namespace 'main-image-search' do
           get do
             authorize! ImageSearch, :show
-            current_imageable.main_image_search!.to_builder.attributes!
+            serialize current_imageable.main_image_search!
           end
 
           patch do
             authorize! ImageSearch, :update
-            search_images_for(current_imageable).to_builder.attributes!
+            serialize search_images_for(current_imageable)
           end
         end
       end

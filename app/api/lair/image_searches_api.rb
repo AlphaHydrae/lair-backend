@@ -7,15 +7,16 @@ module Lair
             authorize! ImageSearch, :index
             rel = ImageSearch
             rel = rel.where imageable: current_imageable if respond_to? :current_imageable
-            paginated(rel).to_a.collect{ |search| search.to_builder.attributes! }
+            rel = paginated rel
+            serialize load_resources(rel)
           end
 
           post do
             authorize! ImageSearch, :create
             if respond_to? :current_imageable
-              search_images_for(current_imageable, force: true).to_builder.attributes!
+              serialize search_images_for(current_imageable, force: true)
             else
-              search_images.to_builder.attributes!
+              serialize search_images
             end
           end
         end

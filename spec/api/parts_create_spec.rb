@@ -44,7 +44,7 @@ RSpec.describe 'POST /api/parts' do
     end
 
     json = expect_json with_api_id(minimal_part).merge({
-      title: item.titles.first.to_builder.attributes!,
+      title: ItemTitlePolicy.new(:app, item.titles.first).serializer.serialize,
       tags: {}
     })
 
@@ -60,7 +60,7 @@ RSpec.describe 'POST /api/parts' do
 
     title = item.titles.first
     json = expect_json with_api_id(full_part).merge({
-      title: title.to_builder.attributes!.merge('text' => "#{title.contents} 1-3")
+      title: ItemTitlePolicy.new(:app, title).serializer.serialize.merge('text' => "#{title.contents} 1-3")
     })
 
     part = expect_part json, creator: user

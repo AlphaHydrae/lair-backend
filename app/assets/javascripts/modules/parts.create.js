@@ -1,6 +1,6 @@
 angular.module('lair.parts.create', ['lair.parts.form'])
 
-  .controller('CreatePartCtrl', ['ApiService', '$log', '$modal', 'moment', '$q', '$scope', '$state', '$stateParams', function($api, $log, $modal, moment, $q, $scope, $state, $stateParams) {
+  .controller('CreatePartCtrl', function(api, $log, $modal, moment, $q, $scope, $state, $stateParams) {
 
     function parsePart(part) {
       return _.extend({}, part, {
@@ -25,8 +25,8 @@ angular.module('lair.parts.create', ['lair.parts.form'])
     });
 
     if ($stateParams.itemId) {
-      $api.http({
-        url: '/api/items/' + $stateParams.itemId
+      api({
+        url: '/items/' + $stateParams.itemId
       }).then(function(res) {
         $scope.part.item = res.data;
         $scope.part.itemId = res.data.id;
@@ -41,11 +41,11 @@ angular.module('lair.parts.create', ['lair.parts.form'])
     }
 
     function prefill(item) {
-      $api.http({
-        url: '/api/parts',
+      api({
+        url: '/parts',
         params: {
           itemId: item.id,
-          pageSize: 1,
+          number: 1,
           latest: 1
         }
       }).then(function(res) {
@@ -75,7 +75,7 @@ angular.module('lair.parts.create', ['lair.parts.form'])
       $scope.$broadcast('part', $scope.part);
     }
 
-    $scope.imageSearchesResource = '/api/image-searches';
+    $scope.imageSearchesResource = '/image-searches';
 
     $scope.dateOptions = {
       dateFormat: 'yy-mm-dd'
@@ -101,9 +101,10 @@ angular.module('lair.parts.create', ['lair.parts.form'])
 
     $scope.cancel = function() {
       if ($stateParams.itemId) {
-        $state.go('std.home.item', { itemId: $stateParams.itemId });
+        // TODO: go back
+        $state.go('home');
       } else {
-        $state.go('std.home');
+        $state.go('home');
       }
     };
 
@@ -118,9 +119,9 @@ angular.module('lair.parts.create', ['lair.parts.form'])
     }
 
     function savePart() {
-      return $api.http({
+      return api({
         method: 'POST',
-        url: '/api/parts',
+        url: '/parts',
         data: dumpPart($scope.modifiedPart)
       }).then(function(res) {
         return res.data;
@@ -132,9 +133,9 @@ angular.module('lair.parts.create', ['lair.parts.form'])
     }
 
     function saveOwnership(part) {
-      return $api.http({
+      return api({
         method: 'POST',
-        url: '/api/ownerships',
+        url: '/ownerships',
         data: {
           userId: $scope.currentUser.id,
           partId: part.id,
@@ -150,7 +151,7 @@ angular.module('lair.parts.create', ['lair.parts.form'])
     }
 
     function edit(part) {
-      $state.go('std.parts.edit', { partId: part.id });
+      $state.go('parts.edit', { partId: part.id });
     }
 
     function addAnother() {
@@ -163,5 +164,5 @@ angular.module('lair.parts.create', ['lair.parts.form'])
       $scope.modifiedPart.start = $scope.modifiedPart.end + 1;
       $scope.modifiedPart.end = $scope.modifiedPart.start + rangeSize;
     }
-  }])
+  })
 ;

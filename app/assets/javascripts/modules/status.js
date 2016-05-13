@@ -1,14 +1,14 @@
 angular.module('lair.status', [ 'lair.api' ])
 
-  .controller('ImageUploadErrorDialogCtrl', [ 'ApiService', '$scope', function(api, $scope) {
-    api.http({
-      url: '/api/images/' + $scope.selectedImage.id + '/uploadError'
+  .controller('ImageUploadErrorDialogCtrl', function(api, $scope) {
+    api({
+      url: '/images/' + $scope.selectedImage.id + '/uploadError'
     }).then(function(res) {
       $scope.uploadError = res.data;
     });
-  }])
+  })
 
-  .controller('StatusCtrl', [ 'ApiService', '$modal', '$scope', '$timeout', function(api, $modal, $scope, $timeout) {
+  .controller('StatusCtrl', function(api, $modal, $scope, $timeout) {
 
     updateImageStats();
 
@@ -32,9 +32,9 @@ angular.module('lair.status', [ 'lair.api' ])
     };
 
     $scope.retryImageUpload = function(image) {
-      api.http({
+      api({
         method: 'PATCH',
-        url: '/api/images/' + image.id,
+        url: '/images/' + image.id,
         data: {
           state: 'created'
         }
@@ -59,9 +59,9 @@ angular.module('lair.status', [ 'lair.api' ])
     };
 
     $scope.deleteOrphanedImage = function(image) {
-      api.http({
+      api({
         method: 'DELETE',
-        url: '/api/images/' + image.id
+        url: '/images/' + image.id
       }).then(function() {
 
         updateImageStats();
@@ -74,8 +74,8 @@ angular.module('lair.status', [ 'lair.api' ])
     };
 
     function updateImageStats() {
-      api.http({
-        url: '/api/stats/images'
+      api({
+        url: '/stats/images'
       }).then(function(res) {
         $scope.imageStats = res.data;
 
@@ -85,44 +85,44 @@ angular.module('lair.status', [ 'lair.api' ])
       });
     }
 
-    function fetchImageUploadErrors(page) {
-      page = page || 1;
+    function fetchImageUploadErrors(start) {
+      start = start || 0;
 
-      api.http({
-        url: '/api/images',
+      api({
+        url: '/images',
         params: {
           orphan: 0,
           state: 'upload_failed',
-          pageSize: 10,
-          page: page
+          number: 10,
+          start: start
         }
       }).then(function(res) {
         $scope.imageUploadErrors = $scope.imageUploadErrors.concat(res.data);
 
         if (res.pagination().hasMorePages()) {
-          fetchImageUploadErrors(++page);
+          fetchImageUploadErrors(start + res.data.length);
         }
       });
     }
 
-    function fetchOrphanedImages(page) {
-      page = page || 1;
+    function fetchOrphanedImages(start) {
+      start = start || 0;
 
-      api.http({
-        url: '/api/images',
+      api({
+        url: '/images',
         params: {
           orphan: 1,
-          pageSize: 10,
-          page: page
+          number: 10,
+          start: start
         }
       }).then(function(res) {
         $scope.orphanedImages = $scope.orphanedImages.concat(res.data);
 
         if (res.pagination().hasMorePages()) {
-          fetchOrphanedImages(++page);
+          fetchOrphanedImages(start + res.data.length);
         }
       });
     }
-  }])
+  })
 
 ;

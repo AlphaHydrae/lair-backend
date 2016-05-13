@@ -4,6 +4,7 @@ class Ownership < ActiveRecord::Base
   include TrackedMutableResource
 
   before_create :set_identifier
+  before_save :set_owned
 
   belongs_to :item_part
   belongs_to :user
@@ -12,19 +13,18 @@ class Ownership < ActiveRecord::Base
   validates :item_part, presence: true
   validates :user, presence: true
   validates :gotten_at, presence: true
+  validate :yielded_at_must_be_after_gotten_at
 
-  def to_builder options = {}
-    Jbuilder.new do |json|
-      json.id api_id
-      json.partId item_part.api_id
-      json.userId user.api_id
-      json.tags tags
-      json.gottenAt gotten_at.iso8601(3)
+  # TODO: add sortable_title ("X 10" should be after "X 2")
 
-      json.part item_part.to_builder.attributes! if options[:with_part]
-      json.user user.to_builder.attributes! if options[:with_user]
+  private
 
-      # TODO: add createdAt/updatedAt
-    end
+  def yielded_at_must_be_after_gotten_at
+    errors.add :yielded_at, :too_old if yielded_at.present? && yielded_at < gotten_at
+  end
+
+  def set_owned
+    self.owned = !yielded_at
+    true
   end
 end

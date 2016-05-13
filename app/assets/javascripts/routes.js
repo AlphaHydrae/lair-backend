@@ -1,157 +1,148 @@
 angular.module('lair.routes', [ 'ui.router' ])
 
-  .config(['$stateProvider', function($stateProvider) {
+  .config(function($stateProvider) {
 
     $stateProvider
 
-      .state('std', {
-        abstract: true,
-        template: '<div ui-view="navbar" /><div ui-view="content" />'
-      })
-
-      .state('std.home', {
+      .state('home', {
         url: '^/',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          },
-          'content@std': {
-            templateUrl: '/templates/home.html'
-          }
-        }
+        templateUrl: '/templates/home.html',
+        controller: 'HomeCtrl'
       })
 
-      .state('std.items', {
+      .state('profile', {
+        url: '^/profile',
+        templateUrl: '/templates/profile.html',
+        controller: 'ProfileCtrl'
+      })
+
+      .state('items', {
         abstract: true,
         url: '^/items',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          }
-        }
+        template: '<div ui-view />'
       })
 
-      .state('std.items.create', {
+      .state('items.list', {
+        url: '^/items',
+        templateUrl: '/templates/items-list.html',
+        controller: 'ItemsListCtrl'
+      })
+
+      .state('items.create', {
         url: '^/items/new',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/createItem.html'
-          }
-        }
+        templateUrl: '/templates/createItem.html'
       })
 
-      .state('std.items.edit', {
+      .state('items.edit', {
         url: '/:itemId/edit',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/editItem.html'
-          }
-        }
+        templateUrl: '/templates/editItem.html'
       })
 
-      .state('std.home.item', {
-        url: '^/items/:itemId'
-      })
-
-      .state('std.parts', {
+      .state('parts', {
         abstract: true,
         url: '^/parts',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          }
-        }
+        template: '<div ui-view />'
       })
 
-      .state('std.parts.create', {
+      .state('parts.create', {
         url: '^/parts/new?itemId',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/createPart.html'
-          }
-        }
+        templateUrl: '/templates/createPart.html'
       })
 
-      .state('std.parts.edit', {
+      .state('parts.edit', {
         url: '/:partId/edit',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/editPart.html'
-          }
-        }
+        templateUrl: '/templates/editPart.html'
       })
 
-      .state('std.ownerships', {
+      .state('collections', {
+        abstract: true,
+        url: '^/collections',
+        template: '<div ui-view />'
+      })
+
+      .state('collections.list', {
+        url: '^/collections',
+        templateUrl: '/templates/collections-list.html',
+        controller: 'CollectionsListCtrl'
+      })
+
+      .state('collections.edit', {
+        url: '/:id/edit',
+        templateUrl: '/templates/collections-edit.html',
+        controller: 'EditCollectionCtrl'
+      })
+
+      .state('ownerships', {
         abstract: true,
         url: '^/ownerships',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          }
-        }
+        template: '<div ui-view />'
       })
 
-      .state('std.ownerships.list', {
+      .state('ownerships.list', {
         url: '^/ownerships',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/listOwnerships.html'
-          }
-        }
+        templateUrl: '/templates/listOwnerships.html'
       })
 
-      .state('std.images', {
+      .state('images', {
         abstract: true,
         url: '^/images',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          }
-        }
+        template: '<div ui-view />'
       })
 
-      .state('std.images.missing', {
+      .state('images.missing', {
         url: '/missing',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/setMissingImages.html'
-          }
-        }
+        templateUrl: '/templates/setMissingImages.html'
       })
 
-      .state('std.events', {
+      .state('events', {
         abstract: true,
         url: '^/events',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          }
-        }
+        template: '<div ui-view />'
       })
 
-      .state('std.events.list', {
+      .state('events.list', {
         url: '^/events',
-        views: {
-          'content@std': {
-            templateUrl: '/templates/listEvents.html'
-          }
-        }
+        templateUrl: '/templates/listEvents.html'
       })
 
-      .state('std.status', {
+      .state('status', {
         url: '^/status',
-        views: {
-          'navbar@std': {
-            templateUrl: '/templates/navbar.html'
-          },
-          'content@std': {
-            templateUrl: '/templates/status.html',
-            controller: 'StatusCtrl'
-          }
-        }
+        templateUrl: '/templates/status.html',
+        controller: 'StatusCtrl'
+      })
+
+      .state('users', {
+        abstract: true,
+        url: '^/users',
+        template: '<div ui-view />'
+      })
+
+      .state('users.list', {
+        url: '^/users',
+        templateUrl: '/templates/users-list.html',
+        controller: 'UsersListCtrl'
+      })
+
+      .state('users.new', {
+        url: '/new',
+        templateUrl: '/templates/users-new.html',
+        controller: 'NewUserCtrl'
+      })
+
+      .state('users.edit', {
+        url: '/:id',
+        templateUrl: '/templates/users-edit.html',
+        controller: 'EditUserCtrl'
+      })
+
+      .state('collection', {
+        url: '^/:userName/:collectionName',
+        templateUrl: '/templates/collections-show.html',
+        controller: 'CollectionCtrl'
       })
 
     ;
 
-  }])
+  })
+
 ;

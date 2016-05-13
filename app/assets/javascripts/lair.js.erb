@@ -10,30 +10,37 @@ angular.module('lair', [
   'ui.sortable',
   'lair.state',
   'lair.auth',
-  'lair.auth.policy',
+  'lair.collections.edit',
+  'lair.collections.list',
+  'lair.collections.show',
   'lair.events',
   'lair.home',
   'lair.people',
+  'lair.profile',
   'lair.routes',
   'lair.images',
   'lair.images.missing',
   'lair.items.create',
   'lair.items.edit',
+  'lair.items.list',
   'lair.parts.create',
   'lair.parts.edit',
   'lair.ownerships',
-  'lair.status'
+  'lair.status',
+  'lair.users.edit',
+  'lair.users.list',
+  'lair.users.new'
 ])
 
   // configuration
   .constant('version', <%= JSON.dump Lair::Application::VERSION %>)
-  .constant('environment', <%= JSON.dump Rails.env %>)
+  .constant('env', <%= JSON.dump Rails.env %>)
   .constant('config.googleOAuth2ClientId', <%= JSON.dump Rails.application.secrets.google_oauth2_client_id.to_s %>)
 
   // enable debug log unless in production
-  .config(['environment', '$logProvider', function(env, $logProvider) {
+  .config(function(env, $logProvider) {
     $logProvider.debugEnabled(env !== 'production');
-  }])
+  })
 
   // satellizer
   .config(['config.googleOAuth2ClientId', '$authProvider', function(googleOAuth2ClientId, $authProvider) {

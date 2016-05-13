@@ -16,6 +16,7 @@ class Item < ActiveRecord::Base
   has_many :links, class_name: 'ItemLink', dependent: :destroy, autosave: true
   has_many :descriptions, class_name: 'ItemDescription'
   has_many :relationships, class_name: 'ItemPerson', dependent: :destroy, autosave: true
+  has_many :parts, class_name: 'ItemPart'
 
   strip_attributes
   validates :category, presence: true, inclusion: { in: %w(anime book manga movie show), allow_blank: true }
@@ -28,23 +29,6 @@ class Item < ActiveRecord::Base
 
   def default_image_search_query
     "#{titles[0].contents} #{category}"
-  end
-
-  def to_builder options = {}
-    Jbuilder.new do |json|
-      json.id api_id
-      json.category category
-      json.startYear start_year
-      json.endYear end_year
-      json.language language.tag
-      json.numberOfParts number_of_parts if number_of_parts
-      json.titles titles.to_a.sort_by(&:display_position).collect{ |t| t.to_builder.attributes! }
-      json.relationships relationships.to_a.collect{ |r| r.to_builder.attributes! }
-      json.links links.to_a.sort_by(&:url).collect{ |l| l.to_builder.attributes! }
-      json.tags tags
-
-      add_image_to_builder json, options
-    end
   end
 
   private

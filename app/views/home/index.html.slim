@@ -1,42 +1,47 @@
-script type='text/ng-template' id='/templates/navbar.html'
-  nav.navbar.navbar-default role='navigation'
-    .container
-      .navbar-header
-        button.navbar-toggle.collapsed type='button' data-toggle='collapse' data-target='#menu'
-          span.sr-only Toggle navigation
-          span.icon-bar
-          span.icon-bar
-          span.icon-bar
-        a.navbar-brand ui-sref='std.home' Lair
-      #menu.collapse.navbar-collapse
-        ul.nav.navbar-nav
-          li ng-if='currentUser' dropdown=true
-            a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
-              | Admin
-              span.caret
-            ul.dropdown-menu role='menu'
-              li
-                a href='#' ui-sref='std.items.create' Create Item
-              li
-                a href='#' ui-sref='std.parts.create' Create Part
-              li
-                a href='#' ui-sref='std.ownerships.list' Ownerships
-              li
-                a href='#' ui-sref='std.images.missing' Set Missing Images
-              li
-                a href='#' ui-sref='std.events.list' Events
-              li
-                a href='#' ui-sref='std.status' Status
-        ul.nav.navbar-nav.navbar-right ng-controller='AuthController'
-          li ng-hide='isAuthenticated()'
-            a href='#' ng-click='showLoginDialog()' Sign in
-          li.gravatar ng-show='currentUser'
-            a href='#'
-              img gravatar-src='currentUser.email' gravatar-size=40
-          li ng-show='isAuthenticated()' dropdown=true
-            a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
-              span ng-bind='currentUser.email'
-              span.caret
-            ul.dropdown-menu role='menu'
-              li
-                a href='#' ng-click='signOut()' Sign out
+nav.navbar.navbar-default role='navigation'
+  .container
+    .navbar-header
+      button.navbar-toggle.collapsed type='button' data-toggle='collapse' data-target='#menu'
+        span.sr-only Toggle navigation
+        span.icon-bar
+        span.icon-bar
+        span.icon-bar
+      a.navbar-brand ui-sref='home' Lair
+    #menu.collapse.navbar-collapse
+      ul.nav.navbar-nav
+        li
+          a href='#' ui-sref='collections.list' Collections
+        li ng-if='currentUser'
+          a href='#' ui-sref='items.list' Items
+        li ng-if='currentUser' dropdown=true
+          a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
+            | Admin
+            span.caret
+          ul.dropdown-menu role='menu'
+            li
+              a href='#' ui-sref='items.create' Create Item
+            li
+              a href='#' ui-sref='parts.create' Create Part
+            li
+              a href='#' ui-sref='ownerships.list' Ownerships
+            li
+              a href='#' ui-sref='images.missing' Set Missing Images
+            li
+              a href='#' ui-sref='events.list' Events
+            li
+              a href='#' ui-sref='status' Status
+            li
+              a href='#' ui-sref='users.list' Users
+      ul#auth.nav.navbar-nav.navbar-right ng-controller='AuthController'
+        li ng-if='!isAuthenticated()'
+          a href='#' ng-click='showLoginDialog()' Sign in
+        li ng-if='isAuthenticated()' dropdown=true
+          a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false' tooltip='Profile and more' tooltip-append-to-body='true' tooltip-placement='left'
+            img.avatar gravatar-src='currentUser.emailMd5' gravatar-size=24
+            span.caret
+          ul.dropdown-menu role='menu'
+            li
+              a href='#' ui-sref='profile' Profile
+            li
+              a href='#' ng-click='signOut()' Sign out
+.content ui-view=true

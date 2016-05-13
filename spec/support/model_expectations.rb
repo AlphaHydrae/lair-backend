@@ -109,7 +109,10 @@ module SpecModelExpectationsHelper
     item_titles = item.titles.sort_by &:display_position
     expect(item_titles).to have(json['titles'].length).items
     json['titles'].each.with_index do |title,i|
-      expect(item_titles[i].to_builder.attributes!).to eq(title)
+      matching_title = item_titles[i]
+      expect(matching_title.api_id).to eq(title['id'])
+      expect(matching_title.contents).to eq(title['text'])
+      expect(matching_title.language.tag).to eq(title['language'])
     end
 
     expect(item.original_title).to eq(item_titles[0])

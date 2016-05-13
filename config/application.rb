@@ -45,7 +45,7 @@ module Lair
     config.assets.paths << Rails.root.join('vendor', 'assets', 'fonts')
     config.assets.precompile << /\.(?:svg|eot|woff|woff2|ttf|otf|png|gif)\z/
 
-    %w(api jobs search).each do |dir|
+    %w(api jobs search serializers).each do |dir|
       config.paths.add File.join('app', dir), glob: File.join('**', '*.rb')
       config.autoload_paths += Dir[Rails.root.join('app', dir, '*')]
     end

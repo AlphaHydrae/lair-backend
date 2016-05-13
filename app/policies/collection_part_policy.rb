@@ -1,0 +1,2 @@
+class CollectionPartPolicy < ApplicationPolicy
+end

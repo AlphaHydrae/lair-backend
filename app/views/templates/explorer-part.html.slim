@@ -1,0 +1,37 @@
+.modal-header.clearfix
+  .btn-group.btn-group-sm.pull-right
+    button.btn.btn-default type='button' ng-click='showItem()' tooltip='Parent item' tooltip-append-to-body='true'
+      span.glyphicon.glyphicon-arrow-left
+    button.btn.btn-info type='button' own-dialog=true ng-if='currentUser && !part.ownedByMe'
+      span.glyphicon.glyphicon-hand-up
+    button.btn.btn-info type='button' ng-if='currentUser && part.ownedByMe' popover-template='"/templates/ownerships-yield-dialog.html"' popover-placement='bottom' popover-append-to-body='true' tooltip="I don't own it any more" tooltip-append-to-body='true'
+      span.glyphicon.glyphicon-remove-circle
+    button.btn.btn-warning type='button' ng-if='currentUser' ng-click='edit(part)' tooltip='Edit' tooltip-append-to-body='true'
+      span.glyphicon.glyphicon-edit
+  h3.modal-title
+    | {{ part.title.text }}
+    span ng-if='part.year'
+      |  ({{ part.year }})
+    span ng-if='!part.year'
+      |  ({{ part.originalYear }})
+.modal-body.part-info
+  .row
+    .col-xs-12.hidden-lg.hidden-md ng-if='part.image'
+      .image
+        img.center-block ng-src='{{ part.image.url }}' alt='Image'
+    .col-md-6.col-xs-7
+      .description.clearfix
+        dl
+          dt ng-show='part.format' Format
+          dd ng-show='part.format' {{ part.format }}
+          dt ng-show='part.length' Pages
+          dd ng-show='part.length' {{ part.length }}
+          dt ng-show='part.originalYear' Original Year
+          dd ng-show='part.originalYear' {{ part.originalYear }}
+          dt ng-show='part.year' Year
+          dd ng-show='part.year' {{ part.year }}
+          dt ng-show='part.isbn' ISBN
+          dd ng-show='part.isbn' {{ formatIsbn(part.isbn) }}
+    .col-md-6.hidden-sm.hidden-xs ng-if='part.image'
+      .image
+        img.center-block ng-src='{{ part.image.url }}' alt='Image'

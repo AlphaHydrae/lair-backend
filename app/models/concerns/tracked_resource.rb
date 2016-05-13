@@ -14,7 +14,8 @@ module TrackedResource
   end
 
   def cache_previous_version
-    @cached_previous_version = to_builder.attributes!
+    policy = Pundit.policy! :app, self
+    @cached_previous_version = policy.serializer.serialize
   end
 
   def creator= creator

@@ -31,14 +31,6 @@ class Language < ActiveRecord::Base
     !new_record?
   end
 
-  def to_builder
-    Jbuilder.new do |json|
-      json.tag tag
-      json.name name
-      json.used used?
-    end
-  end
-
   private
 
   def tag_must_be_valid

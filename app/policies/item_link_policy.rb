@@ -1,0 +1,2 @@
+class ItemLinkPolicy < ApplicationPolicy
+end

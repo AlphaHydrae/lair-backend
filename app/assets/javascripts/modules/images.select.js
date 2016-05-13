@@ -1,6 +1,6 @@
 angular.module('lair.images.select', ['lair.api'])
 
-  .controller('SelectImageCtrl', ['ApiService', '$log', '$modalInstance', '$scope', '$timeout', function($api, $log, $modalInstance, $scope, $timeout) {
+  .controller('SelectImageCtrl', function(api, $log, $modalInstance, $scope, $timeout) {
 
     $scope.manualImage = {};
     $scope.manualImageNotFound = false;
@@ -17,7 +17,7 @@ angular.module('lair.images.select', ['lair.api'])
     });
 
     function updateRateLimit(response) {
-      $scope.rateLimit = $api.rateLimit(response);
+      $scope.rateLimit = response.rateLimit();
 
       if ($scope.rateLimit.isExceeded()) {
         $timeout(function() {
@@ -34,7 +34,7 @@ angular.module('lair.images.select', ['lair.api'])
     $scope.engine = $scope.engines[0].name;
 
     if ($scope.mainImageSearchResource) {
-      $api.http({
+      api({
         method: 'PATCH',
         url: $scope.mainImageSearchResource
       }).then(function(res) {
@@ -63,7 +63,7 @@ angular.module('lair.images.select', ['lair.api'])
         return;
       }
 
-      $api.http({
+      api({
         method: 'POST',
         url: $scope.imageSearchesResource,
         data: {
@@ -84,5 +84,5 @@ angular.module('lair.images.select', ['lair.api'])
         }
       });
     };
-  }])
+  })
 ;

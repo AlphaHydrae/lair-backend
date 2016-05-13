@@ -25,16 +25,6 @@ class ImageSearch < ActiveRecord::Base
     results_count > 0
   end
 
-  def to_builder
-    Jbuilder.new do |json|
-      json.id api_id # TODO: unused?
-      json.query query
-      json.engine engine
-      json.results results
-      json.searchedAt created_at.iso8601(3)
-    end
-  end
-
   def check_rate_limit
     self.rate_limit = RateLimit.check_rate_limit engine
   end

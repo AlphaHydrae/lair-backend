@@ -6,6 +6,7 @@ gem 'rails', '4.2.1'
 gem 'pg'
 gem 'strip_attributes'
 gem 'simple_states'
+gem 'role_model'
 
 # Memory Database
 gem 'redis'
@@ -24,6 +25,7 @@ gem 'therubyracer'
 gem 'uglifier', '>= 1.3.0'
 gem 'ngannotate-rails'
 gem 'autoprefixer-rails'
+gem 'redcarpet'
 
 # Standards
 gem 'iso'

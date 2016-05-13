@@ -32,28 +32,48 @@ module Lair
           part.save!
         end
 
-        part.to_builder.attributes!
+        serialize part
       end
 
       helpers do
         def search_parts
-          limit = params[:pageSize].to_i
-          limit = 10 if limit < 1
-
-          page = params[:page].to_i
-          offset = (page - 1) * limit
-          if offset < 1
-            page = 1
-            offset = 0
-          end
-
-          header 'X-Pagination-Page', page.to_s
-          header 'X-Pagination-PageSize', limit.to_s
-          header 'X-Pagination-Total', ItemPart.count.to_s
-
           rel = ItemPart
 
           rel = paginated rel do |rel|
+
+            item_joined = false
+            ownerships_joined = false
+
+            if params[:categories].present?
+              rel = rel.joins :item unless item_joined
+              item_joined = true
+              rel = rel.where 'items.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
+            end
+
+            if params[:ownerIds].present?
+              unless ownerships_joined
+                ownerships_joined = true
+                rel = rel.joins ownerships: :user
+              end
+
+              rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, Array.wrap(params[:ownerIds]).collect(&:to_s)
+            end
+
+            if params[:collectionId].present?
+              collection = Collection.where(api_id: params[:collectionId].to_s).first!
+
+              unless item_joined
+                item_joined = true
+                rel = rel.joins :item
+              end
+
+              unless ownerships_joined
+                ownerships_joined = true
+                rel = rel.joins ownerships: :user
+              end
+
+              rel = collection.apply rel
+            end
 
             if true_flag? :image
               rel = rel.where 'image_id is not null'
@@ -62,7 +82,9 @@ module Lair
             end
 
             if params[:itemId].present?
-              rel = rel.joins(:item).where('items.api_id = ?', params[:itemId].to_s)
+              rel = rel.joins :item unless item_joined
+              item_joined = true
+              rel = rel.where('items.api_id = ?', params[:itemId].to_s)
             end
 
             if params[:search].present?
@@ -73,7 +95,7 @@ module Lair
             rel
           end
 
-          rel.offset(offset).limit(limit)
+          rel
         end
       end
 
@@ -88,12 +110,17 @@ module Lair
 
         rel = search_parts
 
+        if params[:collectionId].present?
+          rel = rel.group 'item_parts.id'
+        end
+
         if true_flag? :random
           rel = rel.order 'RANDOM()'
         elsif true_flag? :latest # TODO: implement generic order
           rel = rel.order 'item_parts.range_start DESC, item_parts.created_at DESC'
         else
-          rel = rel.order 'item_parts.range_start, item_parts.custom_title'
+          # TODO: improve part sorting
+          rel = rel.order 'item_parts.effective_title'
         end
 
         with_item = true_flag? :withItem
@@ -110,15 +137,17 @@ module Lair
           includes << :item
         end
 
-        parts = rel.includes(includes).to_a
+        # TODO: test preload
+        parts = rel.preload(includes).to_a
 
         ownerships = if current_user
-          Ownership.joins(:item_part).where(item_parts: { id: parts.collect(&:id) }, ownerships: { user_id: current_user.id }).to_a
+          Ownership.joins(:item_part).where(item_parts: { id: parts.collect(&:id) }, ownerships: { owned: true, user_id: current_user.id }).to_a
         else
           nil
         end
 
-        parts.collect{ |part| part.to_builder(current_user: current_user, with_item: with_item, ownerships: ownerships, image_from_search: image_from_search).attributes! }
+        options = { with_item: with_item, ownerships: ownerships, image_from_search: image_from_search }
+        serialize parts, options
       end
 
       namespace '/:partId' do
@@ -142,12 +171,12 @@ module Lair
           with_item = true_flag? :withItem
 
           ownerships = if current_user
-            Ownership.joins(:item_part).where(item_parts: { id: part }, ownerships: { user_id: current_user.id }).to_a
+            Ownership.joins(:item_part).where(item_parts: { id: part }, ownerships: { owned: true, user_id: current_user.id }).to_a
           else
             nil
           end
 
-          part.to_builder(current_user: current_user, with_item: with_item, ownerships: ownerships).attributes!
+          serialize part, current_user: current_user, with_item: with_item, ownerships: ownerships
         end
 
         include ImageSearchesApi
@@ -179,7 +208,7 @@ module Lair
           end
 
           with_item = true_flag? :withItem
-          part.to_builder(with_item: with_item).attributes!
+          serialize part, with_item: with_item
         end
       end
     end

@@ -13,7 +13,7 @@ RSpec.describe 'PATCH /api/ownerships/{id}' do
   let(:now){ Time.now }
 
   let! :original_version do
-    ownership.to_builder.attributes!
+    OwnershipPolicy.new(:app, ownership).serializer.serialize
   end
 
   let :minimal_update do

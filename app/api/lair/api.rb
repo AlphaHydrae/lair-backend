@@ -39,21 +39,13 @@ module Lair
     helpers ApiImageableHelper
     helpers ApiPaginationHelper
     helpers ApiParamsHelper
+    helpers ApiResourceHelper
+    helpers ApiSerializationHelper
     helpers ImageSearchHelper::Api
 
     helpers do
       def language tag
         Language.find_or_create_by!(tag: tag)
-      end
-
-      def current_user
-
-        if @auth_token && !@current_user
-          @current_user = User.where(api_id: @auth_token['iss']).first
-          raise AuthError.new("Unknown user #{@auth_token['iss']}") if @current_user.blank?
-        end
-
-        @current_user
       end
     end
 
@@ -62,6 +54,7 @@ module Lair
     end
 
     include ImageSearchesApi
+    mount CollectionsApi
     mount EventsApi
     mount ImagesApi
     mount ItemsApi

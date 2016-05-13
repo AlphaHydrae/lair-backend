@@ -14,7 +14,7 @@ module Lair
           rel
         end
 
-        rel.to_a.collect{ |r| r.to_builder.attributes! }
+        serialize load_resources(rel)
       end
     end
   end

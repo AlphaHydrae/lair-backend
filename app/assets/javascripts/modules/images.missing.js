@@ -12,7 +12,7 @@ angular.module('lair.images.missing', [])
     };
   })
 
-  .controller('MissingImagesCtrl', ['ApiService', '$log', '$modal', '$q', '$scope', function($api, $log, $modal, $q, $scope) {
+  .controller('MissingImagesCtrl', function(api, $log, $modal, $q, $scope) {
 
     $scope.showAllParts = false;
     $scope.useSameImageForMainPartAndItem = true;
@@ -78,9 +78,9 @@ angular.module('lair.images.missing', [])
     };
 
     function approveImage(subject, resource, imageData) {
-      return $api.http({
+      return api({
         method: 'PATCH',
-        url: '/api/' + resource + '/' + subject.id,
+        url: '/' + resource + '/' + subject.id,
         data: {
           image: imageData
         }
@@ -95,8 +95,8 @@ angular.module('lair.images.missing', [])
     }
 
     $scope.selectImage = function(subject, resource) {
-      $scope.imageSearchesResource = '/api/' + resource + '/' + subject.id + '/image-searches';
-      $scope.mainImageSearchResource = '/api/' + resource + '/' + subject.id + '/main-image-search';
+      $scope.imageSearchesResource = '/' + resource + '/' + subject.id + '/image-searches';
+      $scope.mainImageSearchResource = '/' + resource + '/' + subject.id + '/main-image-search';
 
       modal = $modal.open({
         controller: 'SelectImageCtrl',
@@ -136,7 +136,7 @@ angular.module('lair.images.missing', [])
             image: 0,
             imageFromSearch: 1,
             random: 1,
-            pageSize: 1
+            number: 1
           };
 
       if (resource == 'items') {
@@ -146,8 +146,8 @@ angular.module('lair.images.missing', [])
         $log.debug('Fetching a random item part missing an image');
       }
 
-      $api.http({
-        url: '/api/' + resource,
+      api({
+        url: '/' + resource,
         params: params
       }).then(function(res) {
         $scope.item = resource == 'parts' ? res.data[0].item : res.data[0];
@@ -158,26 +158,25 @@ angular.module('lair.images.missing', [])
       });
     }
 
-    function fetchItemParts(startPage) {
+    function fetchItemParts(start) {
 
-      var page = startPage || 1,
-          pageSize = 100;
+      start = start || 0;
 
       $scope.item.parts = [];
 
-      return $api.http({
-        url: '/api/parts',
+      return api({
+        url: '/parts',
         params: {
           itemId: $scope.item.id,
           imageFromSearch: 1,
-          page: page,
-          pageSize: pageSize
+          start: start,
+          number: 100
         }
       }).then(function(res) {
         $scope.item.parts = $scope.item.parts.concat(res.data);
-        $log.debug('Fetched parts ' + res.pagination().startNumber + '-' + res.pagination().endNumber + ' for item ' + $scope.item.id);
+        $log.debug('Fetched parts ' + (res.pagination().start + 1) + '-' + (res.pagination().end + 1) + ' for item ' + $scope.item.id);
         if (res.pagination().hasMorePages()) {
-          return fetchItemParts(page + 1);
+          return fetchItemParts(start + res.data.length);
         } else {
           setMainPart();
         }
@@ -206,17 +205,16 @@ angular.module('lair.images.missing', [])
     }
 
     function countMissingImages(resource) {
-      return $api.http({
-        method: 'GET', // TODO: change to HEAD request when this issue is fixed: https://github.com/intridea/grape/issues/1014
-        url: '/api/' + resource,
+      return api({ // TODO: change to HEAD request when this issue is fixed: https://github.com/intridea/grape/issues/1014
+        url: '/' + resource,
         params: {
           image: 0,
           random: 1,
-          pageSize: 1
+          number: 1
         }
       }).then(function(res) {
 
-        var count = parseInt(res.headers('X-Pagination-FilteredTotal'), 10);
+        var count = parseInt(res.headers('X-Pagination-Filtered-Total'), 10);
         $scope[resource + 'Count'] = count;
 
         $log.debug('Number of ' + resource + ' missing an image: ' + count);
@@ -225,5 +223,5 @@ angular.module('lair.images.missing', [])
         $log.debug(res);
       });
     }
-  }])
+  })
 ;

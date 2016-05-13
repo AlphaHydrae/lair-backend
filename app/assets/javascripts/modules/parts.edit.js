@@ -1,6 +1,6 @@
 angular.module('lair.parts.edit', ['lair.parts.form'])
 
-  .controller('EditPartCtrl', ['ApiService', '$log', '$modal', '$q', '$scope', '$state', '$stateParams', function($api, $log, $modal, $q, $scope, $state, $stateParams) {
+  .controller('EditPartCtrl', function(api, $log, $modal, $q, $scope, $state, $stateParams) {
 
     function parsePart(part) {
       return _.extend({}, part, {
@@ -20,11 +20,11 @@ angular.module('lair.parts.edit', ['lair.parts.form'])
       });
     }
 
-    $scope.imageSearchesResource = '/api/parts/' + $stateParams.partId + '/image-searches';
-    $scope.mainImageSearchResource = '/api/parts/' + $stateParams.partId + '/main-image-search';
+    $scope.imageSearchesResource = '/parts/' + $stateParams.partId + '/image-searches';
+    $scope.mainImageSearchResource = '/parts/' + $stateParams.partId + '/main-image-search';
 
-    $api.http({
-      url: '/api/parts/' + $stateParams.partId,
+    api({
+      url: '/parts/' + $stateParams.partId,
       params: {
         withItem: 1
       }
@@ -38,10 +38,10 @@ angular.module('lair.parts.edit', ['lair.parts.form'])
     });
 
     $scope.save = function() {
-      $api.http({
+      api({
         method: 'PATCH',
-        url: '/api/parts/' + $stateParams.partId,
-        data: dumpPart($scope.modifiedPart),
+        url: '/parts/' + $stateParams.partId,
+        data: dumpPart(_.omit($scope.modifiedPart, 'item', 'title')),
         params: {
           withItem: 1
         }
@@ -62,7 +62,9 @@ angular.module('lair.parts.edit', ['lair.parts.form'])
     $scope.reset = reset;
 
     $scope.cancel = function() {
-      $state.go('std.home.item', { itemId: $scope.part.itemId });
+      // TODO: go back
+      $state.go('home');
     };
-  }])
+  })
+
 ;

@@ -1,9 +1,15 @@
 FactoryGirl.define do
-  sequence :email do |n|
-    "john.doe.#{n}@example.com"
+  sequence :user_name do |n|
+    "user-#{n}"
+  end
+
+  sequence :user_email do |n|
+    "user.#{n}@example.com"
   end
 
   factory :user, aliases: %i(creator) do
-    email{ generate :email }
+    name{ generate :user_name }
+    email{ generate :user_email }
+    active true
   end
 end

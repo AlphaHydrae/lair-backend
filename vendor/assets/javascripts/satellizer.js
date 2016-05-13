@@ -1,9 +1,8 @@
 /**
- * Satellizer
- * (c) 2014 Sahat Yalkabov
+ * Satellizer 0.11.3
+ * (c) 2015 Sahat Yalkabov
  * License: MIT
  */
-
 (function(window, angular, undefined) {
   'use strict';
 
@@ -11,6 +10,7 @@
     .constant('satellizer.config', {
       httpInterceptor: true,
       loginOnSignup: true,
+      baseUrl: '/',
       loginRedirect: '/',
       logoutRedirect: '/',
       signupRedirect: '/login',
@@ -18,12 +18,19 @@
       signupUrl: '/auth/signup',
       loginRoute: '/login',
       signupRoute: '/signup',
+      tokenRoot: false,
       tokenName: 'token',
       tokenPrefix: 'satellizer',
       unlinkUrl: '/auth/unlink/',
+      unlinkMethod: 'get',
       authHeader: 'Authorization',
+      authToken: 'Bearer',
+      withCredentials: true,
+      platform: 'browser',
+      storage: 'localStorage',
       providers: {
         google: {
+          name: 'google',
           url: '/auth/google',
           authorizationEndpoint: 'https://accounts.google.com/o/oauth2/auth',
           redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
@@ -37,17 +44,19 @@
           popupOptions: { width: 452, height: 633 }
         },
         facebook: {
+          name: 'facebook',
           url: '/auth/facebook',
-          authorizationEndpoint: 'https://www.facebook.com/dialog/oauth',
-          redirectUri: window.location.origin + '/' || window.location.protocol + '//' + window.location.host + '/',
+          authorizationEndpoint: 'https://www.facebook.com/v2.3/dialog/oauth',
+          redirectUri: (window.location.origin || window.location.protocol + '//' + window.location.host) + '/',
           scope: ['email'],
           scopeDelimiter: ',',
-          requiredUrlParams: ['display', 'scope'],
+          requiredUrlParams: ['nonce','display', 'scope'],
           display: 'popup',
           type: '2.0',
           popupOptions: { width: 580, height: 400 }
         },
         linkedin: {
+          name: 'linkedin',
           url: '/auth/linkedin',
           authorizationEndpoint: 'https://www.linkedin.com/uas/oauth2/authorization',
           redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
@@ -59,15 +68,18 @@
           popupOptions: { width: 527, height: 582 }
         },
         github: {
+          name: 'github',
           url: '/auth/github',
           authorizationEndpoint: 'https://github.com/login/oauth/authorize',
           redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
-          scope: [],
+          optionalUrlParams: ['scope'],
+          scope: ['user:email'],
           scopeDelimiter: ' ',
           type: '2.0',
           popupOptions: { width: 1020, height: 618 }
         },
         yahoo: {
+          name: 'yahoo',
           url: '/auth/yahoo',
           authorizationEndpoint: 'https://api.login.yahoo.com/oauth2/request_auth',
           redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
@@ -77,15 +89,19 @@
           popupOptions: { width: 559, height: 519 }
         },
         twitter: {
+          name: 'twitter',
           url: '/auth/twitter',
+          authorizationEndpoint: 'https://api.twitter.com/oauth/authenticate',
+          redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
           type: '1.0',
           popupOptions: { width: 495, height: 645 }
         },
         live: {
+          name: 'live',
           url: '/auth/live',
           authorizationEndpoint: 'https://login.live.com/oauth20_authorize.srf',
           redirectUri: window.location.origin || window.location.protocol + '//' + window.location.host,
-          scope: ['wl.basic'],
+          scope: ['wl.emails'],
           scopeDelimiter: ' ',
           requiredUrlParams: ['display', 'scope'],
           display: 'popup',
@@ -96,6 +112,18 @@
     })
     .provider('$auth', ['satellizer.config', function(config) {
       Object.defineProperties(this, {
+        httpInterceptor: {
+          get: function() { return config.httpInterceptor; },
+          set: function(value) { config.httpInterceptor = value; }
+        },
+        loginOnSignup: {
+          get: function() { return config.loginOnSignup; },
+          set: function(value) { config.loginOnSignup = value; }
+        },
+        baseUrl: {
+          get: function() { return config.baseUrl; },
+          set: function(value) { config.baseUrl = value; }
+        },
         logoutRedirect: {
           get: function() { return config.logoutRedirect; },
           set: function(value) { config.logoutRedirect = value; }
@@ -107,10 +135,6 @@
         signupRedirect: {
           get: function() { return config.signupRedirect; },
           set: function(value) { config.signupRedirect = value; }
-        },
-        loginOnSignup: {
-          get: function() { return config.loginOnSignup; },
-          set: function(value) { config.loginOnSignup = value; }
         },
         loginUrl: {
           get: function() { return config.loginUrl; },
@@ -128,6 +152,10 @@
           get: function() { return config.signupRoute; },
           set: function(value) { config.signupRoute = value; }
         },
+        tokenRoot: {
+          get: function() { return config.tokenRoot; },
+          set: function(value) { config.tokenRoot = value; }
+        },
         tokenName: {
           get: function() { return config.tokenName; },
           set: function(value) { config.tokenName = value; }
@@ -143,6 +171,26 @@
         authHeader: {
           get: function() { return config.authHeader; },
           set: function(value) { config.authHeader = value; }
+        },
+        authToken: {
+          get: function() { return config.authToken; },
+          set: function(value) { config.authToken = value; }
+        },
+        withCredentials: {
+          get: function() { return config.withCredentials; },
+          set: function(value) { config.withCredentials = value; }
+        },
+        unlinkMethod: {
+          get: function() { return config.unlinkMethod; },
+          set: function(value) { config.unlinkMethod = value; }
+        },
+        platform: {
+          get: function() { return config.platform; },
+          set: function(value) { config.platform = value; }
+        },
+        storage: {
+          get: function() { return config.storage; },
+          set: function(value) { config.storage = value; }
         }
       });
 
@@ -179,16 +227,16 @@
             return oauth.authenticate(name, false, userData);
           };
 
-          $auth.login = function(user) {
-            return local.login(user);
+          $auth.login = function(user, redirect) {
+            return local.login(user, redirect);
           };
 
           $auth.signup = function(user) {
             return local.signup(user);
           };
 
-          $auth.logout = function() {
-            return shared.logout();
+          $auth.logout = function(redirect) {
+            return shared.logout(redirect);
           };
 
           $auth.isAuthenticated = function() {
@@ -207,8 +255,8 @@
             return shared.getToken();
           };
 
-          $auth.setToken = function(token, isLinking) {
-            shared.setToken({ access_token: token }, isLinking);
+          $auth.setToken = function(token, redirect) {
+            shared.setToken({ access_token: token }, redirect);
           };
 
           $auth.removeToken = function() {
@@ -217,6 +265,10 @@
 
           $auth.getPayload = function() {
             return shared.getPayload();
+          };
+
+          $auth.setStorage = function(type) {
+            return shared.setStorage(type);
           };
 
           return $auth;
@@ -228,71 +280,93 @@
       '$window',
       '$location',
       'satellizer.config',
-      function($q, $window, $location, config) {
+      'satellizer.storage',
+      function($q, $window, $location, config, storage) {
         var shared = {};
+        var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
 
         shared.getToken = function() {
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
-          return $window.localStorage[tokenName];
+          return storage.get(tokenName);
         };
 
         shared.getPayload = function() {
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
-          var token = $window.localStorage[tokenName];
+          var token = storage.get(tokenName);
 
           if (token && token.split('.').length === 3) {
             var base64Url = token.split('.')[1];
             var base64 = base64Url.replace('-', '+').replace('_', '/');
-            return JSON.parse($window.atob(base64));
+            return JSON.parse(decodeURIComponent(escape(window.atob(base64))));
           }
         };
 
-        shared.setToken = function(response, isLinking) {
-          var token = response.access_token || response.data[config.tokenName];
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
+        shared.setToken = function(response, redirect) {
+          var accessToken = response && response.access_token;
+          var token;
 
-          if (!token) {
-            throw new Error('Expecting a token named "' + config.tokenName + '" but instead got: ' + JSON.stringify(response.data));
+          if (accessToken) {
+            if (angular.isObject(accessToken) && angular.isObject(accessToken.data)) {
+              response = accessToken;
+            } else if (angular.isString(accessToken)) {
+              token = accessToken;
+            }
           }
 
-          $window.localStorage[tokenName] = token;
+          if (!token && response) {
+            token = config.tokenRoot && response.data[config.tokenRoot] ?
+              response.data[config.tokenRoot][config.tokenName] : response.data[config.tokenName];
+          }
 
-          if (config.loginRedirect && !isLinking) {
+          if (!token) {
+            var tokenPath = config.tokenRoot ? config.tokenRoot + '.' + config.tokenName : config.tokenName;
+            throw new Error('Expecting a token named "' + tokenPath + '" but instead got: ' + JSON.stringify(response.data));
+          }
+
+          storage.set(tokenName, token);
+
+          if (config.loginRedirect && !redirect) {
             $location.path(config.loginRedirect);
+          } else if (redirect && angular.isString(redirect)) {
+            $location.path(encodeURI(redirect));
           }
         };
 
         shared.removeToken = function() {
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
-          delete $window.localStorage[tokenName];
+          storage.remove(tokenName);
         };
 
         shared.isAuthenticated = function() {
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
-          var token = $window.localStorage[tokenName];
+          var token = storage.get(tokenName);
 
           if (token) {
             if (token.split('.').length === 3) {
               var base64Url = token.split('.')[1];
               var base64 = base64Url.replace('-', '+').replace('_', '/');
               var exp = JSON.parse($window.atob(base64)).exp;
-              return Math.round(new Date().getTime() / 1000) <= exp;
-            } else {
+              if (exp) {
+                return Math.round(new Date().getTime() / 1000) <= exp;
+              }
               return true;
             }
+            return true;
           }
-
           return false;
         };
 
-        shared.logout = function() {
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
-          delete $window.localStorage[tokenName];
+        shared.logout = function(redirect) {
+          storage.remove(tokenName);
 
-          if (config.logoutRedirect) {
-            $location.path(config.logoutRedirect);
+          if (config.logoutRedirect && !redirect) {
+            $location.url(config.logoutRedirect);
           }
+          else if (angular.isString(redirect)) {
+            $location.url(redirect);
+          }
+
           return $q.when();
+        };
+
+        shared.setStorage = function(type) {
+          config.storage = type;
         };
 
         return shared;
@@ -301,25 +375,37 @@
       '$q',
       '$http',
       'satellizer.config',
+      'satellizer.utils',
       'satellizer.shared',
       'satellizer.Oauth1',
       'satellizer.Oauth2',
-      function($q, $http, config, shared, Oauth1, Oauth2) {
+      function($q, $http, config, utils, shared, Oauth1, Oauth2) {
         var oauth = {};
 
-        oauth.authenticate = function(name, isLinking, userData) {
+        oauth.authenticate = function(name, redirect, userData) {
           var provider = config.providers[name].type === '1.0' ? new Oauth1() : new Oauth2();
+          var deferred = $q.defer();
 
-          return provider.open(config.providers[name], userData || {})
+          provider.open(config.providers[name], userData || {})
             .then(function(response) {
-              shared.setToken(response, isLinking);
-              return response;
+              shared.setToken(response, redirect);
+              deferred.resolve(response);
+            })
+            .catch(function(error) {
+              deferred.reject(error);
             });
 
+          return deferred.promise;
         };
 
         oauth.unlink = function(provider) {
-          return $http.get(config.unlinkUrl + provider);
+          var unlinkUrl =  config.baseUrl ? utils.joinUrl(config.baseUrl, config.unlinkUrl) : config.unlinkUrl;
+
+          if (config.unlinkMethod === 'get') {
+            return $http.get(unlinkUrl + provider);
+          } else if (config.unlinkMethod === 'post') {
+            return $http.post(unlinkUrl, provider);
+          }
         };
 
         return oauth;
@@ -334,16 +420,18 @@
       function($q, $http, $location, utils, shared, config) {
         var local = {};
 
-        local.login = function(user) {
-          return $http.post(config.loginUrl, user)
+        local.login = function(user, redirect) {
+          var loginUrl = config.baseUrl ? utils.joinUrl(config.baseUrl, config.loginUrl) : config.loginUrl;
+          return $http.post(loginUrl, user)
             .then(function(response) {
-              shared.setToken(response);
+              shared.setToken(response, redirect);
               return response;
             });
         };
 
         local.signup = function(user) {
-          return $http.post(config.signupUrl, user)
+          var signupUrl = config.baseUrl ? utils.joinUrl(config.baseUrl, config.signupUrl) : config.signupUrl;
+          return $http.post(signupUrl, user)
             .then(function(response) {
               if (config.loginOnSignup) {
                 shared.setToken(response);
@@ -359,21 +447,25 @@
     .factory('satellizer.Oauth2', [
       '$q',
       '$http',
+      '$window',
       'satellizer.popup',
       'satellizer.utils',
       'satellizer.config',
-      function($q, $http, popup, utils, config) {
+      'satellizer.storage',
+      function($q, $http, $window, popup, utils, config, storage) {
         return function() {
 
           var defaults = {
             url: null,
             name: null,
+            state: null,
             scope: null,
             scopeDelimiter: null,
             clientId: null,
             redirectUri: null,
             popupOptions: null,
             authorizationEndpoint: null,
+            responseParams: null,
             requiredUrlParams: null,
             optionalUrlParams: null,
             defaultUrlParams: ['response_type', 'client_id', 'redirect_uri'],
@@ -384,16 +476,33 @@
 
           oauth2.open = function(options, userData) {
             angular.extend(defaults, options);
-            var url = oauth2.buildUrl();
 
-            return popup.open(url, defaults.popupOptions)
-              .then(function(oauthData) {
-                if (defaults.responseType === 'token') {
-                  return oauthData;
-                } else {
-                  return oauth2.exchangeForToken(oauthData, userData);
-                }
-              });
+            var stateName = defaults.name + '_state';
+
+            if (angular.isFunction(defaults.state)) {
+              storage.set(stateName, defaults.state());
+            } else if (angular.isString(defaults.state)) {
+              storage.set(stateName, defaults.state);
+            }
+
+            var url = defaults.authorizationEndpoint + '?' + oauth2.buildQueryString();
+
+            var openPopup;
+            if (config.platform === 'mobile') {
+              openPopup = popup.open(url, defaults.name, defaults.popupOptions, defaults.redirectUri).eventListener(defaults.redirectUri);
+            } else {
+              openPopup = popup.open(url, defaults.name, defaults.popupOptions, defaults.redirectUri).pollPopup();
+            }
+
+            return openPopup.then(function(oauthData) {
+              if (defaults.responseType === 'token') {
+                return oauthData;
+              }
+              if (oauthData.state && oauthData.state !== storage.get(stateName)) {
+                return $q.reject('OAuth 2.0 state parameter mismatch.');
+              }
+              return oauth2.exchangeForToken(oauthData, userData);
+            });
 
           };
 
@@ -404,13 +513,16 @@
               redirectUri: defaults.redirectUri
             });
 
-            return $http.post(defaults.url, data, {withCredentials: true});
-          };
+            if (oauthData.state) {
+              data.state = oauthData.state;
+            }
 
-          oauth2.buildUrl = function() {
-            var baseUrl = defaults.authorizationEndpoint;
-            var qs = oauth2.buildQueryString();
-            return [baseUrl, qs].join('?');
+            angular.forEach(defaults.responseParams, function(param) {
+              data[param] = oauthData[param];
+            });
+
+            var exchangeForTokenUrl = config.baseUrl ? utils.joinUrl(config.baseUrl, defaults.url) : defaults.url;
+            return $http.post(exchangeForTokenUrl, data, { withCredentials: config.withCredentials });
           };
 
           oauth2.buildQueryString = function() {
@@ -418,9 +530,15 @@
             var urlParams = ['defaultUrlParams', 'requiredUrlParams', 'optionalUrlParams'];
 
             angular.forEach(urlParams, function(params) {
+
               angular.forEach(defaults[params], function(paramName) {
                 var camelizedName = utils.camelCase(paramName);
-                var paramValue = defaults[camelizedName];
+                var paramValue = angular.isFunction(defaults[paramName]) ? defaults[paramName]() : defaults[camelizedName];
+
+                if (paramName === 'state') {
+                  var stateName = defaults.name + '_state';
+                  paramValue = encodeURIComponent(storage.get(stateName));
+                }
 
                 if (paramName === 'scope' && Array.isArray(paramValue)) {
                   paramValue = paramValue.join(defaults.scopeDelimiter);
@@ -442,75 +560,146 @@
           return oauth2;
         };
       }])
-    .factory('satellizer.Oauth1', ['$q', '$http', 'satellizer.popup', function($q, $http, popup) {
-      return function() {
+    .factory('satellizer.Oauth1', [
+      '$q',
+      '$http',
+      'satellizer.popup',
+      'satellizer.config',
+      'satellizer.utils',
+      function($q, $http, popup, config, utils) {
+        return function() {
 
-        var defaults = {
-          url: null,
-          name: null,
-          popupOptions: null
-        };
+          var defaults = {
+            url: null,
+            name: null,
+            popupOptions: null,
+            redirectUri: null,
+            authorizationEndpoint: null
+          };
 
-        var oauth1 = {};
+          var oauth1 = {};
 
-        oauth1.open = function(options, userData) {
-          angular.extend(defaults, options);
-          return popup.open(defaults.url, defaults.popupOptions)
-            .then(function(response) {
-              return oauth1.exchangeForToken(response, userData);
+          oauth1.open = function(options, userData) {
+            angular.extend(defaults, options);
+            var popupWindow;
+            var serverUrl = config.baseUrl ? utils.joinUrl(config.baseUrl, defaults.url) : defaults.url;
+
+            if (config.platform !== 'mobile') {
+              popupWindow = popup.open('', defaults.name, defaults.popupOptions, defaults.redirectUri);
+            }
+
+            return $http.post(serverUrl, defaults)
+              .then(function(response) {
+                if (config.platform === 'mobile') {
+                  popupWindow = popup.open([defaults.authorizationEndpoint, oauth1.buildQueryString(response.data)].join('?'), defaults.name, defaults.popupOptions, defaults.redirectUri);
+                } else {
+                  popupWindow.popupWindow.location = [defaults.authorizationEndpoint, oauth1.buildQueryString(response.data)].join('?');
+                }
+
+                var popupListener = config.platform === 'mobile' ? popupWindow.eventListener(defaults.redirectUri) : popupWindow.pollPopup();
+
+                return popupListener.then(function(response) {
+                  return oauth1.exchangeForToken(response, userData);
+                });
+              });
+
+          };
+
+          oauth1.exchangeForToken = function(oauthData, userData) {
+            var data = angular.extend({}, userData, oauthData);
+            var exchangeForTokenUrl = config.baseUrl ? utils.joinUrl(config.baseUrl, defaults.url) : defaults.url;
+            return $http.post(exchangeForTokenUrl, data, { withCredentials: config.withCredentials });
+          };
+
+          oauth1.buildQueryString = function(obj) {
+            var str = [];
+
+            angular.forEach(obj, function(value, key) {
+              str.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
             });
-        };
 
-        oauth1.exchangeForToken = function(oauthData, userData) {
-          var data = angular.extend({}, userData, oauthData);
-          var qs = oauth1.buildQueryString(data);
-          return $http.get(defaults.url + '?' + qs);
-        };
+            return str.join('&');
+          };
 
-        oauth1.buildQueryString = function(obj) {
-          var str = [];
-          angular.forEach(obj, function(value, key) {
-            str.push(encodeURIComponent(key) + '=' + encodeURIComponent(value));
-          });
-          return str.join('&');
+          return oauth1;
         };
-
-        return oauth1;
-      };
-    }])
+      }])
     .factory('satellizer.popup', [
       '$q',
       '$interval',
       '$window',
       '$location',
+      'satellizer.config',
       'satellizer.utils',
-      function($q, $interval, $window, $location, utils) {
-        var popupWindow = null;
-        var polling = null;
-
+      function($q, $interval, $window, $location, config, utils) {
         var popup = {};
+        popup.url = '';
+        popup.popupWindow = null;
 
-        popup.popupWindow = popupWindow;
+        popup.open = function(url, windowName, options, redirectUri) {
+          popup.url = url;
 
-        popup.open = function(url, options) {
-          var optionsString = popup.stringifyOptions(popup.prepareOptions(options || {}));
+          var stringifiedOptions = popup.stringifyOptions(popup.prepareOptions(options || {}));
 
-          popupWindow = window.open(url, '_blank', optionsString);
+          popup.popupWindow = window.open(url, windowName, stringifiedOptions);
 
-          if (popupWindow && popupWindow.focus) {
-            popupWindow.focus();
+          if (popup.popupWindow && popup.popupWindow.focus) {
+            popup.popupWindow.focus();
           }
 
-          return popup.pollPopup();
+          return popup;
+        };
+
+        popup.eventListener = function(redirectUri) {
+          var deferred = $q.defer();
+
+          popup.popupWindow.addEventListener('loadstart', function(event) {
+            if (event.url.indexOf(redirectUri) !== 0) { return; }
+
+            var parser = document.createElement('a');
+            parser.href = event.url;
+
+            if (parser.search || parser.hash) {
+              var queryParams = parser.search.substring(1).replace(/\/$/, '');
+              var hashParams = parser.hash.substring(1).replace(/\/$/, '');
+              var hash = utils.parseQueryString(hashParams);
+              var qs = utils.parseQueryString(queryParams);
+
+              angular.extend(qs, hash);
+
+              if (qs.error) {
+                deferred.reject({ error: qs.error });
+              } else {
+                deferred.resolve(qs);
+              }
+
+              popup.popupWindow.close();
+            }
+          });
+
+          popup.popupWindow.addEventListener('exit', function() {
+            deferred.reject({ data: 'Provider Popup was closed' });
+          });
+
+          popup.popupWindow.addEventListener('loaderror', function() {
+            deferred.reject({ data: 'Authorization Failed' });
+          });
+
+          return deferred.promise;
         };
 
         popup.pollPopup = function() {
+          var polling;
           var deferred = $q.defer();
+
           polling = $interval(function() {
             try {
-              if (popupWindow.document.domain === document.domain && (popupWindow.location.search || popupWindow.location.hash)) {
-                var queryParams = popupWindow.location.search.substring(1).replace(/\/$/, '');
-                var hashParams = popupWindow.location.hash.substring(1).replace(/\/$/, '');
+              var documentOrigin = document.location.host;
+              var popupWindowOrigin = popup.popupWindow.location.host;
+
+              if (popupWindowOrigin === documentOrigin && (popup.popupWindow.location.search || popup.popupWindow.location.hash)) {
+                var queryParams = popup.popupWindow.location.search.substring(1).replace(/\/$/, '');
+                var hashParams = popup.popupWindow.location.hash.substring(1).replace(/[\/$]/, '');
                 var hash = utils.parseQueryString(hashParams);
                 var qs = utils.parseQueryString(queryParams);
 
@@ -522,16 +711,20 @@
                   deferred.resolve(qs);
                 }
 
-                popupWindow.close();
+                popup.popupWindow.close();
                 $interval.cancel(polling);
               }
             } catch (error) {}
 
-            if (popupWindow.closed) {
+            if (!popup.popupWindow) {
+              $interval.cancel(polling);
+              deferred.reject({ data: 'Provider Popup Blocked' });
+            } else if (popup.popupWindow.closed || popup.popupWindow.closed === undefined) {
               $interval.cancel(polling);
               deferred.reject({ data: 'Authorization Failed' });
             }
           }, 35);
+
           return deferred.promise;
         };
 
@@ -574,63 +767,93 @@
         });
         return obj;
       };
+
+      this.joinUrl = function(baseUrl, url) {
+        if (/^(?:[a-z]+:)?\/\//i.test(url)) {
+          return url;
+        }
+
+        var joined = [baseUrl, url].join('/');
+
+        var normalize = function(str) {
+          return str
+            .replace(/[\/]+/g, '/')
+            .replace(/\/\?/g, '?')
+            .replace(/\/\#/g, '#')
+            .replace(/\:\//g, '://');
+        };
+
+        return normalize(joined);
+      };
     })
-    .config(['$httpProvider', 'satellizer.config', function($httpProvider, config) {
-      if (config.httpInterceptor) {
-        $httpProvider.interceptors.push(['$q', function($q) {
-          var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
-          return {
-            request: function(httpConfig) {
-              var token = localStorage.getItem(tokenName);
-              if (token) {
-                token = config.authHeader === 'Authorization' ? 'Bearer ' + token : token;
-                httpConfig.headers[config.authHeader] = token;
-              }
-              return httpConfig;
-            },
-            responseError: function(response) {
-              return $q.reject(response);
-            }
-          };
-        }]);
+    .factory('satellizer.storage', ['satellizer.config', function(config) {
+      switch (config.storage) {
+        case 'localStorage':
+          if ('localStorage' in window && window['localStorage'] !== null) {
+            return {
+              get: function(key) { return localStorage.getItem(key); },
+              set: function(key, value) { return localStorage.setItem(key, value); },
+              remove: function(key) { return localStorage.removeItem(key); }
+            };
+          } else {
+            console.warn('Warning: Local Storage is disabled or unavailable. Satellizer will not work correctly.');
+            return {
+              get: function(key) { return undefined; },
+              set: function(key, value) { return undefined; },
+              remove: function(key) { return undefined; }
+            };
+          }
+          break;
+
+        case 'sessionStorage':
+          if ('sessionStorage' in window && window['sessionStorage'] !== null) {
+            return {
+              get: function(key) { return sessionStorage.getItem(key); },
+              set: function(key, value) { return sessionStorage.setItem(key, value); },
+              remove: function(key) { return sessionStorage.removeItem(key); }
+            };
+          } else {
+            console.warn('Warning: Session Storage is disabled or unavailable. Satellizer will not work correctly.');
+            return {
+              get: function(key) { return undefined; },
+              set: function(key, value) { return undefined; },
+              remove: function(key) { return undefined; }
+            };
+          }
+          break;
       }
+    }])
+    .factory('satellizer.interceptor', [
+      '$q',
+      'satellizer.config',
+      'satellizer.storage',
+      'satellizer.shared',
+      function($q, config, storage, shared) {
+        return {
+          request: function(request) {
+            if (request.skipAuthorization) {
+              return request;
+            }
+             if (shared.isAuthenticated() && config.httpInterceptor) {
+              var tokenName = config.tokenPrefix ? config.tokenPrefix + '_' + config.tokenName : config.tokenName;
+              var token = storage.get(tokenName);
+
+              if (config.authHeader && config.authToken) {
+                token = config.authToken + ' ' + token;
+              }
+
+              request.headers[config.authHeader] = token;
+            }
+
+            return request;
+          },
+          responseError: function(response) {
+            return $q.reject(response);
+          }
+        };
+      }])
+    .config(['$httpProvider', function($httpProvider) {
+      $httpProvider.interceptors.push('satellizer.interceptor');
     }]);
 
 })(window, window.angular);
-
-// Base64.js Polyfill (@davidchambers)
-(function() {
-  var object = typeof exports != 'undefined' ? exports : this;
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
-
-  function InvalidCharacterError(message) {
-    this.message = message;
-  }
-  InvalidCharacterError.prototype = new Error;
-  InvalidCharacterError.prototype.name = 'InvalidCharacterError';
-
-  object.btoa || (
-    object.btoa = function(input) {
-      var str = String(input);
-      for (var block, charCode, idx = 0, map = chars, output = ''; str.charAt(idx | 0) || (map = '=', idx % 1); output += map.charAt(63 & block >> 8 - idx % 1 * 8)) {
-        charCode = str.charCodeAt(idx += 3 / 4);
-        if (charCode > 0xFF) {
-          throw new InvalidCharacterError("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
-        }
-        block = block << 8 | charCode;
-      }
-      return output;
-    });
-
-  object.atob || (
-    object.atob = function(input) {
-      var str = String(input).replace(/=+$/, '');
-      if (str.length % 4 == 1) {
-        throw new InvalidCharacterError("'atob' failed: The string to be decoded is not correctly encoded.");
-      }
-      for (var bc = 0, bs, buffer, idx = 0, output = ''; buffer = str.charAt(idx++); ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer, bc++ % 4) ? output += String.fromCharCode(255 & bs >> (-2 * bc & 6)) : 0) {
-        buffer = chars.indexOf(buffer);
-      }
-      return output;
-    });
-}());

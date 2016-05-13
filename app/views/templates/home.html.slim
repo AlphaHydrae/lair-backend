@@ -1,21 +1,9 @@
-.container-fluid ng-controller='HomeController'
-  .row
-    .col-xs-12.text-center
-      form#itemSearch.form-inline role='form'
-        .form-group
-          label.sr-only for='itemSearchCategory' Category
-          select#itemSearchCategory.form-control ng-model='itemSearchCategory' ng-change='searchItems()' ng-options='category for category in itemCategories'
-            option value='' any category
-        .form-group
-          label.sr-only for='itemSearchQuery' Search
-          input#itemSearchQuery.form-control ng-model='itemSearchQuery' ng-model-options='{ debounce: 1000 }' ng-change='searchItems()' type='text' placeholder='Search...'
-  #homeItems.row infinite-scroll='getNextItems()' infinite-scroll-distance=1 infinite-scroll-disabled='itemsLoading'
-    .col-lg-2.col-md-3.col-sm-6.col-xs-12 ng-repeat-start='item in items' ng-click='show(item)'
-      a.thumbnail href='#'
-        img ng-show='item.image' ng-src='{{ item.image.thumbnail.url }}' alt='Thumbnail'
-        .caption ng-hide='item.image'
-          h3 {{ item.titles[0].text }}
-    .clearfix.visible-xs-block
-    .clearfix.visible-sm-block ng-if='$index % 2 == 1'
-    .clearfix.visible-md-block ng-if='$index % 4 == 3'
-    .clearfix.visible-lg-block ng-if='$index % 6 == 5' ng-repeat-end=true
+.container
+  #home
+    p.empty ng-if='collections !== undefined && !collections.length' No featured collections.
+    .collections ng-if='collections.length'
+      h2
+        | Featured collection
+        a ui-sref='collections.list'
+          small see all collections
+      collection-preview ng-repeat='collection in collections' collection='collection' auto-update='true'

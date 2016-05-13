@@ -4,7 +4,7 @@ class SecurityController < ApplicationController
   def token
     authenticate_with_header request.headers['Authorization']
     user = User.where(api_id: @auth_token['iss']).first!
-    render json: { token: @raw_auth_token, user: { id: user.api_id, email: user.email } }
+    render json: { token: @raw_auth_token, user: serialize(user) }
   end
 
   def google
@@ -50,6 +50,7 @@ class SecurityController < ApplicationController
     profile = JSON.parse res.body
 
     user = User.where(email: profile['email']).first
+    @current_user = user
 
     unless user.present?
       return render json: { errors: [ { code: 'auth.notRegistered', message: 'You are not a registered user. Please contact the administrator.' } ] }, status: :unauthorized
@@ -57,7 +58,7 @@ class SecurityController < ApplicationController
 
     User.increment_counter :sign_in_count, user.id
 
-    render json: { token: user.generate_auth_token, user: { id: user.api_id, email: user.email } }
+    render json: { token: user.generate_auth_token, user: serialize(user) }
   end
 
   private

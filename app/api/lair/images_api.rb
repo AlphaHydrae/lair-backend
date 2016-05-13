@@ -21,7 +21,7 @@ module Lair
 
         rel = rel.order 'created_at'
 
-        rel.to_a.collect{ |img| img.to_builder.attributes! }
+        serialize load_resources(rel)
       end
 
       namespace '/:id' do
@@ -48,7 +48,7 @@ module Lair
             end
           end
 
-          record.to_builder.attributes!
+          serialize record
         end
 
         delete do

@@ -1,6 +1,6 @@
-angular.module('lair.auth.token', ['satellizer'])
+angular.module('lair.auth.token', [ 'satellizer' ])
 
-  .factory('TokenAuthService', ['$auth', '$http', function($auth, $http) {
+  .factory('tokenAuth', function($auth, $http) {
 
     function checkToken(token) {
       return $http({
@@ -18,6 +18,6 @@ angular.module('lair.auth.token', ['satellizer'])
     return {
       authenticate: checkToken
     };
-  }])
+  })
 
 ;

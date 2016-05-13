@@ -18,32 +18,47 @@ module Lair
             with_user: true_flag?(:withUser)
           }
 
-          ownership.to_builder(options).attributes!
+          serialize ownership, options
         end
       end
 
       get do
         authorize! Ownership, :index
 
-        rel = Ownership.joins(:item_part).joins(:user).order('item_parts.effective_title ASC, users.email ASC')
+        rel = Ownership.joins(item_part: :item).joins(:user).order('item_parts.effective_title ASC, users.normalized_name ASC, gotten_at DESC')
 
         relation = paginated rel do |rel|
 
-          item_part_joined = false
-          if params[:partId].present?
-            item_part_joined = true
-            rel = rel.joins(:item_part).where item_parts: { api_id: params[:partId].to_s }
+          if params[:categories].present?
+            rel = rel.where 'items.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
           end
 
-          user_joined = false
+          if params[:ownerIds].present?
+            rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, Array.wrap(params[:ownerIds]).collect(&:to_s)
+          end
+
+          if params[:collectionId].present?
+            collection = Collection.where(api_id: params[:collectionId].to_s).first!
+            rel = collection.apply rel
+          end
+
+          if params[:partId].present?
+            rel = rel.where item_parts: { api_id: params[:partId].to_s }
+          end
+
+          if params[:partIds].kind_of? Array
+            rel = rel.where 'item_parts.api_id IN (?)', params[:partIds].collect(&:to_s).select(&:present?).uniq
+          end
+
           if params[:userId].present?
-            user_joined = true
-            rel = rel.joins(:user).where users: { api_id: params[:userId].to_s }
+            rel = rel.where users: { api_id: params[:userId].to_s }
+          end
+
+          if params.key? :owned
+            rel = rel.where 'ownerships.owned = ?', true_flag?(:owned)
           end
 
           if params[:search].present?
-            rel = rel.joins :item_part unless item_part_joined
-            rel = rel.joins :user unless user_joined
             term = "%#{params[:search].downcase}%"
             rel = rel.where 'LOWER(item_parts.effective_title) LIKE ? OR LOWER(users.email) LIKE ?', term, term
           end
@@ -60,7 +75,13 @@ module Lair
         includes << :user if options[:with_user]
         includes << { item_part: [ :item, { title: :language }, :language, :custom_title_language ] } if options[:with_part]
 
-        relation.includes(includes).to_a.collect{ |o| o.to_builder(options).attributes! }
+        resources = load_resources relation.preload(includes)
+
+        if options[:with_part] && current_user
+          options[:ownerships] = Ownership.joins(:item_part).where(item_parts: { id: resources.collect(&:item_part_id) }, ownerships: { user_id: current_user.id }).to_a
+        end
+
+        serialize resources, options
       end
 
       namespace '/:ownershipId' do
@@ -82,6 +103,7 @@ module Lair
           ownership.user = User.where(api_id: params[:userId]).first! if params.key? :userId
           ownership.tags = params[:tags].select{ |k,v| v.kind_of? String } if params[:tags].kind_of?(Hash) && params[:tags] != ownership.tags
           ownership.gotten_at = Time.parse params[:gottenAt] if params.key? :gottenAt
+          ownership.yielded_at = Time.parse params[:yieldedAt] if params.key? :yieldedAt
           ownership.save!
 
           options = {
@@ -89,7 +111,7 @@ module Lair
             with_user: true_flag?(:withUser)
           }
 
-          ownership.to_builder(options).attributes!
+          serialize ownership, options
         end
 
         delete do

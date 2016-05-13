@@ -123,7 +123,7 @@ namespace :compose do
   end
 
   desc 'Register an admin user'
-  task :admin do
+  task :create_admin do
 
     ask :admin_username, nil
     ask :admin_email, nil
@@ -132,6 +132,42 @@ namespace :compose do
     on roles(:app) do
       within release_path do
         execute :compose_rake, "users:register[#{fetch(:admin_username)},#{fetch(:admin_email)},#{fetch(:admin_password)}]", "users:admin[#{fetch(:admin_username)}]"
+      end
+    end
+  end
+
+  desc 'Make a user an administrator'
+  task :admin do
+
+    ask :username, nil
+
+    on roles(:app) do
+      within release_path do
+        execute :compose_rake, "users:admin[#{fetch(:username)}]"
+      end
+    end
+  end
+
+  desc 'Activate a user'
+  task :activate_user do
+
+    ask :username, nil
+
+    on roles(:app) do
+      within release_path do
+        execute :compose_rake, "users:activate[#{fetch(:username)}]"
+      end
+    end
+  end
+
+  desc 'Deactivate a user'
+  task :deactivate_user do
+
+    ask :username, nil
+
+    on roles(:app) do
+      within release_path do
+        execute :compose_rake, "users:deactivate[#{fetch(:username)}]"
       end
     end
   end

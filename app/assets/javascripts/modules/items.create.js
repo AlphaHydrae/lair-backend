@@ -1,6 +1,6 @@
 angular.module('lair.items.create', ['lair.items.form'])
 
-  .controller('CreateItemCtrl', ['ApiService', '$log', '$scope', '$state', '$stateParams', function($api, $log, $scope, $state, $stateParams) {
+  .controller('CreateItemCtrl', function(api, $log, $scope, $state, $stateParams) {
 
     function parseItem(item) {
       return _.extend({}, item, {
@@ -28,7 +28,7 @@ angular.module('lair.items.create', ['lair.items.form'])
       tags: []
     });
 
-    $scope.imageSearchesResource = '/api/image-searches';
+    $scope.imageSearchesResource = '/image-searches';
 
     $scope.modifiedItem = angular.copy($scope.item);
     $scope.$broadcast('item', $scope.item);
@@ -42,9 +42,9 @@ angular.module('lair.items.create', ['lair.items.form'])
     };
 
     function save() {
-      return $api.http({
+      return api({
         method: 'POST',
-        url: '/api/items',
+        url: '/items',
         data: dumpItem($scope.modifiedItem)
       }).then(function(res) {
         return res.data;
@@ -55,15 +55,16 @@ angular.module('lair.items.create', ['lair.items.form'])
     }
 
     function edit(item) {
-      $state.go('std.items.edit', { itemId: item.id });
+      $state.go('items.edit', { itemId: item.id });
     }
 
     function addPart(item) {
-      $state.go('std.parts.create', { itemId: item.id });
+      $state.go('parts.create', { itemId: item.id });
     }
 
     $scope.cancel = function() {
-      $state.go('std.home');
+      $state.go('home');
     };
-  }])
+  })
+
 ;

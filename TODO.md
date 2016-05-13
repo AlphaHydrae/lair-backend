@@ -1,5 +1,13 @@
 # High Priority
 
+* rename tags to properties
+
+# Medium Priority
+
+* when cycling through items on home page, retry request if item is already shown
+* add item/part name for image upload errors
+* write RAML API doc
+* simplify image search api (one resource, update item/part with imageUrl attribute)
 * notifications
 * update item years when parts are created/updated
 * people edition

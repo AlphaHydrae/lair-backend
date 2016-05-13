@@ -15,7 +15,7 @@ RSpec.describe User, :type => :model do
       token = user.generate_auth_token
       decoded_token = JWT.decode token, Rails.application.secrets.jwt_hmac_key
       expect(2.weeks.from_now.to_i - decoded_token[0]['exp']).to be <= 5
-      expect(decoded_token[0]['iss']).to eq(user.email)
+      expect(decoded_token[0]['iss']).to eq(user.api_id)
     end
   end
 
@@ -32,10 +32,14 @@ RSpec.describe User, :type => :model do
   describe "database table" do
     it{ should have_db_column(:id).of_type(:integer).with_options(null: false) }
     it{ should have_db_column(:api_id).of_type(:string).with_options(null: false, limit: 12) }
+    it{ should have_db_column(:name).of_type(:string).with_options(null: false, limit: 25) }
+    it{ should have_db_column(:normalized_name).of_type(:string).with_options(null: false, limit: 25) }
     it{ should have_db_column(:email).of_type(:string).with_options(null: false, limit: 255) }
+    it{ should have_db_column(:active).of_type(:boolean).with_options(null: false, default: false) }
+    it{ should have_db_column(:roles_mask).of_type(:integer).with_options(null: false, default: 0) }
     it{ should have_db_column(:sign_in_count).of_type(:integer).with_options(null: false, default: 0) }
     it{ should have_db_column(:created_at).of_type(:datetime).with_options(null: false) }
     it{ should have_db_column(:updated_at).of_type(:datetime).with_options(null: false) }
-    it{ should have_db_columns(:id, :api_id, :email, :sign_in_count, :created_at, :updated_at) }
+    it{ should have_db_columns(:id, :api_id, :name, :normalized_name, :email, :active, :roles_mask, :sign_in_count, :created_at, :updated_at) }
   end
 end

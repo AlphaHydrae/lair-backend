@@ -1,8 +1,8 @@
 angular.module('lair.state', [ 'ui.router' ])
 
-  .config(['$locationProvider', '$urlRouterProvider', function($locationProvider, $urlRouterProvider) {
+  .config(function($locationProvider, $urlRouterProvider) {
     $locationProvider.html5Mode(true);
     $urlRouterProvider.otherwise("/");
-  }])
+  })
 
 ;

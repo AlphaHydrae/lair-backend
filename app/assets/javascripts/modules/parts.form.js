@@ -1,6 +1,6 @@
-angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
+angular.module('lair.parts.form', [ 'lair.forms', 'lair.images.select' ])
 
-  .controller('PartFormCtrl', ['ApiService', '$log', '$modal', '$q', '$scope', '$state', '$stateParams', function($api, $log, $modal, $q, $scope, $state, $stateParams) {
+  .controller('PartFormCtrl', function(api, forms, $log, $modal, $q, $scope, $state, $stateParams) {
 
     if ($scope.part) {
       $scope.items = _.compact([ $scope.part.item ]);
@@ -15,13 +15,8 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
         var newItem = _.findWhere($scope.items, { id: $scope.modifiedPart.itemId });
         if (newItem) {
           $scope.modifiedPart.item = newItem;
+          $scope.modifiedPart.titleId = newItem.titles[0].id;
         }
-      }
-    });
-
-    $scope.$watch('modifiedPart.item', function(value) {
-      if (value) {
-        $scope.modifiedPart.titleId = value.titles[0].id;
       }
     });
 
@@ -89,10 +84,10 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
         return;
       }
 
-      $api.http({
-        url: '/api/items',
+      api({
+        url: '/items',
         params: {
-          pageSize: 100,
+          number: 100,
           search: search
         }
       }).then(function(res) {
@@ -104,7 +99,7 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
     };
 
     $scope.partChanged = function() {
-      return !angular.equals($scope.part, $scope.modifiedPart);
+      return !forms.dataEquals($scope.part, $scope.modifiedPart, 'item');
     };
 
     $scope.addTag = function() {
@@ -116,8 +111,8 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
     };
 
     function fetchPublishers() {
-      return $api.http({
-        url: '/api/bookPublishers'
+      return api({
+        url: '/bookPublishers'
       }).then(function(res) {
         $scope.publishers = res.data;
       }, function(res) {
@@ -127,8 +122,8 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
     }
 
     function fetchEditions() {
-      return $api.http({
-        url: '/api/partEditions'
+      return api({
+        url: '/partEditions'
       }).then(function(res) {
         $scope.editions = res.data;
       }, function(res) {
@@ -138,8 +133,8 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
     }
 
     function fetchFormats() {
-      return $api.http({
-        url: '/api/partFormats'
+      return api({
+        url: '/partFormats'
       }).then(function(res) {
         $scope.formats = res.data;
       }, function(res) {
@@ -149,8 +144,8 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
     }
 
     function fetchLanguages() {
-      return $api.http({
-        url: '/api/languages'
+      return api({
+        url: '/languages'
       }).then(function(res) {
         $scope.languages = res.data;
       }, function(res) {
@@ -159,5 +154,5 @@ angular.module('lair.parts.form', ['lair.forms', 'lair.images.select'])
         $log.debug(res);
       });
     }
-  }])
+  })
 ;

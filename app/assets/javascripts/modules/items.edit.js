@@ -1,6 +1,6 @@
 angular.module('lair.items.edit', ['lair.items.form'])
 
-  .controller('EditItemController', ['ApiService', '$log', '$scope', '$state', '$stateParams', function($api, $log, $scope, $state, $stateParams) {
+  .controller('EditItemController', function(api, $log, $scope, $state, $stateParams) {
 
     function parseItem(item) {
       return _.extend({}, item, {
@@ -20,11 +20,11 @@ angular.module('lair.items.edit', ['lair.items.form'])
       });
     }
 
-    $scope.imageSearchesResource = '/api/items/' + $stateParams.itemId + '/image-searches';
-    $scope.mainImageSearchResource = '/api/items/' + $stateParams.itemId + '/main-image-search';
+    $scope.imageSearchesResource = '/items/' + $stateParams.itemId + '/image-searches';
+    $scope.mainImageSearchResource = '/items/' + $stateParams.itemId + '/main-image-search';
 
-    $api.http({
-      url: '/api/items/' + $stateParams.itemId
+    api({
+      url: '/items/' + $stateParams.itemId
     }).then(function(response) {
       $scope.item = parseItem(response.data);
       reset();
@@ -32,9 +32,9 @@ angular.module('lair.items.edit', ['lair.items.form'])
     });
 
     $scope.save = function() {
-      $api.http({
+      api({
         method: 'PATCH',
-        url: '/api/items/' + $stateParams.itemId,
+        url: '/items/' + $stateParams.itemId,
         data: dumpItem($scope.modifiedItem)
       }).then(function(response) {
         $scope.item = parseItem(response.data);
@@ -54,7 +54,9 @@ angular.module('lair.items.edit', ['lair.items.form'])
     }
 
     $scope.cancel = function() {
-      $state.go('std.home.item', { itemId: $stateParams.itemId });
+      // TODO: go back
+      $state.go('home');
     };
-  }])
+  })
+
 ;

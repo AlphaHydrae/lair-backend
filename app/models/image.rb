@@ -37,26 +37,6 @@ class Image < ActiveRecord::Base
     self
   end
 
-  def to_builder
-    Jbuilder.new do |json|
-      json.id api_id unless new_record?
-      json.state state unless new_record?
-      json.url url
-      json.contentType content_type if content_type
-      json.width width if width
-      json.height height if height
-      json.size size if size
-      json.createdAt created_at.iso8601(3) unless new_record?
-      json.thumbnail do # TODO: fallback in view
-        json.url thumbnail_url || url
-        json.contentType thumbnail_content_type || content_type if thumbnail_content_type || content_type
-        json.width thumbnail_width || width if thumbnail_width || width
-        json.height thumbnail_height || height if thumbnail_height || height
-        json.size thumbnail_size || size if thumbnail_size || size
-      end
-    end
-  end
-
   private
 
   def upload_image

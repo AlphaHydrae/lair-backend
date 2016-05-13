@@ -38,8 +38,30 @@ class ApplicationPolicy
     true
   end
 
+  def admin?
+    role? :admin
+  end
+
+  def app?
+    user == :app
+  end
+
+  def role? role
+    user.kind_of?(User) && user.try("#{role}?".to_sym)
+  end
+
+  def user_context
+    @user_context ? @user_context : UserContext.new(@user, @token, @params)
+  end
+
   def scope
     Pundit.policy_scope! user, record.class
+  end
+
+  def serializer
+    serializer_class = "#{@record.class.name}Serializer".constantize rescue nil
+    raise NameError, "unable to find serializer `#{@record.class.name}Serializer`" unless serializer_class
+    serializer_class.new self
   end
 
   class Scope

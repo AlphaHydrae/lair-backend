@@ -3,7 +3,7 @@ module Lair
     namespace :languages do
       get do
         authorize! Language, :index
-        Language.full_list.collect(&:to_builder).collect(&:attributes!)
+        serialize Language.full_list
       end
     end
   end

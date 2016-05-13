@@ -1,0 +1,17 @@
+form.ownership-yield-dialog ng-controller='YieldDialogCtrl' ng-submit='yield()'
+  p.empty ng-if='ownerships && !ownerships.length'
+    | You already do not own this.
+  div ng-if='ownerships.length'
+    .form-group ng-if='ownerships.length >= 2'
+      label for='ownership-id' You own several; which one did you part with?
+      ui-select#ownership-id ng-model='ownership'
+        ui-select-match {{ $select.selected.gottenAt | amDateFormat: 'll' }}
+        ui-select-choices repeat='ownership in ownerships'
+          span ng-bind-html='ownership.gottenAt | amDateFormat: "ll"'
+    .form-group
+      label for='ownership-yielded-at' When did you part with it?
+      input#ownership-yielded-at.form-control ng-model='ownership.yieldedAt' ui-date='dateOptions'
+    button.btn.btn-primary.btn-block type='submit' Save
+    / TODO: replace this message with a toast message and close the popup
+    p.text-success.text-center ng-if='saved'
+      strong Operation successful

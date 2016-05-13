@@ -1,3 +1,80 @@
+.thumbnail
+  > img
+    width 100%
+
+.item-collection
+  h1
+    margin 1em
+    font-size 1.4em
+  .thumbnail
+    > img
+      width 100%
+    .caption
+      h3
+        margin 2em 0
+        text-align center
+
+.item-filters
+  margin-bottom 1em
+  text-align center
+  .ui-select-container
+    display inline-block
+  .advanced-search-toggle
+    margin-left 1em
+  .advanced-search
+    margin-top 1em
+    label
+      margin-left 1em
+      margin-right 1em
+  .categories
+    .form-control
+      width 12em
+  .owners
+    .form-control
+      width 20em
+  .data-type
+    .form-control
+      width 10em
+
+.items-display
+  .thumbnail
+    position relative
+    .ownership-overlay
+      position absolute
+      bottom 0
+      left 0
+      right 0
+      padding 0.4em
+      z-index 5
+      opacity 0.75
+      background-color #000000
+      text-align center
+      color #ffffff
+      font-weight bold
+      p
+        margin 0.4em 0 0 0
+    .overlays
+      .overlay, .icon-overlay
+        position absolute
+        top 0
+        bottom 0
+        left 0
+        right 0
+      .overlay
+        z-index 10
+        opacity 0.5
+        background-color #000000
+      .icon-overlay
+        padding-top 2em
+        z-index 15
+        text-align center
+        .glyphicon
+          font-size 3em
+          color #00ff00
+        &.transitive
+          .glyphicon
+            color #6699ff
+
 .itemInfo
   .itemPartInfo
     td.partThumbnail
@@ -7,6 +84,9 @@
   .image
     img
       width 100%
+
+.ownDialogPopover
+  width 12em
 
 #itemForm
   .titles

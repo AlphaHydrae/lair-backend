@@ -79,7 +79,7 @@ RSpec.describe 'POST /api/items' do
     end
 
     json = expect_json with_api_id(full_item.merge({
-      relationships: full_item[:relationships].collect{ |r| r.merge person: people.find{ |p| p.api_id == r[:personId] }.to_builder.attributes! },
+      relationships: full_item[:relationships].collect{ |r| r.merge person: PersonPolicy.new(:app, people.find{ |p| p.api_id == r[:personId] }).serializer.serialize },
       titles: with_api_id(full_item[:titles])
     }).except(:descriptions), 6)
 

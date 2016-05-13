@@ -16,10 +16,7 @@ RSpec.describe SecurityController, type: :controller do
       res = JSON.parse response.body
       expect(res).to eq({
         'token' => token,
-        'user' => {
-          'id' => user.api_id,
-          'email' => user.email
-        }
+        'user' => UserPolicy.new(user, user).serializer.serialize
       })
     end
 

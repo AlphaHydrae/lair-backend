@@ -53,38 +53,6 @@ class ItemPart < ActiveRecord::Base
     parts.join ' '
   end
 
-  def to_builder options = {}
-    Jbuilder.new do |json|
-      json.id api_id
-      json.itemId item.api_id
-      json.item item.to_builder(options.slice(:image_from_search)) if options[:with_item]
-      json.title do
-        json.id title.api_id if title.present?
-        json.text effective_title
-        json.language custom_title.present? ? custom_title_language.tag : title.language.tag
-      end
-      json.titleId title.api_id if title
-      json.customTitle custom_title if custom_title
-      json.customTitleLanguage custom_title_language.tag if custom_title_language
-      json.year year if year
-      json.originalYear original_year
-      json.language language.tag
-      json.start range_start if range_start
-      json.end range_end if range_end
-      json.edition edition if edition
-      json.version version if version
-      json.format format if format
-      json.length length if length
-      json.tags tags
-
-      if options[:current_user] && options[:ownerships]
-        json.ownedByMe options[:ownerships].any?{ |o| o.item_part_id == id && o.user_id == options[:current_user].id }
-      end
-
-      add_image_to_builder json, options
-    end
-  end
-
   private
 
   def range

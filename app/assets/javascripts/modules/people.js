@@ -6,7 +6,7 @@ angular.module('lair.people', [])
       scope: {
         person: '='
       },
-      controller: ['$scope', function($scope) {
+      controller: function($scope) {
         $scope.buildName = function(person) {
           if (!person) {
             return '-';
@@ -28,7 +28,7 @@ angular.module('lair.people', [])
 
           return parts.join(' ');
         };
-      }],
+      },
       template: '{{ buildName(person) }}'
     };
   })

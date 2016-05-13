@@ -9,7 +9,7 @@ RSpec.describe 'PATCH /api/items/{id}' do
   let(:item){ create :item, creator: creator, language: languages[0], titles: [ 'A Tale of Two Cities', { contents: 'Le Conte de deux cités', language: languages[1] } ], links: [ 'http://foo.example.com' ] }
 
   let! :original_version do
-    item.to_builder.attributes!
+    ItemPolicy.new(:app, item).serializer.serialize
   end
 
   let :minimal_update do
@@ -76,7 +76,9 @@ RSpec.describe 'PATCH /api/items/{id}' do
 
     json = expect_json full_update.tap{ |u|
       u[:titles] = with_api_id u[:titles]
-      u[:relationships].each.with_index{ |rel,i| rel[:person] = people[i].to_builder.attributes! }
+      u[:relationships].each.with_index do |rel,i|
+        rel[:person] = PersonPolicy.new(:app, people[i]).serializer.serialize
+      end
     }
 
     expect_item json, creator: creator, updater: user

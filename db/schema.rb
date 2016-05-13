@@ -11,10 +11,71 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150623095027) do
+ActiveRecord::Schema.define(version: 20150805105127) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "collection_items", force: :cascade do |t|
+    t.string   "api_id",        limit: 12, null: false
+    t.integer  "collection_id",            null: false
+    t.integer  "item_id",                  null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+  end
+
+  add_index "collection_items", ["api_id"], name: "index_collection_items_on_api_id", unique: true, using: :btree
+  add_index "collection_items", ["collection_id", "item_id"], name: "index_collection_items_on_collection_id_and_item_id", unique: true, using: :btree
+
+  create_table "collection_ownerships", force: :cascade do |t|
+    t.string   "api_id",        limit: 12, null: false
+    t.integer  "collection_id",            null: false
+    t.integer  "ownership_id",             null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+  end
+
+  add_index "collection_ownerships", ["api_id"], name: "index_collection_ownerships_on_api_id", unique: true, using: :btree
+  add_index "collection_ownerships", ["collection_id", "ownership_id"], name: "index_collection_ownerships_on_collection_id_and_ownership_id", unique: true, using: :btree
+
+  create_table "collection_parts", force: :cascade do |t|
+    t.string   "api_id",        limit: 12, null: false
+    t.integer  "collection_id",            null: false
+    t.integer  "part_id",                  null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+  end
+
+  add_index "collection_parts", ["api_id"], name: "index_collection_parts_on_api_id", unique: true, using: :btree
+  add_index "collection_parts", ["collection_id", "part_id"], name: "index_collection_parts_on_collection_id_and_part_id", unique: true, using: :btree
+
+  create_table "collections", force: :cascade do |t|
+    t.string   "api_id",                  limit: 12,                 null: false
+    t.string   "name",                    limit: 50,                 null: false
+    t.string   "normalized_name",         limit: 50,                 null: false
+    t.string   "display_name",            limit: 50,                 null: false
+    t.boolean  "public_access",                      default: false, null: false
+    t.boolean  "featured",                           default: false, null: false
+    t.json     "data",                                               null: false
+    t.integer  "linked_items_count",                 default: 0,     null: false
+    t.integer  "linked_parts_count",                 default: 0,     null: false
+    t.integer  "linked_ownerships_count",            default: 0,     null: false
+    t.integer  "user_id",                                            null: false
+    t.integer  "creator_id",                                         null: false
+    t.integer  "updater_id",                                         null: false
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
+  end
+
+  add_index "collections", ["api_id"], name: "index_collections_on_api_id", unique: true, using: :btree
+  add_index "collections", ["normalized_name", "user_id"], name: "index_collections_on_normalized_name_and_user_id", unique: true, using: :btree
+
+  create_table "collections_users", id: false, force: :cascade do |t|
+    t.integer "collection_id", null: false
+    t.integer "user_id",       null: false
+  end
+
+  add_index "collections_users", ["collection_id", "user_id"], name: "index_collections_users_on_collection_id_and_user_id", unique: true, using: :btree
 
   create_table "events", force: :cascade do |t|
     t.string   "api_id",           limit: 36, null: false
@@ -155,15 +216,17 @@ ActiveRecord::Schema.define(version: 20150623095027) do
   add_index "languages", ["tag"], name: "index_languages_on_tag", unique: true, using: :btree
 
   create_table "ownerships", force: :cascade do |t|
-    t.string   "api_id",       limit: 12, null: false
-    t.integer  "item_part_id",            null: false
-    t.integer  "user_id",                 null: false
+    t.string   "api_id",       limit: 12,                null: false
+    t.integer  "item_part_id",                           null: false
+    t.integer  "user_id",                                null: false
     t.json     "tags"
-    t.datetime "gotten_at",               null: false
-    t.integer  "creator_id",              null: false
-    t.integer  "updater_id",              null: false
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.datetime "gotten_at",                              null: false
+    t.integer  "creator_id",                             null: false
+    t.integer  "updater_id",                             null: false
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.boolean  "owned",                   default: true, null: false
+    t.datetime "yielded_at"
   end
 
   create_table "people", force: :cascade do |t|
@@ -178,16 +241,30 @@ ActiveRecord::Schema.define(version: 20150623095027) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string   "api_id",        limit: 12,              null: false
-    t.string   "email",         limit: 255,             null: false
-    t.integer  "sign_in_count",             default: 0, null: false
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
+    t.string   "api_id",          limit: 12,                  null: false
+    t.string   "email",           limit: 255,                 null: false
+    t.integer  "sign_in_count",               default: 0,     null: false
+    t.datetime "created_at",                                  null: false
+    t.datetime "updated_at",                                  null: false
+    t.string   "name",            limit: 25,                  null: false
+    t.string   "normalized_name", limit: 25,                  null: false
+    t.boolean  "active",                      default: false, null: false
+    t.integer  "roles_mask",                  default: 0,     null: false
   end
 
   add_index "users", ["api_id"], name: "index_users_on_api_id", unique: true, using: :btree
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
+  add_index "users", ["normalized_name"], name: "index_users_on_normalized_name", unique: true, using: :btree
 
+  add_foreign_key "collection_items", "collections"
+  add_foreign_key "collection_items", "items"
+  add_foreign_key "collection_ownerships", "collections"
+  add_foreign_key "collection_ownerships", "ownerships"
+  add_foreign_key "collection_parts", "collections"
+  add_foreign_key "collection_parts", "item_parts", column: "part_id"
+  add_foreign_key "collections", "users"
+  add_foreign_key "collections_users", "collections"
+  add_foreign_key "collections_users", "users"
   add_foreign_key "events", "events", column: "cause_id"
   add_foreign_key "events", "users"
   add_foreign_key "image_searches", "users", column: "creator_id"

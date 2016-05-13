@@ -1,6 +1,6 @@
 angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
 
-  .controller('ItemFormCtrl', ['ApiService', '$log', '$modal', '$scope', '$state', '$stateParams', function($api, $log, $modal, $scope, $state, $stateParams) {
+  .controller('ItemFormCtrl', function(api, $log, $modal, $scope, $state, $stateParams) {
 
     $scope.relationshipPeople = [];
 
@@ -29,8 +29,8 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
       cancel: '' // disable default jquery ui sortable behavior preventing elements of type ":input,button" to be used as handles
     };
 
-    $api.http({
-      url: '/api/languages'
+    api({
+      url: '/languages'
     }).then(function(response) {
       $scope.languages = response.data;
     });
@@ -47,10 +47,10 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
         return;
       }
 
-      $api.http({
-        url: '/api/people',
+      api({
+        url: '/people',
         params: {
-          pageSize: 100,
+          number: 100,
           search: search
         }
       }).then(function(res) {
@@ -98,9 +98,9 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
     $scope.removeTag = function(tag) {
       $scope.modifiedItem.tags.splice($scope.modifiedItem.tags.indexOf(tag), 1);
     };
-  }])
+  })
 
-  .controller('ItemRelationshipCtrl', ['$modal', '$scope', function($modal, $scope) {
+  .controller('ItemRelationshipCtrl', function($modal, $scope) {
 
     $scope.$watch('relationship.personId', function(newValue) {
       if (newValue === -1) {
@@ -123,9 +123,9 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
         delete $scope.relationship.personId;
       });
     }
-  }])
+  })
 
-  .controller('NewPersonCtrl', ['ApiService', '$log', '$modalInstance', '$scope', function($api, $log, $modalInstance, $scope) {
+  .controller('NewPersonCtrl', function(api, $log, $modalInstance, $scope) {
 
     $scope.newPerson = {};
     $scope.personAlreadyExists = true;
@@ -140,8 +140,8 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
         return;
       }
 
-      $api.http({
-        url: '/api/people',
+      api({
+        url: '/people',
         params: _.extend({
           firstNames: '',
           lastName: '',
@@ -160,9 +160,9 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
 
       delete $scope.validationError;
 
-      $api.http({
+      api({
         method: 'POST',
-        url: '/api/people',
+        url: '/people',
         data: $scope.newPerson
       }).then(onSuccess, onError);
     };
@@ -183,6 +183,6 @@ angular.module('lair.items.form', ['lair.forms', 'lair.images.select'])
         $log.debug(res);
       }
     }
-  }])
+  })
 
 ;

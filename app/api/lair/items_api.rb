@@ -40,50 +40,62 @@ module Lair
           item.save!
           item.update_columns original_title_id: item.titles.first.id
 
-          item.to_builder.attributes!
+          serialize item
         end
       end
 
       helpers do
         def search_items
-          limit = params[:pageSize].to_i
-          limit = 10 if limit < 1
-
-          page = params[:page].to_i
-          offset = (page - 1) * limit
-          if offset < 1
-            page = 1
-            offset = 0
-          end
-
-          header 'X-Pagination-Page', page.to_s
-          header 'X-Pagination-PageSize', limit.to_s
-          header 'X-Pagination-Total', Item.count.to_s
-
           rel = Item
-          filtered = false
 
-          if params[:image].to_s.match /\A(?:1|y|yes|t|true)\Z/i
-            rel = rel.where 'image_id is not null'
-            filtered = true
-          elsif params[:image].to_s.match /\A(?:0|n|no|f|false)\Z/i
-            rel = rel.where 'image_id is null'
-            filtered = true
+          rel = paginated rel do |rel|
+
+            ownerships_joined = false
+
+            if params[:categories].present?
+              rel = rel.where 'items.category IN (?)', Array.wrap(params[:categories]).collect(&:to_s).select(&:present?)
+            end
+
+            if params[:ownerIds].present?
+              unless ownerships_joined
+                ownerships_joined = true
+                rel = rel.joins parts: { ownerships: :user }
+              end
+
+              rel = rel.where 'ownerships.owned = ? AND users.api_id IN (?)', true, Array.wrap(params[:ownerIds]).collect(&:to_s).select(&:present?)
+            end
+
+            if params[:collectionId].present?
+              collection = Collection.where(api_id: params[:collectionId].to_s).first!
+
+              unless ownerships_joined
+                ownerships_joined = true
+                rel = rel.joins parts: { ownerships: :user }
+              end
+
+              rel = collection.apply rel
+            end
+
+            if params[:image].to_s.match /\A(?:1|y|yes|t|true)\Z/i
+              rel = rel.where 'items.image_id is not null'
+            elsif params[:image].to_s.match /\A(?:0|n|no|f|false)\Z/i
+              rel = rel.where 'items.image_id is null'
+            end
+
+            if params[:category].present?
+              rel = rel.where 'items.category = ?', params[:category].to_s
+            end
+
+            if params[:search].present?
+              rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
+            end
+
+            @pagination_filtered_count = rel.count 'distinct items.id'
+
+            rel
           end
 
-          if params[:category].present?
-            rel = rel.where category: params[:category].to_s
-            filtered = true
-          end
-
-          if params[:search].present?
-            rel = rel.joins(:titles).where 'LOWER(item_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
-            filtered = true
-          end
-
-          header 'X-Pagination-FilteredTotal', rel.count.to_s if filtered
-
-          rel.offset(offset).limit(limit)
+          rel
         end
       end
 
@@ -97,7 +109,7 @@ module Lair
         authorize! Item, :index
         rel = search_items
 
-        grouped = params[:search].present?
+        grouped = params[:search].present? || params[:collectionId].present? || params[:ownerIds].present?
 
         if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
           rel = rel.order 'RANDOM()'
@@ -112,7 +124,9 @@ module Lair
         image_from_search = true_flag? :imageFromSearch
         includes << :main_image_search if image_from_search
 
-        rel.includes(includes).to_a.collect{ |item| item.to_builder(image_from_search: image_from_search).attributes! }
+        options = { image_from_search: image_from_search }
+        rel = rel.includes(includes)
+        serialize load_resources(rel)
       end
 
       namespace '/:itemId' do
@@ -137,7 +151,7 @@ module Lair
 
         get do
           authorize! Item, :show
-          fetch_item!(includes: true).to_builder.attributes!
+          serialize fetch_item!(includes: true)
         end
 
         include ImageSearchesApi
@@ -222,7 +236,7 @@ module Lair
             end
           end
 
-          item.to_builder.attributes!
+          serialize item
         end
       end
     end

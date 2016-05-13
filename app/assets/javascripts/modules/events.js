@@ -1,6 +1,6 @@
 angular.module('lair.events', [ 'lair.tables' ])
 
-  .controller('EventListCtrl', ['ApiService', '$log', 'moment', '$q', '$scope', function($api, $log, moment, $q, $scope) {
+  .controller('EventListCtrl', function(api, $log, moment, $q, $scope) {
 
     var resourceEventTypes = [ 'create', 'update', 'delete' ];
 
@@ -18,8 +18,14 @@ angular.module('lair.events', [ 'lair.tables' ])
       var ownerships = _.where(events, { resource: 'ownerships' });
 
       $q.all(_.map(ownerships, function(ownership) {
-        return $api.http({
-          url: '/api/parts/' + ownership.eventVersion.partId
+
+        var version = ownership.eventVersion;
+        if (ownership.type == 'delete') {
+          version = ownership.previousVersion;
+        }
+
+        return api({
+          url: '/parts/' + version.partId
         }).then(function(res) {
           return res.data;
         });
@@ -36,7 +42,9 @@ angular.module('lair.events', [ 'lair.tables' ])
           version = event.previousVersion;
         }
 
-        if (event.resource == 'items') {
+        if (event.resource == 'collections') {
+          return version.name;
+        } else if (event.resource == 'items') {
           return version.titles[0].text;
         } else if (event.resource == 'item-parts') {
           return version.title.text;
@@ -76,19 +84,17 @@ angular.module('lair.events', [ 'lair.tables' ])
       table.pagination.start = table.pagination.start || 0;
       table.pagination.number = table.pagination.number || 15;
 
-      var pageSize = table.pagination.number,
-          page = table.pagination.start / pageSize + 1,
-          params = {
-            page: page,
-            pageSize: pageSize
-          };
+      var params = {
+        start: table.pagination.start,
+        number: table.pagination.number
+      };
 
       if ($scope.eventFilters.resource && $scope.eventFilters.resource.length) {
         params.resource = $scope.eventFilters.resource;
       }
 
-      $api.http({
-        url: '/api/events',
+      api({
+        url: '/events',
         params: params
       }).then(function(res) {
         $scope.events = res.data;
@@ -98,7 +104,7 @@ angular.module('lair.events', [ 'lair.tables' ])
         $log.debug(err);
       });
     };
-  }])
+  })
 
   .directive('filterEvents', function() {
     return {
@@ -112,7 +118,7 @@ angular.module('lair.events', [ 'lair.tables' ])
 
         var lastValue;
 
-        $scope.eventResources = [ '', 'image-searches', 'item-parts', 'items', 'ownerships', 'people' ];
+        $scope.eventResources = [ '', 'collections', 'image-searches', 'item-parts', 'items', 'ownerships', 'people' ];
 
         $scope.$watch('filters', function(value) {
           if (value) {

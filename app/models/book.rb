@@ -11,13 +11,6 @@ class Book < ItemPart
     parts.join ' '
   end
 
-  def to_builder options = {}
-    builder = super options
-    builder.publisher publisher if publisher
-    builder.isbn isbn if isbn
-    builder
-  end
-
   private
 
   def isbn_valid

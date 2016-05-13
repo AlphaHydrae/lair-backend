@@ -10,7 +10,7 @@ RSpec.describe 'PATCH /api/parts/{id}' do
   let(:part){ create :book, item: item, creator: creator, language: languages[0] }
 
   let! :original_version do
-    part.to_builder.attributes!
+    BookPolicy.new(:app, part).serializer.serialize
   end
 
   let :minimal_update do

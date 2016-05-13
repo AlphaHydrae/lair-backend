@@ -1,0 +1,5 @@
+#explorer
+  explorer-item ng-if='resourceType == "items"' item='resource' params='params'
+  explorer-part ng-if='resourceType == "parts"' part='resource' params='params'
+  .modal-footer
+    button.btn.btn-default ng-click='$close()' Close

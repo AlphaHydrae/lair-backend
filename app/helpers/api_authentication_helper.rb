@@ -1,6 +1,19 @@
 require_dependency 'errors'
 
 module ApiAuthenticationHelper
+  def current_user
+
+    if @auth_token && !@current_user
+      @current_user = User.where(api_id: @auth_token['iss']).first
+      raise AuthError.new("Unknown user #{@auth_token['iss']}") if @current_user.blank?
+    end
+
+    if @current_user
+      raise AuthError.new("User #{@current_user.api_id} is inactive") unless @current_user.active?
+    end
+
+    @current_user
+  end
 
   def authenticate
     authenticate_with_header headers['Authorization'], required: false

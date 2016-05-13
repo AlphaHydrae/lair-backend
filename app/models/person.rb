@@ -13,15 +13,6 @@ class Person < ActiveRecord::Base
     pseudonym.present?
   end
 
-  def to_builder
-    Jbuilder.new do |json|
-      json.id api_id
-      json.lastName last_name if last_name.present?
-      json.firstNames first_names if first_names.present?
-      json.pseudonym pseudonym if pseudonym.present?
-    end
-  end
-
   private
 
   def name_present

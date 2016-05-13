@@ -12,6 +12,10 @@ module ApiAuthorizationHelper
     Pundit.policy_scope! user || pundit_user, subject
   end
 
+  def policy_serializer subject, user = nil
+    policy(subject, user).serializer
+  end
+
   def pundit_user
     UserContext.new current_user, @auth_token, params
   end

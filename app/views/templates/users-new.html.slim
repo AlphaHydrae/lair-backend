@@ -1,0 +1,9 @@
+.container
+  .page-header
+    h1 New User
+  form.clearfix role='form' name='userForm' ng-submit='userForm.$valid && save()' novalidate=true
+    ng-include src='"/templates/users-form.html"'
+    .pull-right
+      .btn-group
+        a.btn.btn-default href='#' ui-sref='users.list' Cancel
+        button.btn.btn-primary type='submit' ng-disabled='!changed() || userForm.$invalid' Save

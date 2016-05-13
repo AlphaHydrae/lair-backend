@@ -1,6 +1,8 @@
 require_dependency 'errors'
 
 class ApplicationController < ActionController::Base
+  include ApiAuthorizationHelper
+  include ApiSerializationHelper
 
   rescue_from LairError do |exception|
 
