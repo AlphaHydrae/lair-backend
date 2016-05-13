@@ -31,7 +31,7 @@ class SecurityController < ApplicationController
         'unknown error'
       end
 
-      Rails.logger.warn "An error occurred while authenticating with Google: #{message}"
+      Rails.logger.warn "An error occurred while authenticating with Google (#{message}): #{res.body}"
       return render json: { errors: [ { code: 'auth.error', message: 'An error occurred while authenticating with Google.' } ] }, status: :unauthorized
     end
 
