@@ -170,7 +170,9 @@ class AnidbScraper < ApplicationScraper
   def self.add_titles work:, title_elements:
     return if title_elements.blank?
 
-    title_data = title_elements.inject([]) do |memo,title_element|
+    selected_titles = filter_anidb_titles title_elements, %w(main official)
+
+    title_data = selected_titles.inject([]) do |memo,title_element|
 
       text = element_text title_element
       next memo if text.blank? || memo.find{ |t| t[:text] == text }
@@ -326,6 +328,12 @@ class AnidbScraper < ApplicationScraper
   def self.find_anidb_title title_elements, language
     title_elements.find do |title_element|
       title_element['xml:lang'].to_s.downcase == language.to_s.downcase
+    end
+  end
+
+  def self.filter_anidb_titles title_elements, types
+    title_elements.select do |title_element|
+      types.include? title_element['type'].to_s.strip.downcase
     end
   end
 
