@@ -1,0 +1,28 @@
+#show-media-scan-dialog
+
+  .modal-header
+    h3
+      span> Scanning result
+      small ng-if='mediaScan' {{ mediaScan.createdAt | amDateFormat: 'lll' }}
+
+  .modal-body
+
+    p.loading ng-if='!mediaScan' Loading...
+
+    dl.dl-horizontal ng-if='mediaScan'
+      dt User
+      dd {{ mediaScan.source.user.name }}
+      dt Source
+      dd {{ mediaScan.source.name }}
+      dt Duration
+      dd {{ scanDuration(mediaScan) | amDurationFormat }}
+
+    div ng-repeat='error in mediaScan.errors'
+      p
+        strong.text-danger {{ error.message }}
+      pre.stack-trace ng-if='error.stackTrace' {{ error.stackTrace }}
+
+  .modal-footer
+    .btn-group.pull-right
+      button.btn.btn-warning type='button' ng-if='mediaScan.state == "failed" || mediaScan.state == "analysisFailed"' ng-click='retry()' Retry
+      button.btn.btn-default type='button' ng-click='$dismiss()' Close

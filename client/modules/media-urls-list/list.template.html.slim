@@ -13,8 +13,11 @@
             | ,
           strong.text-danger ng-if='scrapingErrorsCount == 1' 1 error
           strong.text-danger ng-if='scrapingErrorsCount >= 2' {{ scrapingErrorsCount | number }} errors
-        strong.text-warning ng-if='scrapingCanceledCount'
-          | , {{ scrapingCanceledCount | number }} canceled
+        span ng-if='warningsCount'
+          span>
+            | ,
+          strong.text-warning ng-if='warningsCount == 1' 1 warning
+          strong.text-warning ng-if='warningsCount >= 2' {{ warningsCount | number }} warnings
         span.text-primary ng-if='scrapingInProgressCount'
           | , {{ scrapingInProgressCount | number }} in progress
   div st-pipe='mediaUrlsList.refresh' st-table='mediaUrlsList.records'
@@ -27,9 +30,6 @@
           button.btn.btn-danger ng-model='filters.show' btn-radio='"errors"' uncheckable=true
             span.glyphicon.glyphicon-thumbs-down>
             span.hidden-xs Show errors
-          button.btn.btn-warning ng-model='filters.show' btn-radio='"canceled"' uncheckable=true
-            span.glyphicon.glyphicon-warning-sign>
-            span.hidden-xs Show canceled
           button.btn.btn-primary ng-model='filters.show' btn-radio='"inProgress"' uncheckable=true
             span.glyphicon.glyphicon-time>
             span.hidden-xs Show in progress
@@ -54,10 +54,7 @@
             span ng-if='!mediaUrlsList.pagination.filtered' No media scraped.
         tr ng-repeat='url in mediaUrlsList.records'
           td
-            a href='http://anidb.net'
-              .label.label-default ng-if='url.provider == "anidb"' AniDB
-            a href='http://www.imdb.com'
-              .label.label-default ng-if='url.provider == "imdb"' IMDB
+            scraper-label scraper='{{ url.provider }}'
           td
             a href='{{ url.url }}' {{ url.url }}
           td
@@ -73,15 +70,13 @@
 
             .label.label-primary ng-if='url.scrap.state == "scraping" || url.scrap.state == "scraped"' Scraping
 
-            .label.label-warning ng-if='url.scrap.state == "scrapingCanceled"' Canceled
-
             .label.label-danger ng-if='url.scrap.state == "scrapingFailed" && !currentUserIs("admin")' tooltip='URL could not be scraped' Scraping error
             a href='#' ng-if='url.scrap.state == "scrapingFailed" && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='URL could not be scraped'
               .label.label-danger Scraping error
 
             .label.label-danger ng-if='url.scrap.state == "expansionFailed" && !currentUserIs("admin")' tooltip='Scraped data could not be parsed' Scraping error
             a href='#' ng-if='url.scrap.state == "expansionFailed" && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='Scraped data could not be parsed'
-              .label.label-danger Scraping error
+              .label.label-danger Expansion error
 
             .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
 

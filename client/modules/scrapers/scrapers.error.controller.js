@@ -3,7 +3,7 @@ angular.module('lair.scrapers').controller('ScraperErrorModalCtrl', function(api
   api({
     url: '/media/scraps/' + $scope.scrapId,
     params: {
-      include: [ 'contents', 'error', 'warnings' ]
+      include: [ 'contents', 'errors', 'warnings' ]
     }
   }).then(function(res) {
 

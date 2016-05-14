@@ -101,6 +101,19 @@ angular.module('lair.routes', [ 'ui.router' ])
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
       })
 
+      .state('mediaScans', {
+        abstract: true,
+        url: '^/mediaScanning',
+        template: '<div ui-view />'
+      })
+
+      .state('mediaScans.list', {
+        url: '',
+        reloadOnSearch: false,
+        controller: 'MediaScansListCtrl',
+        templateUrl: '/templates/modules/media-scans-list/list.template.html'
+      })
+
       .state('mediaUrls', {
         abstract: true,
         url: '^/mediaScraping',

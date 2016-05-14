@@ -1,0 +1,2 @@
+class JobErrorPolicy < ApplicationPolicy
+end

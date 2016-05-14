@@ -20,17 +20,12 @@ class ScrapMediaJob < ApplicationJob
   def self.perform id
     scrap = MediaScrap.includes(:media_url).find id
 
-    if scrap.contents.blank?
-      perform_scraping scrap
-    else
+    if scrap.contents.present?
       Rails.logger.warn "Scrap #{api_id} was already scraped"
+      return
     end
-  end
 
-  private
-
-  def self.perform_scraping scrap
-    MediaUrl.transaction do
+    job_transaction cause: scrap, rescue_event: :fail_scraping!, clear_errors: true do
       Rails.application.with_current_event scrap.create_scrap_event do
         media_url = scrap.media_url
 
@@ -39,19 +34,11 @@ class ScrapMediaJob < ApplicationJob
 
         scrap.start_scraping!
         media_url.find_scraper.scrap scrap
-
-        scrap.error_message = nil
-        scrap.error_backtrace = nil
         scrap.finish_scraping!
 
         duration = Time.now.to_f - start.to_f
         Rails.logger.info "Scraping #{scrap.api_id} completed in #{duration.round(3)}s"
       end
     end
-  rescue => e
-    scrap.reload
-    scrap.error_message = e.message
-    scrap.error_backtrace = e.backtrace.join "\n"
-    scrap.fail_scraping!
   end
 end

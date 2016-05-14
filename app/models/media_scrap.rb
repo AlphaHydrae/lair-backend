@@ -13,7 +13,7 @@ class MediaScrap < ActiveRecord::Base
 
   auto_queueable_jobs :scrap, :expansion
 
-  states :created, :scraping, :scraping_canceled, :scraping_failed, :scraped, :expanding, :expansion_failed, :expanded
+  states :created, :scraping, :scraping_failed, :scraped, :expanding, :expansion_failed, :expanded
   event :start_scraping, to: :scraping
   event :cancel_scraping, to: :canceled
   event :fail_scraping, to: :scraping_failed
@@ -30,6 +30,7 @@ class MediaScrap < ActiveRecord::Base
   belongs_to :media_url
   belongs_to :creator, class_name: 'User'
   has_many :events, as: :trackable
+  has_many :job_errors, as: :cause, dependent: :destroy
 
   validates :provider, presence: true, inclusion: { in: MediaUrl::PROVIDERS.collect(&:to_s), allow_blank: true }
   validates :contents, presence: { if: ->(scrap){ %i(scraped expanding expansion_failed expanded).include? scrap.state.to_s } }

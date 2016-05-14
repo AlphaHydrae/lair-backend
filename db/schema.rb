@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160512210128) do
+ActiveRecord::Schema.define(version: 20160514115305) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -215,6 +215,16 @@ ActiveRecord::Schema.define(version: 20160512210128) do
 
   add_index "items_subtitle_languages", ["video_id", "language_id"], name: "index_subtitle_languages_on_video_id_and_language_id", unique: true, using: :btree
 
+  create_table "job_errors", force: :cascade do |t|
+    t.string   "cause_type",      limit: 50, null: false
+    t.integer  "cause_id",                   null: false
+    t.string   "job",             limit: 50, null: false
+    t.string   "queue",           limit: 20, null: false
+    t.text     "error_message",              null: false
+    t.text     "error_backtrace",            null: false
+    t.datetime "created_at",                 null: false
+  end
+
   create_table "languages", force: :cascade do |t|
     t.string "tag", limit: 5, null: false
   end
@@ -271,45 +281,48 @@ ActiveRecord::Schema.define(version: 20160512210128) do
   add_index "media_scanners", ["api_id"], name: "index_media_scanners_on_api_id", unique: true, using: :btree
 
   create_table "media_scans", force: :cascade do |t|
-    t.string   "api_id",                limit: 12,             null: false
-    t.integer  "scanner_id",                                   null: false
-    t.integer  "files_count",                      default: 0, null: false
-    t.integer  "processed_files_count",            default: 0, null: false
+    t.string   "api_id",                     limit: 12,             null: false
+    t.integer  "scanner_id",                                        null: false
+    t.integer  "files_count",                           default: 0, null: false
+    t.integer  "processed_files_count",                 default: 0, null: false
     t.json     "properties"
     t.datetime "created_at"
     t.datetime "processed_at"
-    t.integer  "source_id",                                    null: false
-    t.string   "state",                 limit: 20,             null: false
+    t.integer  "source_id",                                         null: false
+    t.string   "state",                      limit: 20,             null: false
     t.datetime "canceled_at"
     t.datetime "scanned_at"
     t.datetime "failed_at"
-    t.text     "error_backtrace"
-    t.integer  "changed_files_count",              default: 0, null: false
-    t.string   "error_message"
+    t.integer  "changed_files_count",                   default: 0, null: false
+    t.integer  "job_errors_count",                      default: 0, null: false
+    t.integer  "changed_nfo_files_count",               default: 0, null: false
+    t.integer  "analyzed_nfo_files_count",              default: 0, null: false
+    t.integer  "new_media_files_count",                 default: 0, null: false
+    t.integer  "analyzed_media_files_count",            default: 0, null: false
+    t.datetime "analysis_failed_at"
+    t.datetime "analyzed_at"
   end
 
   add_index "media_scans", ["api_id"], name: "index_media_scans_on_api_id", unique: true, using: :btree
 
   create_table "media_scraps", force: :cascade do |t|
-    t.string   "api_id",               limit: 12,             null: false
-    t.string   "provider",             limit: 20,             null: false
-    t.string   "state",                limit: 20,             null: false
+    t.string   "api_id",              limit: 12,             null: false
+    t.string   "provider",            limit: 20,             null: false
+    t.string   "state",               limit: 20,             null: false
     t.json     "data"
     t.text     "contents"
-    t.string   "content_type",         limit: 50
-    t.integer  "media_url_id",                                null: false
-    t.integer  "creator_id",                                  null: false
+    t.string   "content_type",        limit: 50
+    t.integer  "media_url_id",                               null: false
+    t.integer  "creator_id",                                 null: false
     t.datetime "scraping_at"
-    t.datetime "scraping_canceled_at"
     t.datetime "scraping_failed_at"
     t.datetime "scraped_at"
     t.datetime "expansion_failed_at"
     t.datetime "expanded_at"
-    t.text     "error_message"
-    t.text     "error_backtrace"
-    t.datetime "created_at",                                  null: false
-    t.datetime "updated_at",                                  null: false
-    t.integer  "warnings_count",                  default: 0, null: false
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+    t.integer  "warnings_count",                 default: 0, null: false
+    t.integer  "job_errors_count",               default: 0, null: false
   end
 
   add_index "media_scraps", ["api_id"], name: "index_media_scraps_on_api_id", unique: true, using: :btree

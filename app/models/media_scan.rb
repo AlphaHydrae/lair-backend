@@ -13,13 +13,16 @@ class MediaScan < ActiveRecord::Base
   event :cancel_scan, to: :canceled
   event :close_scan, to: :scanned, after: %i(create_scan_event set_process_job_required)
   event :fail_scan, to: :failed
-  event :finish_scan, to: :processed, after: :set_analyze_job_required
+  event :retry_scan, to: :scanned, after: %i(set_process_job_required)
+  event :finish_scan, to: :processed, after: %i(update_source_last_scan set_analyze_job_required)
   event :fail_analysis, to: :analysis_failed
+  event :retry_analysis, to: :processed, after: %i(set_analyze_job_required)
   event :finish_analysis, to: :analyzed
 
   belongs_to :scanner, class_name: 'MediaScanner'
   belongs_to :source, class_name: 'MediaSource', counter_cache: :scans_count
   has_many :scanned_files, class_name: 'MediaScanFile', foreign_key: :scan_id
+  has_many :job_errors, as: :cause, dependent: :destroy
 
   strip_attributes
   validates :source, presence: true
@@ -34,14 +37,30 @@ class MediaScan < ActiveRecord::Base
     end
   end
 
+  def analysis_progress
+
+    total = changed_nfo_files_count + new_media_files_count
+    current = analyzed_nfo_files_count + analyzed_media_files_count
+    puts "#{current} / #{total}"
+    progress = current.to_f * 100.0 / total.to_f
+
+    if progress >= 0 && progress <= 100
+      progress.round 2
+    elsif progress < 0
+      0
+    else
+      100
+    end
+  end
+
   private
 
   def queue_process_job
-    ProcessMediaScanJob.enqueue self
+    ProcessMediaScanJob.enqueue scan: self
   end
 
   def queue_analyze_job
-    AnalyzeMediaFilesJob.enqueue self
+    AnalyzeMediaFilesJob.enqueue scan: self
   end
 
   def create_scan_event
@@ -64,5 +83,9 @@ class MediaScan < ActiveRecord::Base
   def scanned_files_should_be_processed
     return unless state_changed? && state == 'processed'
     errors.add :state, :unprocessed_files if scanned_files.where(processed: false).any?
+  end
+
+  def update_source_last_scan
+    source.update_columns last_scan_id: id, scanned_at: created_at
   end
 end

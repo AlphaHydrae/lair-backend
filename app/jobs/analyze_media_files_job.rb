@@ -7,193 +7,82 @@ class AnalyzeMediaFilesJob < ApplicationJob
 
   @queue = :low
 
-  def self.enqueue scan
+  def self.enqueue scan:
     log_queueing "media scan #{scan.api_id}"
     enqueue_after_transaction self, scan.id
   end
 
-  def self.lock_workers id
+  def self.lock_workers scan_id
     :media
   end
 
   def self.perform id
-    analyze_files MediaScan.includes(source: :user).find(id)
-  end
+    scan = MediaScan.includes(source: :user).find id
 
-  def self.analyze_files scan
-    MediaScan.transaction do
-      event = scan.last_scan_event
-      Rails.application.with_current_event event do
-
+    job_transaction cause: scan, rescue_event: :fail_analysis!, clear_errors: true do
+      Rails.application.with_current_event scan.last_scan_event do
         source = scan.source
 
-        media_url_ids_to_check = Set.new
+        changed_nfo_files_rel = MediaFile
+          .where(source_id: source.id, extension: 'nfo')
+          .where('(media_files.deleted = ? AND media_files.state = ?) OR (media_files.deleted = ? AND media_files.state IN (?))', true, 'deleted', false, %w(created changed))
+          .includes(:directory)
 
-        # Handle deleted NFO files.
-        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: true, state: %w(deleted)).includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
-          files.each do |file|
+        new_media_files_rel = MediaFile
+          .where(source_id: source.id, deleted: false, state: 'created')
+          .where('media_files.extension != ?', 'nfo')
+          .includes(:directory)
 
-            nfo_files = nfo_files_for_directory file.directory, file
+        changed_nfo_files_count = changed_nfo_files_rel.count
+        new_media_files_count = new_media_files_rel.count
 
-            if nfo_files.length == 1 && nfo_files.first.state == 'duplicated'
-              # If after deleting the NFO file, exactly one other NFO file applies
-              # to this directory and it is marked as duplicated, process that NFO file
-              # and other files in its directory.
-              process_nfo_file nfo_files.first, media_url_ids_to_check
-            elsif nfo_files.blank?
-              # If after deleting the NFO file, no other NFO file applies to this directory,
-              # mark all its files as unlinked.
-              directory_files_rel = media_files_for_directory file.directory
-              mark_files directory_files_rel, :mark_as_unlinked
+        if changed_nfo_files_count + new_media_files_count >= 1
+
+          updates = {}
+          updates[:changed_nfo_files_count] = changed_nfo_files_count if scan.changed_nfo_files_count <= 0
+          updates[:new_media_files_count] = new_media_files_count if scan.new_media_files_count <= 0
+          scan.update_columns updates if updates.any?
+
+          if changed_nfo_files_count >= 1
+            changed_nfo_files_rel.find_each do |nfo_file|
+              AnalyzeChangedNfoFileJob.enqueue nfo_file: nfo_file, scan: scan
             end
+          else
+            analyze_remaining_media_files scan: scan
           end
-
-          sleep 1
+        else
+          scan.finish_analysis!
         end
 
-        # Handle new and modified NFO files.
-        MediaFile.where(source_id: source.id, extension: 'nfo', deleted: false, state: %w(created changed)).includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
-          files.each do |file|
-
-            nfo_files = nfo_files_for_directory file.directory, file
-
-            if nfo_files.any?
-              if file.state == 'changed'
-                # If the NFO file was modified and other NFO files apply to this directory,
-                # mark the NFO file as duplicated. Do not change the state of other files.
-                file.mark_as_duplicated!
-              else
-                # If the NFO file is new and other NFO files apply to this directory,
-                # mark all these NFO files as duplicated. Do not change the state of other
-                # files.
-                nfo_files.select{ |f| f.state != 'duplicated' }.each do |file|
-                  file.mark_as_duplicated!
-                end
-              end
-
-              next
-            end
-
-            process_nfo_file file, media_url_ids_to_check
-          end
-
-          sleep 1
-        end
-
-        # Handle new media files.
-        MediaFile.where(source_id: source.id, deleted: false, state: 'created').where('media_files.extension != ?', 'nfo').includes(:directory).find_in_batches batch_size: BATCH_SIZE do |files|
-          linked_nfos_by_directory_path = {}
-
-          files.each do |file|
-
-            nfo_file = linked_nfos_by_directory_path[file.directory.path]
-
-            if nfo_file
-              file.mark_as_linked!
-              next
-            elsif nfo_file == false
-              file.mark_as_unlinked!
-              next
-            end
-
-            nfo_files = nfo_files_for_directory(file.directory)
-
-            if nfo_files.length == 1 && nfo_files.first.state == 'linked'
-              # If exactly one NFO file applies to this directory and it is linked,
-              # link the current file to the same media as the NFO file.
-              file.media_url = nfo_files.first.media_url
-              file.mark_as_linked!
-              linked_nfos_by_directory_path[file.directory.path] = nfo_files.first
-            else
-              # If no NFO file applies to this directory,
-              # mark the new file as unlinked.
-              file.mark_as_unlinked!
-              linked_nfos_by_directory_path[file.directory.path] = false
-            end
-          end
-
-          processed_directories = nil
-
-          sleep 1
-        end
-
-        scan.error_message = nil
-        scan.error_backtrace = nil
-        scan.finish_analysis!
-
-        media_urls_to_check = MediaUrl.where(id: media_url_ids_to_check).find_each batch_size: BATCH_SIZE do |media_url|
-          Rails.logger.debug "TODO: update media ownerships after media files analysis (only for existing media URLs)"
-          #UpdateMediaOwnershipsJob.enqueue media_url, user: scan.source.user, event: event
-        end
+        Rails.logger.debug "TODO: update media ownerships after media files analysis (only for existing media URLs)"
       end
     end
-  rescue => e
-    scan.reload
-    scan.error_message = e.message
-    scan.error_backtrace = e.backtrace.join "\n"
-    scan.fail_analysis!
   end
 
-  private
+  def self.analyze_remaining_media_files scan:
+    if scan.analyzed_media_files_count < scan.new_media_files_count
+      remaining = scan.new_media_files_count - scan.analyzed_media_files_count
 
-  def self.media_files_for_directory directory
-    directory.child_files do |rel|
-      rel.where 'media_files.type = ? AND media_files.deleted = ? AND media_files.extension != ?', MediaFile.name, false, 'nfo'
+      new_media_files_rel = MediaFile
+        .where(source_id: scan.source_id, deleted: false, state: 'created')
+        .where('media_files.extension != ?', 'nfo')
+
+      offset = 0
+      while offset < remaining
+
+        first_id = new_media_files_rel.order('media_files.id').offset(offset).first.id
+
+        last_id = if offset + BATCH_SIZE <= remaining
+          new_media_files_rel.order('media_files.id').offset(offset + BATCH_SIZE - 1).first.id
+        else
+          new_media_files_rel.order('media_files.id DESC').first.id
+        end
+
+        AnalyzeRemainingMediaFilesJob.enqueue scan: scan, first_id: first_id, last_id: last_id
+        offset += AnalyzeMediaFilesJob::BATCH_SIZE
+      end
+    else
+      scan.finish_analysis!
     end
-  end
-
-  def self.nfo_files_for_directory directory, reference_nfo_file = nil
-
-    directory_files_rel = directory.child_files do |rel|
-      rel = rel.where 'media_files.deleted = ? AND media_files.extension = ?', false, 'nfo'
-      rel = rel.where 'media_files.id != ?', reference_nfo_file.id if reference_nfo_file.present?
-      rel
-    end
-
-    parent_directory_files_rel = directory.parent_directory_files.where 'media_files.deleted = ? AND media_files.extension = ?', false, 'nfo'
-
-    directory_files_rel.to_a + parent_directory_files_rel.to_a
-  end
-
-  def self.process_nfo_file nfo_file, media_url_ids_to_check
-
-    source = nfo_file.source
-    directory_files_rel = media_files_for_directory nfo_file.directory
-
-    if nfo_file.url.blank?
-      nfo_file.mark_as_invalid!
-      mark_files directory_files_rel, :mark_as_unlinked
-      return
-    end
-
-    scan_path = source.scan_paths.to_a.find do |sp|
-      nfo_file.path.index("#{sp.path}/") == 0
-    end
-
-    media_url = MediaUrl.resolve url: nfo_file.url, default_category: scan_path.try(:category), save: true, creator: source.user
-    if media_url.blank?
-      nfo_file.mark_as_invalid!
-      mark_files directory_files_rel, :mark_as_unlinked
-      return
-    end
-
-    media_url_ids_to_check << media_url.id
-    mark_files directory_files_rel, :mark_as_linked, media_url
-
-    nfo_file.media_url = media_url
-    nfo_file.mark_as_linked!
-  end
-
-  def self.mark_files rel, mark_method, media_url = nil
-
-    n = 0
-
-    rel.find_each batch_size: BATCH_SIZE do |file|
-      file.media_url = media_url
-      file.send "#{mark_method}!"
-      n += 1
-    end
-
-    n
   end
 end

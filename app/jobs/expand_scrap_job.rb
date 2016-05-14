@@ -16,27 +16,18 @@ class ExpandScrapJob < ApplicationJob
 
   def self.perform id
     scrap = MediaScrap.includes(:media_url).find id
-    Rails.application.with_current_event scrap.last_scrap_event do
-      perform_expansion scrap if %w(scraped expansion_failed expanded).include? scrap.state.to_s
+
+    unless %w(scraped expansion_failed expanded).include? scrap.state
+      Rails.logger.warn "Scrap #{scrap.api_id} cannot be expanded from state #{scrap.state}"
+      return
     end
-  end
 
-  private
-
-  def self.perform_expansion scrap
-    MediaUrl.transaction do
-
-      scrap.start_expansion!
-      scrap.media_url.find_scraper.expand scrap
-
-      scrap.error_message = nil
-      scrap.error_backtrace = nil
-      scrap.finish_expansion!
+    job_transaction cause: scrap, rescue_event: :fail_expansion!, clear_errors: true do
+      Rails.application.with_current_event scrap.last_scrap_event do
+        scrap.start_expansion!
+        scrap.media_url.find_scraper.expand scrap
+        scrap.finish_expansion!
+      end
     end
-  rescue => e
-    scrap.reload
-    scrap.error_message = e.message
-    scrap.error_backtrace = e.backtrace.join "\n"
-    scrap.fail_expansion!
   end
 end

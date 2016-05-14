@@ -5,12 +5,10 @@
 
     p.loading ng-if='!scrap' Loading...
 
-    div ng-if='scrap.error.message'
-
+    div ng-repeat='error in scrap.errors'
       p
-        strong.text-danger {{ scrap.error.message }}
-
-      pre.stack-trace ng-if='scrap.error.stackTrace' {{ scrap.error.stackTrace }}
+        strong.text-danger {{ error.message }}
+      pre.stack-trace ng-if='error.stackTrace' {{ error.stackTrace }}
 
     div ng-if='scrap.warningsCount >= 1'
       h4 Warnings

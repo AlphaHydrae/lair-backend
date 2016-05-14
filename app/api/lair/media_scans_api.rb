@@ -2,6 +2,20 @@ module Lair
   class MediaScansApi < Grape::API
     namespace :scans do
       helpers do
+        def serialization_options *args
+          {
+            include_source: include_in_response?(:source),
+            source_options: {
+              include_user: include_in_response?(:source)
+            },
+            include_errors: include_in_response?(:errors)
+          }
+        end
+
+        def with_serialization_includes rel
+          rel = rel.includes :source
+        end
+
         def update_record_from_params record
           record.source = MediaSource.where(api_id: params[:sourceId].to_s).first! if params.key? :sourceId
           record.scanner = MediaScanner.where(api_id: params[:scannerId].to_s).first! if params.key? :scannerId
@@ -29,11 +43,28 @@ module Lair
         end
       end
 
+      get do
+        authorize! MediaScan, :index
+
+        rel = policy_scope MediaScan.order('media_scans.created_at DESC')
+
+        paginated rel do |rel|
+          rel
+        end
+
+        serialize load_resources(rel)
+      end
+
       namespace '/:id' do
         helpers do
           def record
             @record ||= load_resource!(MediaScan.where(api_id: params[:id].to_s))
           end
+        end
+
+        get do
+          authorize! MediaScan, :show
+          serialize record
         end
 
         patch do
@@ -49,6 +80,26 @@ module Lair
 
             record.save!
             serialize record
+          end
+        end
+
+        namespace :retry do
+          post do
+            authorize! record, :update
+
+            MediaScan.transaction do
+              if %w(failed).include? record.state
+                record.retry_scan!
+              elsif %w(analysis_failed).include? record.state
+                record.retry_analysis!
+              else
+                error = ValidationError.new
+                error.add "Scanning can only be retried from the failed or analysisFailed states"
+                error.raise_if_any
+              end
+
+              serialize record
+            end
           end
         end
 

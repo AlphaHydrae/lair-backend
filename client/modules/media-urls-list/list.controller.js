@@ -1,7 +1,6 @@
 angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(api, $location, newMediaUrlDialog, $scope, scrapers, $stateParams, tables) {
 
-  var canceledScrapStates = [ 'scrapingCanceled' ],
-      errorScrapStates = [ 'scrapingFailed', 'expansionFailed' ],
+  var errorScrapStates = [ 'scrapingFailed', 'expansionFailed' ],
       inProgressScrapStates = [ 'created', 'scraping', 'scraped', 'expanding' ];
 
   tables.create($scope, 'mediaUrlsList', {
@@ -79,16 +78,26 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
     switch (show) {
       case 'errors':
         return errorScrapStates;
-      case 'canceled':
-        return canceledScrapStates;
       case 'inProgress':
         return inProgressScrapStates;
     }
   }
 
-  fetchCountByScrapStates('scrapingCanceledCount', canceledScrapStates);
+  fetchWarningsCount();
   fetchCountByScrapStates('scrapingErrorsCount', errorScrapStates);
   fetchCountByScrapStates('scrapingInProgressCount', inProgressScrapStates);
+
+  function fetchWarningsCount() {
+    api({
+      url: '/media/urls',
+      params: {
+        number: 0,
+        scrapWarnings: 1
+      }
+    }).then(function(res) {
+      $scope.warningsCount = res.pagination().total;
+    });
+  }
 
   function fetchCountByScrapStates(name, states) {
     api({
