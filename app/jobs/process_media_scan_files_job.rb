@@ -7,16 +7,16 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
   @queue = :high
 
-  def self.enqueue scan:, offset:, limit:
-    log_queueing "media scan #{scan.api_id} files #{offset}-#{offset + limit}"
-    enqueue_after_transaction self, scan.id, scan.source_id, offset, limit
+  def self.enqueue scan:, first_id:, last_id:
+    log_queueing "media scan #{scan.api_id} scanned files with IDs between #{first_id} and #{last_id}"
+    enqueue_after_transaction self, scan.id, scan.source_id, first_id, last_id
   end
 
-  def self.lock_workers scan_id, source_id, offset, limit
+  def self.lock_workers scan_id, source_id, first_id, last_id
     "media-#{source_id}"
   end
 
-  def self.perform scan_id, source_id, offset, limit
+  def self.perform scan_id, source_id, first_id, last_id
     scan = MediaScan.includes(:source).find scan_id
 
     job_transaction cause: scan, rescue_event: :fail_scan! do
@@ -25,7 +25,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
         scanned_at = Time.now
         processed_files_count = scan.processed_files_count
 
-        scanned_files_rel = scan.scanned_files.order(:id).offset(offset).limit(limit)
+        scanned_files_rel = scan.scanned_files.where('media_scan_files.id >= ? AND media_scan_files.id <= ?', first_id, last_id).order(:id)
         scanned_files = scanned_files_rel.to_a
 
         directories_by_path = {}

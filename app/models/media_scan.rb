@@ -67,7 +67,7 @@ class MediaScan < ActiveRecord::Base
   end
 
   def files_count_should_be_correct
-    return unless state_changed? && state == 'scanned'
+    return unless state_changed? && state == 'scanned' && processed_files_count == 0
 
     previous_files_count = source.files.where(deleted: false).count
     if previous_files_count + count_file_changes(:added) - count_file_changes(:deleted) != files_count

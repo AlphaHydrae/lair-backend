@@ -26,9 +26,24 @@ class ProcessMediaScanJob < ApplicationJob
         if changed_files_count <= 0
           scan.finish_scan!
         else
+
+          unprocessed_files_rel = scan.scanned_files.where processed: false
+          remaining = unprocessed_files_rel.count
+
+          scan.update_column :processed_files_count, changed_files_count - remaining
+
           offset = 0
-          while offset < changed_files_count
-            ProcessMediaScanFilesJob.enqueue scan: scan, offset: offset, limit: BATCH_SIZE
+          while offset < remaining
+
+            first_id = unprocessed_files_rel.order('media_scan_files.id').offset(offset).first.id
+
+            last_id = if offset + BATCH_SIZE <= remaining
+              unprocessed_files_rel.order('media_scan_files.id').offset(offset + BATCH_SIZE - 1).first.id
+            else
+              unprocessed_files_rel.order('media_scan_files.id DESC').first.id
+            end
+
+            ProcessMediaScanFilesJob.enqueue scan: scan, first_id: first_id, last_id: last_id
             offset += BATCH_SIZE
           end
         end
