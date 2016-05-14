@@ -22,12 +22,12 @@ class ProcessMediaScanJob < ApplicationJob
 
     job_transaction cause: scan, rescue_event: :fail_scan!, clear_errors: true do
       Rails.application.with_current_event scan.last_scan_event do
-        files_count = scan.files_count
-        if files_count <= 0
+        changed_files_count = scan.changed_files_count
+        if changed_files_count <= 0
           scan.finish_scan!
         else
           offset = 0
-          while offset < files_count
+          while offset < changed_files_count
             ProcessMediaScanFilesJob.enqueue scan: scan, offset: offset, limit: BATCH_SIZE
             offset += BATCH_SIZE
           end

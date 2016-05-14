@@ -44,6 +44,7 @@ class AnalyzeMediaFilesJob < ApplicationJob
           scan.update_columns updates if updates.any?
 
           if changed_nfo_files_count >= 1
+            # TODO: optimize NFO analysis by parallelizing by directory
             changed_nfo_files_rel.find_each do |nfo_file|
               AnalyzeChangedNfoFileJob.enqueue nfo_file: nfo_file, scan: scan
             end

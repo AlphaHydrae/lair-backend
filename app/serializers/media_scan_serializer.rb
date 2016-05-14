@@ -19,6 +19,7 @@ class MediaScanSerializer < ApplicationSerializer
     end
 
     json.canceledAt record.canceled_at.iso8601(3) if record.canceled_at.present?
+    json.failedAt record.failed_at.iso8601(3) if record.failed_at.present?
     json.scannedAt record.scanned_at.iso8601(3) if record.scanned_at.present?
     json.processedAt record.processed_at.iso8601(3) if record.processed_at.present?
     json.analysisFailedAt record.analysis_failed_at.iso8601(3) if record.analysis_failed_at.present?

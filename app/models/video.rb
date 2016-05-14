@@ -3,4 +3,8 @@ class Video < Item
   validates :version, absence: true
   validates :isbn, absence: true
   validates :issn, absence: true
+
+  def special?
+    special
+  end
 end

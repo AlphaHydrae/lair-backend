@@ -1,6 +1,8 @@
 module ResourceWithProperties
   extend ActiveSupport::Concern
 
+  include EncodingHelper
+
   included do
     before_save :clean_properties
   end
@@ -36,6 +38,7 @@ module ResourceWithProperties
   end
 
   def clean_properties
+    clean_utf8! self.properties
     self.properties.delete_if{ |k,v| v.nil? }
     write_attribute :properties, nil if read_attribute(:properties).blank?
     true

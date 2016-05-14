@@ -13,17 +13,21 @@
             | ,
           strong.text-danger ng-if='scrapingErrorsCount == 1' 1 error
           strong.text-danger ng-if='scrapingErrorsCount >= 2' {{ scrapingErrorsCount | number }} errors
-        span ng-if='warningsCount'
+        span ng-if='scrapingWarningsCount'
           span>
             | ,
-          strong.text-warning ng-if='warningsCount == 1' 1 warning
-          strong.text-warning ng-if='warningsCount >= 2' {{ warningsCount | number }} warnings
+          strong.text-warning ng-if='scrapingWarningsCount == 1' 1 warning
+          strong.text-warning ng-if='scrapingWarningsCount >= 2' {{ scrapingWarningsCount | number }} warnings
         span.text-primary ng-if='scrapingInProgressCount'
           | , {{ scrapingInProgressCount | number }} in progress
   div st-pipe='mediaUrlsList.refresh' st-table='mediaUrlsList.records'
-    button.btn.btn-success.pull-right ng-if='currentUserIs("admin")' ng-click='openNewMediaUrlDialog()'
-      span.glyphicon.glyphicon-plus>
-      span.hidden-xs Scrap new media
+    .btn.btn-group.pull-right ng-if='currentUserIs("admin")'
+      button.btn.btn-success ng-click='openNewMediaUrlDialog()'
+        span.glyphicon.glyphicon-plus>
+        span.hidden-xs Scrap new media
+      button.btn.btn-warning ng-if='!retrying && mediaUrlsList.pagination.filtered && (scrapingWarningsCount >= 1 || scrapingErrorsCount >= 1)' ng-click='retryMatching()'
+        span.glyphicon.glyphicon-wrench>
+        span.hidden-xs Retry selected
     table-filters filters='mediaUrlsList.params'
       form.filters.form-horizontal
         .btn-group

@@ -1,6 +1,7 @@
 class Volume < Item
   before_save :normalize_isbn
 
+  validates :original_release_date, presence: true
   validates :publisher, length: { maximum: 50, allow_blank: true }
   validates :version, numericality: { only_integer: true, minimum: 1, allow_blank: true }
   validates :isbn, uniqueness: { if: ->(b){ b.isbn.present? } }

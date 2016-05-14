@@ -16,6 +16,47 @@ module Lair
           rel = rel.includes :media_url
           rel
         end
+
+        def filter_rel_from_params rel
+          if params[:states].present?
+            rel = rel.where 'media_scraps.state IN (?)', Array.wrap(params[:states]).collect(&:to_s).collect(&:underscore)
+          end
+
+          if true_flag? :warnings
+            rel = rel.where 'media_scraps.warnings_count >= 1'
+          elsif false_flag? :warnings
+            rel = rel.where 'media_scraps.warnings_count <= 0'
+          end
+
+          rel
+        end
+
+        def retry_scraping scrap
+          if %w(scraping_failed).include?(scrap.state)
+            scrap.retry_scraping!
+          elsif %w(expansion_failed expanded).include?(scrap.state)
+            scrap.retry_expansion!
+          else
+            error = ValidationError.new
+            error.add "Scraping #{scrap.api_id} can only be retried from the scrapingFailed or expansionFailed states"
+            error.raise_if_any
+          end
+        end
+      end
+
+      post :retry do
+        authorize! MediaScrap, :retry
+
+        MediaScrap.transaction do
+          rel = policy_scope MediaScrap
+          rel = filter_rel_from_params rel
+
+          rel.find_each do |scrap|
+            retry_scraping scrap
+            status 204
+            nil
+          end
+        end
       end
 
       namespace '/:id' do
@@ -33,19 +74,10 @@ module Lair
 
         namespace :retry do
           post do
-            authorize! record, :update
+            authorize! record, :retry
 
             MediaScrap.transaction do
-              if %w(scraping_failed).include? record.state
-                record.retry_scraping!
-              elsif %w(expansion_failed).include? record.state
-                record.retry_expansion!
-              else
-                error = ValidationError.new
-                error.add "Scraping can only be retried from the scrapingFailed or expansionFailed states"
-                error.raise_if_any
-              end
-
+              retry_scraping record
               serialize record
             end
           end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160514115305) do
+ActiveRecord::Schema.define(version: 20160514184957) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -156,11 +156,11 @@ ActiveRecord::Schema.define(version: 20160514115305) do
   end
 
   create_table "item_titles", force: :cascade do |t|
-    t.string  "api_id",           null: false
-    t.string  "contents",         null: false
-    t.integer "display_position", null: false
-    t.integer "item_id",          null: false
-    t.integer "language_id",      null: false
+    t.string  "api_id",           limit: 12,  null: false
+    t.string  "contents",         limit: 500, null: false
+    t.integer "display_position",             null: false
+    t.integer "item_id",                      null: false
+    t.integer "language_id",                  null: false
   end
 
   add_index "item_titles", ["contents", "item_id", "language_id"], name: "index_item_titles_on_contents_and_item_id_and_language_id", unique: true, using: :btree
@@ -186,7 +186,7 @@ ActiveRecord::Schema.define(version: 20160514115305) do
     t.datetime "created_at",                                                 null: false
     t.datetime "updated_at",                                                 null: false
     t.date     "release_date"
-    t.date     "original_release_date",                                      null: false
+    t.date     "original_release_date"
     t.string   "release_date_precision",          limit: 1
     t.string   "original_release_date_precision", limit: 1
     t.text     "sortable_title",                                             null: false

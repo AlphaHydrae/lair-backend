@@ -43,6 +43,24 @@ module Lair
 
           if params.key? :sourceId
             rel = rel.where 'media_sources.api_id = ?', params[:sourceId].to_s
+
+            if params.key?(:directory)
+              dir = MediaDirectory.joins(:source).where('media_sources.api_id = ?', params[:sourceId]).where(path: params[:directory].to_s).first
+              if dir
+                rel = rel.where 'media_files.id != ?', dir.id
+                rel = rel.where "media_files.id IN (#{dir.child_files_sql})" unless dir.depth == 0
+
+                if params.key? :maxDepth
+                  rel = rel.where 'media_files.depth <= ?', dir.depth + params[:maxDepth].to_i
+                end
+              else
+                rel = rel.none
+              end
+            end
+          else
+            if params.key? :maxDepth
+              rel = rel.where 'media_files.depth <= ?', params[:maxDepth].to_i
+            end
           end
 
           if params.key? :path
@@ -53,22 +71,6 @@ module Lair
             rel = rel.where deleted: true
           elsif !all_flag?(:deleted)
             rel = rel.where deleted: false
-          end
-
-          if params.key? :directory
-            dir = MediaDirectory.where(path: params[:directory].to_s).first
-            if dir
-              rel = rel.where 'media_files.id != ?', dir.id
-              rel = rel.where "media_files.id IN (#{dir.child_files_sql})" unless dir.depth == 0
-
-              if params.key? :maxDepth
-                rel = rel.where 'media_files.depth <= ?', dir.depth + params[:maxDepth].to_i
-              end
-            else
-              rel = rel.none
-            end
-          elsif params.key? :maxDepth
-            rel = rel.where 'media_files.depth <= ?', params[:maxDepth].to_i
           end
 
           rel

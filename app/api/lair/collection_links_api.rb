@@ -24,7 +24,6 @@ module Lair
           authorize! record, :show
 
           rel = record.send collection_link_model.name.underscore.pluralize
-          puts rel.inspect
 
           rel = paginated rel do
             # nothing to do

@@ -41,7 +41,6 @@ class MediaScan < ActiveRecord::Base
 
     total = changed_nfo_files_count + new_media_files_count
     current = analyzed_nfo_files_count + analyzed_media_files_count
-    puts "#{current} / #{total}"
     progress = current.to_f * 100.0 / total.to_f
 
     if progress >= 0 && progress <= 100

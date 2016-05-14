@@ -19,15 +19,13 @@ angular.module('lair.mediaScans.showDialog').factory('showMediaScanDialog', func
   };
 
   return service;
-}).controller('ShowMediaScanDialogCtrl', function(api, $modalInstance, $scope) {
+}).controller('ShowMediaScanDialogCtrl', function(api, mediaScans, $modalInstance, $scope) {
 
   if (!$scope.mediaScan && $scope.mediaScanId) {
     fetchMediaScan($scope.mediaScanId);
   }
 
-  $scope.scanDuration = function(scan) {
-    return (scan.analyzedAt ? moment(scan.analyzedAt).valueOf() : new Date().getTime()) - moment(scan.createdAt).valueOf();
-  };
+  $scope.scanDuration = mediaScans.getDuration;
 
   $scope.retry = function() {
     api({

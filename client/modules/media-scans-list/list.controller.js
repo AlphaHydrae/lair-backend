@@ -1,4 +1,4 @@
-angular.module('lair.mediaScans.list').controller('MediaScansListCtrl', function($scope, showMediaScanDialog, tables) {
+angular.module('lair.mediaScans.list').controller('MediaScansListCtrl', function(mediaScans, $scope, showMediaScanDialog, tables) {
 
   tables.create($scope, 'mediaScansList', {
     url: '/media/scans',
@@ -9,9 +9,7 @@ angular.module('lair.mediaScans.list').controller('MediaScansListCtrl', function
 
   $scope.columns = $scope.currentUserIs('admin') ? 6 : 5;
 
-  $scope.scanDuration = function(scan) {
-    return (scan.analyzedAt ? moment(scan.analyzedAt).valueOf() : new Date().getTime()) - moment(scan.createdAt).valueOf();
-  };
+  $scope.scanDuration = mediaScans.getDuration;
 
   $scope.showMediaScan = function(scan) {
     showMediaScanDialog.open($scope, {

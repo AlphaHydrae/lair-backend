@@ -4,6 +4,7 @@ class MediaScrap < ActiveRecord::Base
   include SimpleStates
   include ResourceWithIdentifier
   include ResourceWithJobs
+  include EncodingHelper
 
   before_create :set_identifier
   before_save :set_warnings_count
@@ -19,7 +20,7 @@ class MediaScrap < ActiveRecord::Base
   event :fail_scraping, to: :scraping_failed
   event :retry_scraping, to: :created, after: :set_scrap_job_required
   event :finish_scraping, to: :scraped, after: :set_expansion_job_required
-  event :start_expansion, to: :expanding
+  event :start_expansion, to: :expanding, after: :clear_warnings
   event :fail_expansion, to: :expansion_failed
   event :retry_expansion, to: :scraped, after: :set_expansion_job_required
   event :finish_expansion, to: :expanded
@@ -48,6 +49,10 @@ class MediaScrap < ActiveRecord::Base
 
   def warnings
     data['warnings'] ||= []
+  end
+
+  def clear_warnings
+    data.delete 'warnings'
   end
 
   def last_scrap_event
@@ -79,6 +84,7 @@ class MediaScrap < ActiveRecord::Base
   end
 
   def clean_data
+    clean_utf8! data
     write_attribute :data, nil if read_attribute(:data).blank?
   end
 end

@@ -74,6 +74,29 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
     newMediaUrlDialog.open($scope);
   };
 
+  $scope.retryMatching = function() {
+    if (!confirm('Are you sure you want to retry ' + $scope.mediaUrlsList.pagination.total + ' media items?')) {
+      return;
+    }
+
+    var params = {};
+    if ($scope.filters.show) {
+      params.states = showToStates($scope.filters.show);
+    }
+
+    if ($scope.filters.warnings) {
+      params.warnings = 1;
+    }
+
+    api({
+      method: 'POST',
+      url: '/media/scraps/retry',
+      params: params
+    }).then(function() {
+      $scope.retrying = true;
+    });
+  };
+
   function showToStates(show) {
     switch (show) {
       case 'errors':
@@ -95,7 +118,7 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
         scrapWarnings: 1
       }
     }).then(function(res) {
-      $scope.warningsCount = res.pagination().total;
+      $scope.scrapingWarningsCount = res.pagination().total;
     });
   }
 

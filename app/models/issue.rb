@@ -1,6 +1,7 @@
 class Issue < Item
   before_save :normalize_issn
 
+  validates :original_release_date, presence: true
   validates :publisher, length: { maximum: 50, allow_blank: true }
   validates :issn, uniqueness: { if: ->(b){ b.issn.present? } }
   validate :issn_valid

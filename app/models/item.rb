@@ -28,7 +28,6 @@ class Item < ActiveRecord::Base
   strip_attributes
   validates :work, presence: true
   validates :work_title, presence: true
-  validates :original_release_date, presence: true
   validates :range_start, numericality: { only_integer: true, minimum: 1, maximum: 10000, allow_blank: true }
   validates :range_end, presence: { if: Proc.new{ |p| p.range_start.present? } }, numericality: { only_integer: true, minimum: 1, maximum: 10000, allow_blank: true }
   validates :language, presence: true
@@ -141,6 +140,8 @@ class Item < ActiveRecord::Base
   end
 
   def update_work_years
+    return if original_release_date.blank?
+
     update_start_year = work.start_year.blank? || original_release_date.year < work.start_year
     update_end_year = work.end_year.blank? || original_release_date.year > work.end_year
 

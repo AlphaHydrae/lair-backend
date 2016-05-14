@@ -6,4 +6,14 @@ class MediaScrapPolicy < ApplicationPolicy
   def update?
     admin?
   end
+
+  def retry?
+    admin?
+  end
+
+  class Scope < Scope
+    def resolve
+      scope
+    end
+  end
 end

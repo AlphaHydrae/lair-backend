@@ -1,5 +1,4 @@
 class AnidbScraper < ApplicationScraper
-
   def self.scraps? *args
     config[:enabled] && super(*args)
   end
@@ -30,6 +29,12 @@ class AnidbScraper < ApplicationScraper
       :tv_series
     elsif anidb_type == 'Movie'
       :movie
+    elsif anidb_type == 'OVA'
+      :ova
+    elsif anidb_type == 'TV Special'
+      :tv_special
+    elsif anidb_type == 'Web'
+      :web
     else
       raise "Unsupported AniDB data type #{Ox.dump(type_element)}"
     end
@@ -62,6 +67,8 @@ class AnidbScraper < ApplicationScraper
     if image.present? && work.image.blank?
       work.build_image.url = anidb_image_url image
     end
+
+    work.properties['animeType'] = anidb_type.to_s
 
     permanent_rating_element = locate_one(root, 'ratings/permanent')
     if permanent_rating_element.present?
@@ -130,7 +137,7 @@ class AnidbScraper < ApplicationScraper
       episode_number = element_text(locate_one(episode_element, 'epno', required: true)).to_s.sub(/^S/, '').to_i
       episode_item = find_or_build_item scrap, work, episode_number, episode_number, true
 
-      valid = update_item_from_anidb_episode item: episode_item, episode: episode_element, scrap: scrap
+      valid = update_item_from_anidb_episode item: episode_item, episode: episode_element, special: true, scrap: scrap
       save_item! episode_item if valid
     end
   end
@@ -276,7 +283,7 @@ class AnidbScraper < ApplicationScraper
     add_work_tags work: work, tags: tags.uniq.collect(&:humanize) if tags.present?
   end
 
-  def self.update_item_from_anidb_episode item:, episode:, scrap:
+  def self.update_item_from_anidb_episode item:, episode:, special: false, scrap:
 
     item.length = element_text(locate_one(episode, 'length')).try(:to_i)
 
@@ -284,7 +291,7 @@ class AnidbScraper < ApplicationScraper
     if airdate_element
       item.original_release_date = parse_anidb_date element_text(airdate_element), path: '//episode/airdate'
       item.original_release_date_precision = 'd'
-    else
+    elsif !special
       scrap.warnings << "Could not include #{Ox.dump(episode)} because it has no airdate"
       return false
     end
@@ -309,6 +316,12 @@ class AnidbScraper < ApplicationScraper
       language = 'ja' if language == 'x-jat'
 
       unless item.titles.find{ |t| t.contents == contents && t.language.tag == language }
+
+        if contents.length > 500
+          scrap.warnings << "Truncated title because it is longer than 500 characters (#{contents.length}): #{contents}"
+          contents = contents.truncate 500
+        end
+
         item.titles.build contents: contents, language: Language.language(language), display_position: 0
         i += 1
       end

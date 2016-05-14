@@ -107,9 +107,9 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
         scanned_files_rel.update_all processed: true
 
-        if processed_files_count + scanned_files.length > scan.files_count
-          raise "Unexpectedly processed #{processed_files_count + scanned_files.length} files when there are only #{scan.files_count} files to process"
-        elsif processed_files_count + scanned_files.length == scan.files_count
+        if processed_files_count + scanned_files.length > scan.changed_files_count
+          raise "Unexpectedly processed #{processed_files_count + scanned_files.length} files when there are only #{scan.changed_files_count} files to process"
+        elsif processed_files_count + scanned_files.length == scan.changed_files_count
           scan.processed_files_count += scanned_files.length
           scan.finish_scan!
         else
