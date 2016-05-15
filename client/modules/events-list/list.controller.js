@@ -13,7 +13,7 @@ angular.module('lair.events.list').controller('EventsListCtrl', function(api, $l
       return;
     }
 
-    var ownerships = _.where(events, { resource: 'ownerships' });
+    var ownerships = _.filter(events, { resource: 'ownerships' });
 
     $q.all(_.map(ownerships, function(ownership) {
 
@@ -91,7 +91,7 @@ angular.module('lair.events.list').controller('EventsListCtrl', function(api, $l
 
         return parts.join(' ');
       } else if (event.resource == 'ownerships') {
-        var item = _.findWhere($scope.ownershipItems, { id: version.itemId });
+        var item = _.find($scope.ownershipItems, { id: version.itemId });
         return item ? item.title.text + ' gotten at ' + moment(version.gottenAt).format('LL') : '-';
       } else {
         return '-';

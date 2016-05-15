@@ -48,7 +48,7 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
         params = $scope.mediaFilesList.httpSettings.params;
 
     if (search.source != params.sourceId) {
-      var mediaSource = _.findWhere($scope.mediaSources, { id: search.source });
+      var mediaSource = _.find($scope.mediaSources, { id: search.source });
       if (mediaSource) {
         $scope.mediaFilesList.mediaSource = mediaSource;
       }
@@ -81,7 +81,7 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
   }).then(function(sources) {
     $scope.mediaSources = sources;
     if (sources.length && !$scope.mediaFilesList.mediaSource) {
-      $scope.mediaFilesList.mediaSource = _.findWhere(sources, { id: $stateParams.source }) || sources[0];
+      $scope.mediaFilesList.mediaSource = _.find(sources, { id: $stateParams.source }) || sources[0];
     }
   });
 
@@ -139,7 +139,7 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
       delete $scope.nfoFile;
       delete $scope.duplicatedNfoCount;
 
-      var nfoFile = _.findWhere(records, { type: 'file', deleted: false, extension: 'nfo' }),
+      var nfoFile = _.find(records, { type: 'file', deleted: false, extension: 'nfo' }),
           duplicatedNfoCount = _.filter(records, { error: 'nfoDuplicated' }).length;
 
       if (duplicatedNfoCount) {
@@ -150,13 +150,13 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
         $scope.directoryMessageType = 'error';
         $scope.directoryMessage = 'nfoInvalid';
         $scope.nfoFile = nfoFile;
-      } else if (_.findWhere(records, { warning: 'fileUnlinked' })) {
+      } else if (_.find(records, { warning: 'fileUnlinked' })) {
         $scope.directoryMessageType = 'warning';
         $scope.directoryMessage = 'unlinkedFiles';
-      } else if (_.findWhere(records, { warning: 'directoryHasUnlikedFiles' })) {
+      } else if (_.find(records, { warning: 'directoryHasUnlikedFiles' })) {
         $scope.directoryMessageType = 'warning';
         $scope.directoryMessage = 'unlinkedWarnings';
-      } else if (_.findWhere(records, { processing: true })) {
+      } else if (_.find(records, { processing: true })) {
         $scope.directoryMessageType = 'info';
         $scope.directoryMessage = 'filesProcessing';
       }

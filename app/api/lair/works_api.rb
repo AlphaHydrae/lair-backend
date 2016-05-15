@@ -73,7 +73,9 @@ module Lair
 
               unless ownerships_joined
                 ownerships_joined = true
-                rel = rel.joins items: { ownerships: :user }
+                rel = rel.joins :items
+                rel = rel.joins 'LEFT OUTER JOIN ownerships ON items.id = ownerships.item_id'
+                rel = rel.joins 'LEFT OUTER JOIN users ON ownerships.user_id = users.id'
               end
 
               rel = collection.apply rel

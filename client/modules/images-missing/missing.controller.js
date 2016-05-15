@@ -105,7 +105,7 @@ angular.module('lair.images.missing').controller('MissingImagesCtrl', function(a
     if ($scope.work.items.length == 1) {
       $scope.mainItem = $scope.work.items[0];
     } else {
-      $scope.mainItem = _.findWhere($scope.work.items, { start: 1 });
+      $scope.mainItem = _.find($scope.work.items, { start: 1 });
     }
   }
 

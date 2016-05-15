@@ -10,7 +10,7 @@
 // Read Sprockets README (https://github.com/sstephenson/sprockets#sprockets-directives) for details
 // about supported directives.
 //
-//= require underscore
+//= require lodash
 //= require jquery
 //= require jquery-ui
 //= require moment
@@ -19,7 +19,6 @@
 //= require angular
 //= require angular-sanitize
 //= require angular-ui-router
-//= require angular-ui-bootstrap
 //= require angular-ui-bootstrap-tpls
 //= require angular-base64
 //= require angular-storage

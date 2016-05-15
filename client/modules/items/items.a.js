@@ -1,1 +1,1 @@
-angular.module('lair.items', []);
+angular.module('lair.items', [ 'lair.languages' ]);

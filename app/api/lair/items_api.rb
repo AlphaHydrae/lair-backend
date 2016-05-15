@@ -100,6 +100,12 @@ module Lair
             work_joined = false
             ownerships_joined = false
 
+            if true_flag? :special
+              rel = rel.where 'items.special = true'
+            elsif false_flag? :special
+              rel = rel.where 'items.special = false'
+            end
+
             if params[:categories].present?
               rel = rel.joins :work unless work_joined
               work_joined = true
@@ -125,7 +131,8 @@ module Lair
 
               unless ownerships_joined
                 ownerships_joined = true
-                rel = rel.joins ownerships: :user
+                rel = rel.joins 'LEFT OUTER JOIN ownerships ON items.id = ownerships.item_id'
+                rel = rel.joins 'LEFT OUTER JOIN users ON ownerships.user_id = users.id'
               end
 
               rel = collection.apply rel

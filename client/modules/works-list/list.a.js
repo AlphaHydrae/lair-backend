@@ -1,1 +1,1 @@
-angular.module('lair.works.list', [ 'lair.gallery' ]);
+angular.module('lair.works.list', [ 'lair.explorer', 'lair.gallery' ]);

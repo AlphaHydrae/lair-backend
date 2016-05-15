@@ -8,7 +8,7 @@ module.exports = function(grunt) {
       assets: {
         files: [
           // Javascripts
-          { nonull: true, src: 'bower_components/underscore/underscore.js', dest: 'vendor/assets/javascripts/underscore.js' },
+          { nonull: true, src: 'bower_components/lodash/dist/lodash.js', dest: 'vendor/assets/javascripts/lodash.js' },
           { nonull: true, src: 'bower_components/jquery/dist/jquery.js', dest: 'vendor/assets/javascripts/jquery.js' },
           { nonull: true, src: 'bower_components/inflection/lib/inflection.js', dest: 'vendor/assets/javascripts/inflection.js' },
           { nonull: true, src: 'bower_components/jquery-ui/jquery-ui.js', dest: 'vendor/assets/javascripts/jquery-ui.js' },
@@ -17,7 +17,6 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular/angular.js', dest: 'vendor/assets/javascripts/angular.js' },
           { nonull: true, src: 'bower_components/angular-sanitize/angular-sanitize.js', dest: 'vendor/assets/javascripts/angular-sanitize.js' },
           { nonull: true, src: 'bower_components/angular-ui-router/release/angular-ui-router.js', dest: 'vendor/assets/javascripts/angular-ui-router.js' },
-          { nonull: true, src: 'bower_components/angular-bootstrap/ui-bootstrap.js', dest: 'vendor/assets/javascripts/angular-ui-bootstrap.js' },
           { nonull: true, src: 'bower_components/angular-bootstrap/ui-bootstrap-tpls.js', dest: 'vendor/assets/javascripts/angular-ui-bootstrap-tpls.js' },
           { nonull: true, src: 'bower_components/angular-base64/angular-base64.js', dest: 'vendor/assets/javascripts/angular-base64.js' },
           { nonull: true, src: 'bower_components/a0-angular-storage/dist/angular-storage.js', dest: 'vendor/assets/javascripts/angular-storage.js' },

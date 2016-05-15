@@ -38,7 +38,7 @@ angular.module('lair.users').factory('users', function(api, $log) {
     fetchUsersById: function(ids, options) {
       return service.fetchAllUsers(options).then(function(users) {
         return _.filter(users, function(user) {
-          return _.contains(ids, user.id);
+          return _.includes(ids, user.id);
         });
       });
     }

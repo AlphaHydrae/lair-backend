@@ -1,23 +1,15 @@
-angular.module('lair.explorer').controller('ExplorerWorkCtrl', function(api, auth, explorer, $log, $scope, $state) {
+angular.module('lair.explorer').controller('ExplorerWorkCtrl', function(api, auth, explorer, items, languages, $log, $scope, $state, titles) {
 
   $scope.currentUser = auth.currentUser;
   auth.addAuthFunctions($scope);
 
-  $scope.showItem = showItem;
+  $scope.humanItemLength = items.humanLength;
+  _.extend($scope, _.pick(titles, 'secondaryTitle', 'otherTitles'));
+  _.extend($scope, _.pick(items, 'humanMainReleaseDate', 'humanSecondaryReleaseDate'));
 
-  function fetchLanguages() {
-    return api({
-      url: '/languages'
-    }).then(function(res) {
-      $scope.languageNames = _.reduce(res.data, function(memo, language) {
-        memo[language.tag] = language.name;
-        return memo;
-      }, {});
-    }, function(res) {
-      $log.warn('Could not fetch languages');
-      $log.debug(res);
-    });
-  }
+  $scope.showItem = function(item) {
+    explorer.open('items', item);
+  };
 
   $scope.work.items = [];
 
@@ -35,62 +27,49 @@ angular.module('lair.explorer').controller('ExplorerWorkCtrl', function(api, aut
     });
   };
 
-  function fetchItems(start) {
+  fetchLanguages().then(fetchItems).then(function(loadedItems) {
 
-    start = start || 0;
+    $scope.work.numberOfSpecialItems = _.filter(loadedItems, {
+      special: true
+    }).length;
+
+    if (_.includes([ 'book', 'manga', 'movie' ], $scope.work.category)) {
+      items.groupItems(loadedItems).then(function(groupedItems) {
+        $scope.work.groupedItems = groupedItems;
+      });
+    } else {
+      items.orderItems(loadedItems).then(function(orderedItems) {
+        $scope.work.orderedItems = orderedItems;
+      });
+    }
+  });
+
+  var languageNamesByTag;
+  $scope.languageName = function(tag) {
+    return languageNamesByTag ? languageNamesByTag[tag] : undefined;
+  };
+
+  function fetchLanguages() {
+    return languages.loadLanguageNamesByTag().then(function(result) {
+      languageNamesByTag = result;
+      return languageNamesByTag;
+    });
+  }
+
+  function fetchItems() {
 
     var params = {
       workId: $scope.work.id,
-      number: 50,
-      start: start
+      number: 100
     };
 
     if ($scope.params) {
       _.defaults(params, $scope.params);
     }
 
-    api({
+    return api.all({
       url: '/items',
       params: params
-    }).then(function(res) {
-      addItems(res.data);
-      if (res.pagination().hasMorePages()) {
-        fetchItems(start + res.data.length);
-      }
     });
   }
-
-  function addItems(items) {
-    _.each(items, function(item) {
-      var parts = [ $scope.languageNames[item.language] ];
-
-      if (item.edition) {
-        parts.push(item.edition + ' Edition');
-      }
-
-      if (item.publisher) {
-        parts.push('(' + item.publisher + ')');
-      }
-
-      var groupName = _.compact(parts).join(' ');
-      groupName = groupName.length ? groupName : 'Other';
-
-      if (!_.findWhere($scope.work.items, { name: groupName })) {
-        $scope.work.items.push({ name: groupName, items: [] });
-      }
-
-      var groupData = _.findWhere($scope.work.items, { name: groupName });
-      groupData.items.push(item);
-    });
-  }
-
-  function showItem(item) {
-    explorer.open('items', item);
-  }
-
-  fetchLanguages().then(fetchItems);
-
-  $scope.languageName = function(languageTag) {
-    return $scope.languageNames ? $scope.languageNames[languageTag] : '-';
-  };
 });

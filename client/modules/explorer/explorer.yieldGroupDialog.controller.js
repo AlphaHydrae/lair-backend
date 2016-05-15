@@ -25,7 +25,7 @@ angular.module('lair.explorer').controller('YieldGroupDialogCtrl', function(api,
   api({
     url: '/ownerships',
     params: {
-      itemIds: _.pluck($scope.group.items, 'id'),
+      itemIds: _.map($scope.group.items, 'id'),
       userId: auth.currentUser.id,
       owned: true
     }
@@ -44,7 +44,7 @@ angular.module('lair.explorer').controller('YieldGroupDialogCtrl', function(api,
         url: '/ownerships/' + ownership.id,
         data: $scope.yieldData
       }).then(function() {
-        var item = _.findWhere($scope.group.items, { id: ownership.itemId });
+        var item = _.find($scope.group.items, { id: ownership.itemId });
         if (item) {
           item.ownedByMe = false;
         }

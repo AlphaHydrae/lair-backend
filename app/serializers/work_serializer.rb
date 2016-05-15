@@ -10,6 +10,9 @@ class WorkSerializer < ApplicationSerializer
     json.numberOfItems record.number_of_items if record.number_of_items
     json.titles record.titles.to_a.sort_by(&:display_position).collect{ |t| serialize t }
 
+    json.genres record.genres.collect(&:name)
+    json.tags record.tags.collect(&:name)
+
     relationships = record.person_relationships.to_a + record.company_relationships.to_a
     json.relationships relationships.collect{ |r| serialize r }
 

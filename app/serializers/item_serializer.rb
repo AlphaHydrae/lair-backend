@@ -22,6 +22,7 @@ class ItemSerializer < ApplicationSerializer
 
     json.language record.language.tag
 
+    json.special record.special
     json.start record.range_start if record.range_start
     json.end record.range_end if record.range_end
 

@@ -1,4 +1,7 @@
-angular.module('lair.home').controller('HomeCtrl', function(api, $modal, $scope, $state) {
+angular.module('lair.home').controller('HomeCtrl', function(api, explorer, $modal, $scope, $state) {
+
+  explorer.openFromLocation($scope);
+
   api({
     url: '/collections',
     params: {

@@ -30,11 +30,11 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
 
   $scope.$watch('modifiedItem.workId', function(value) {
     if (value) {
-      var newWork = _.findWhere($scope.works, { id: $scope.modifiedItem.workId });
+      var newWork = _.find($scope.works, { id: $scope.modifiedItem.workId });
       if (newWork) {
         $scope.modifiedItem.work = newWork;
 
-        var workTitle = _.findWhere(newWork.titles, { id: $scope.modifiedItem.workTitleId });
+        var workTitle = _.find(newWork.titles, { id: $scope.modifiedItem.workTitleId });
         $scope.modifiedItem.workTitleId = workTitle ? workTitle.id : newWork.titles[0].id;
 
         $scope.itemTypes = items.typesForWork(newWork);
@@ -56,7 +56,7 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
       return;
     }
 
-    var workTitle = _.findWhere($scope.modifiedItem.work.titles, { id: workTitleId });
+    var workTitle = _.find($scope.modifiedItem.work.titles, { id: workTitleId });
     if (!workTitle) {
       $scope.defaultTitle = '-';
       return;
@@ -179,7 +179,7 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
       return tag;
     }
 
-    var language = _.findWhere($scope.languages, { tag: tag });
+    var language = _.find($scope.languages, { tag: tag });
     return language ? language.name : tag;
   };
 

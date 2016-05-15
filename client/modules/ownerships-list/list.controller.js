@@ -67,7 +67,7 @@ angular.module('lair.ownerships.list').controller('OwnershipsListCtrl', function
       if (result == 'delete') {
         $scope.ownerships.splice($scope.ownerships.indexOf(ownership), 1);
       } else {
-        _.extend(_.findWhere($scope.ownerships, { id: result.id }), result);
+        _.extend(_.find($scope.ownerships, { id: result.id }), result);
       }
     }).finally(function() {
       delete $scope.ownership;

@@ -6,6 +6,7 @@ angular.module('lair.routes', [ 'ui.router' ])
 
       .state('home', {
         url: '^/',
+        reloadOnSearch: false,
         controller: 'HomeCtrl',
         templateUrl: '/templates/modules/home/home.template.html'
       })
@@ -23,7 +24,8 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('works.list', {
-        url: '^/works',
+        url: '^/works?explore',
+        reloadOnSearch: false,
         controller: 'WorksListCtrl',
         templateUrl: '/templates/modules/works-list/list.template.html'
       })
@@ -66,6 +68,7 @@ angular.module('lair.routes', [ 'ui.router' ])
 
       .state('collections.list', {
         url: '^/collections',
+        reloadOnSearch: false,
         controller: 'CollectionsListCtrl',
         templateUrl: '/templates/modules/collections-list/list.template.html'
       })
@@ -181,7 +184,8 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('collection', {
-        url: '^/:userName/:collectionName',
+        url: '^/:userName/:collectionName?explore',
+        reloadOnSearch: false,
         controller: 'CollectionCtrl',
         templateUrl: '/templates/modules/collections-show/show.template.html'
       })

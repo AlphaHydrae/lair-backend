@@ -12,7 +12,7 @@ angular.module('lair.gallery').controller('GalleryCtrl', function(auth, explorer
   function setResourceData(name) {
     $scope.dataList.type = name;
 
-    var options = _.findWhere($scope.resourcesData, { name: name });
+    var options = _.find($scope.resourcesData, { name: name });
     $scope.dataList.httpSettings.url = options.url;
 
     _.each(options.params, function(value, key) {

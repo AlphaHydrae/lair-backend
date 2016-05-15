@@ -11,7 +11,7 @@ angular.module('lair.forms').directive('languageSelect', function() {
 
       $scope.updateSelection = function(selected) {
         if ($scope.multiple) {
-          $scope.model = _.pluck(selected, 'tag');
+          $scope.model = _.map(selected, 'tag');
         } else {
           $scope.model = selected.tag;
         }

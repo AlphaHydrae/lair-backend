@@ -1,4 +1,6 @@
-angular.module('lair.collections.list').controller('CollectionsListCtrl', function(api, $modal, $q, $scope, $state, tables) {
+angular.module('lair.collections.list').controller('CollectionsListCtrl', function(api, explorer, $modal, $q, $scope, $state, tables) {
+
+  explorer.openFromLocation($scope);
 
   $scope.collectionsList = {
     records: [],
