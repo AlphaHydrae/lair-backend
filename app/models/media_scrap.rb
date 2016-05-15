@@ -14,15 +14,14 @@ class MediaScrap < ActiveRecord::Base
 
   auto_queueable_jobs :scrap, :expansion
 
-  states :created, :scraping, :scraping_failed, :scraped, :expanding, :expansion_failed, :expanded
+  states :created, :scraping, :scraping_failed, :retrying_scraping, :scraped, :expanding, :expansion_failed, :retrying_expansion, :expanded
   event :start_scraping, to: :scraping
-  event :cancel_scraping, to: :canceled
   event :fail_scraping, to: :scraping_failed
-  event :retry_scraping, to: :created, after: :set_scrap_job_required
+  event :retry_scraping, to: :retrying_scraping, after: :set_scrap_job_required
   event :finish_scraping, to: :scraped, after: :set_expansion_job_required
   event :start_expansion, to: :expanding, after: :clear_warnings
   event :fail_expansion, to: :expansion_failed
-  event :retry_expansion, to: :scraped, after: :set_expansion_job_required
+  event :retry_expansion, to: :retrying_expansion, after: :set_expansion_job_required
   event :finish_expansion, to: :expanded
 
   scope :without_contents, ->{ select column_names - %w(contents) }

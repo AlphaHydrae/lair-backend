@@ -21,6 +21,13 @@ class AnalyzeMediaFilesJob < ApplicationJob
 
     job_transaction cause: scan, rescue_event: :fail_analysis!, clear_errors: true do
       Rails.application.with_current_event scan.last_scan_event do
+
+        unless %w(processed retrying_analysis).include? scan.state
+          raise "Media scan #{scan.api_id} cannot be analyzed from state #{scan.state}"
+        end
+
+        scan.start_analysis!
+
         source = scan.source
 
         changed_nfo_files_rel = MediaFile

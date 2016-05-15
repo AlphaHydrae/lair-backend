@@ -35,7 +35,7 @@
           td {{ scanDuration(scan) | amDurationFormat }}
           td
             span ng-if='scan.filesCount === undefined'
-              | -
+              span.empty Not available yet
             span ng-if='scan.filesCount'
               span> {{ scan.filesCount | number }}
               span ng-if='scan.changedFilesCount != scan.filesCount'
@@ -45,7 +45,7 @@
               .label.label-default ng-if='scan.state == "canceled"' Canceled
               .label.label-danger ng-if='scan.state == "failed" || scan.state == "analysisFailed"' Error
               .label.label-success ng-if='scan.state == "analyzed"' Complete
-              progressbar.progress-striped.active ng-if='scan.state == "started" || scan.state == "scanned" || scan.state == "processed"' type='primary' value='scan.state == "processed" ? scan.analysisProgress : 100' animate='true'
+              progressbar.progress-striped.active ng-if='scanIsInProgress(scan)' type='primary' value='scan.analysisProgress' animate='true'
       tfoot
         tr
           td.text-center st-pagination=true st-items-by-page=15 st-template='/templates/modules/tables/tables.pagination.template.html' colspan='{{ columns }}'

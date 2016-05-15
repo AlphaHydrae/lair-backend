@@ -3,7 +3,6 @@ module TrackedResource
 
   included do
     attr_writer :deleter
-    attr_accessor :creator_optional
 
     after_create :track_create
     after_destroy :track_destroy
@@ -11,7 +10,7 @@ module TrackedResource
     belongs_to :creator, class_name: 'User'
     has_many :events, as: :trackable
 
-    validates :creator, presence: { unless: :creator_optional }
+    validates :creator, presence: true
   end
 
   def cache_previous_version
@@ -28,6 +27,22 @@ module TrackedResource
     user = @deleter || Rails.application.destroy_user
     raise "Destroyer user is not set!" unless user
     user
+  end
+
+  def last_tracking_event
+    events.order('created_at DESC').first
+  end
+
+  def last_tracking_event!
+    last_tracking_event.tap do |event|
+      raise "No tracking event found for #{self.inspect}" if event.blank?
+    end
+  end
+
+  def with_last_tracking_event
+    Rails.application.with_current_event last_tracking_event! do
+      yield if block_given?
+    end
   end
 
   private

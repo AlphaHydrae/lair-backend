@@ -16,17 +16,19 @@ class ImdbScraper < ApplicationScraper
     media_url = scrap.media_url
 
     data = JSON.parse scrap.contents
-    data_type = data['Type'].to_s.downcase
+    imdb_type = data['Type'].to_s.downcase
 
-    if data_type != 'movie'
-      raise "Unsupported OMDB data type #{data_type.inspect}: #{scrap.contents}"
+    if imdb_type != 'movie' && imdb_type != 'series'
+      raise "Unsupported OMDB data type #{imdb_type.inspect}"
     end
 
     work = find_or_build_work scrap
 
+    work.properties['movieType'] = imdb_type
+
     title = data['Title'].to_s.strip
     if imdb_blank?(title)
-      raise "OMDB data has no title: #{scrap.contents}"
+      raise "OMDB data has no title"
     end
 
     data_language = Language.find_or_create_by!(tag: 'en')
@@ -37,7 +39,7 @@ class ImdbScraper < ApplicationScraper
 
     year = data['Year'].to_s.strip
     if imdb_blank?(year)
-      raise "OMDB data has no year: #{scrap.contents}"
+      raise "OMDB data has no year"
     end
 
     work.start_year = year.to_i

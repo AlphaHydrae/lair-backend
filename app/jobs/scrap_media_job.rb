@@ -20,13 +20,15 @@ class ScrapMediaJob < ApplicationJob
   def self.perform id
     scrap = MediaScrap.includes(:media_url).find id
 
-    if scrap.contents.present?
-      Rails.logger.warn "Scrap #{api_id} was already scraped"
-      return
-    end
-
     job_transaction cause: scrap, rescue_event: :fail_scraping!, clear_errors: true do
       Rails.application.with_current_event scrap.create_scrap_event do
+
+        if scrap.contents.present?
+          raise "Scrap #{api_id} was already scraped"
+        elsif !%w(created retrying_scraping).include?(scrap.state)
+          raise "Scrap #{scrap.api_id} cannot be scraped from state #{scrap.state}"
+        end
+
         media_url = scrap.media_url
 
         start = Time.now

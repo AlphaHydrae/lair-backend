@@ -10,6 +10,7 @@ angular.module('lair.mediaScans.list').controller('MediaScansListCtrl', function
   $scope.columns = $scope.currentUserIs('admin') ? 6 : 5;
 
   $scope.scanDuration = mediaScans.getDuration;
+  $scope.scanIsInProgress = mediaScans.isInProgress;
 
   $scope.showMediaScan = function(scan) {
     showMediaScanDialog.open($scope, {

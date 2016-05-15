@@ -19,7 +19,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
   def self.perform scan_id, source_id, first_id, last_id
     scan = MediaScan.includes(:source).find scan_id
 
-    job_transaction cause: scan, rescue_event: :fail_scan! do
+    job_transaction cause: scan, rescue_event: :fail_processing! do
       Rails.application.with_current_event scan.last_scan_event do
 
         scanned_at = Time.now
@@ -111,7 +111,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
           raise "Unexpectedly processed #{processed_files_count + scanned_files.length} files when there are only #{scan.changed_files_count} files to process"
         elsif processed_files_count + scanned_files.length == scan.changed_files_count
           scan.processed_files_count += scanned_files.length
-          scan.finish_scan!
+          scan.finish_processing!
         else
           MediaScan.update_counters scan.id, processed_files_count: scanned_files.length
         end

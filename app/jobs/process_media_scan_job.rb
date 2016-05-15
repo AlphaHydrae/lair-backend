@@ -20,11 +20,18 @@ class ProcessMediaScanJob < ApplicationJob
   def self.perform scan_id
     scan = MediaScan.includes(:source).find scan_id
 
-    job_transaction cause: scan, rescue_event: :fail_scan!, clear_errors: true do
+    job_transaction cause: scan, rescue_event: :fail_processing!, clear_errors: true do
       Rails.application.with_current_event scan.last_scan_event do
+
+        unless %w(scanned retrying_processing).include? scan.state
+          raise "Media scan #{scan.api_id} cannot be processed from state #{scan.state}"
+        end
+
+        scan.start_processing!
+
         changed_files_count = scan.changed_files_count
         if changed_files_count <= 0
-          scan.finish_scan!
+          scan.finish_processing!
         else
 
           unprocessed_files_rel = scan.scanned_files.where processed: false

@@ -121,7 +121,7 @@ class ApplicationScraper
       person = Person.where(first_names: first_names, last_name: last_name, pseudonym: pseudonym).first
       if person.blank?
         person = Person.new first_names: first_names, last_name: last_name, pseudonym: pseudonym
-        person.creator_optional = true
+        person.creator = scrap.creator
         person.save!
       end
 

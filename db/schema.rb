@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160514184957) do
+ActiveRecord::Schema.define(version: 20160515103015) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -292,7 +292,7 @@ ActiveRecord::Schema.define(version: 20160514184957) do
     t.string   "state",                      limit: 20,             null: false
     t.datetime "canceled_at"
     t.datetime "scanned_at"
-    t.datetime "failed_at"
+    t.datetime "processing_failed_at"
     t.integer  "changed_files_count",                   default: 0, null: false
     t.integer  "job_errors_count",                      default: 0, null: false
     t.integer  "changed_nfo_files_count",               default: 0, null: false
@@ -301,28 +301,36 @@ ActiveRecord::Schema.define(version: 20160514184957) do
     t.integer  "analyzed_media_files_count",            default: 0, null: false
     t.datetime "analysis_failed_at"
     t.datetime "analyzed_at"
+    t.datetime "scanning_at"
+    t.datetime "processing_at"
+    t.datetime "retrying_processing_at"
+    t.datetime "analyzing_at"
+    t.datetime "retrying_analysis_at"
   end
 
   add_index "media_scans", ["api_id"], name: "index_media_scans_on_api_id", unique: true, using: :btree
 
   create_table "media_scraps", force: :cascade do |t|
-    t.string   "api_id",              limit: 12,             null: false
-    t.string   "provider",            limit: 20,             null: false
-    t.string   "state",               limit: 20,             null: false
+    t.string   "api_id",                limit: 12,             null: false
+    t.string   "provider",              limit: 20,             null: false
+    t.string   "state",                 limit: 20,             null: false
     t.json     "data"
     t.text     "contents"
-    t.string   "content_type",        limit: 50
-    t.integer  "media_url_id",                               null: false
-    t.integer  "creator_id",                                 null: false
+    t.string   "content_type",          limit: 50
+    t.integer  "media_url_id",                                 null: false
+    t.integer  "creator_id",                                   null: false
     t.datetime "scraping_at"
     t.datetime "scraping_failed_at"
     t.datetime "scraped_at"
     t.datetime "expansion_failed_at"
     t.datetime "expanded_at"
-    t.datetime "created_at",                                 null: false
-    t.datetime "updated_at",                                 null: false
-    t.integer  "warnings_count",                 default: 0, null: false
-    t.integer  "job_errors_count",               default: 0, null: false
+    t.datetime "created_at",                                   null: false
+    t.datetime "updated_at",                                   null: false
+    t.integer  "warnings_count",                   default: 0, null: false
+    t.integer  "job_errors_count",                 default: 0, null: false
+    t.datetime "expanding_at"
+    t.datetime "retrying_scraping_at"
+    t.datetime "retrying_expansion_at"
   end
 
   add_index "media_scraps", ["api_id"], name: "index_media_scraps_on_api_id", unique: true, using: :btree
@@ -378,8 +386,8 @@ ActiveRecord::Schema.define(version: 20160514184957) do
     t.string   "last_name",   limit: 50
     t.string   "first_names", limit: 100
     t.string   "pseudonym",   limit: 50
-    t.integer  "creator_id"
-    t.integer  "updater_id"
+    t.integer  "creator_id",              null: false
+    t.integer  "updater_id",              null: false
     t.datetime "created_at",              null: false
     t.datetime "updated_at",              null: false
   end

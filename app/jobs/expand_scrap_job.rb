@@ -17,7 +17,7 @@ class ExpandScrapJob < ApplicationJob
   def self.perform id
     scrap = MediaScrap.includes(:media_url).find id
 
-    unless %w(scraped expansion_failed expanded).include? scrap.state
+    unless %w(scraped retrying_expansion).include? scrap.state
       Rails.logger.warn "Scrap #{scrap.api_id} cannot be expanded from state #{scrap.state}"
       return
     end

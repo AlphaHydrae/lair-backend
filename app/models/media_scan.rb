@@ -8,15 +8,17 @@ class MediaScan < ActiveRecord::Base
 
   auto_queueable_jobs :process, :analyze
 
-  self.initial_state = :started
-  states :started, :canceled, :scanned, :failed, :processed, :analysis_failed, :analyzed
-  event :cancel_scan, to: :canceled
-  event :close_scan, to: :scanned, after: %i(create_scan_event set_process_job_required)
-  event :fail_scan, to: :failed
-  event :retry_scan, to: :scanned, after: %i(set_process_job_required)
-  event :finish_scan, to: :processed, after: %i(update_source_last_scan set_analyze_job_required)
+  states :created, :canceled, :scanning, :scanned, :processing, :processing_failed, :retrying_processing, :processed, :analyzing, :analysis_failed, :retrying_analysis, :analyzed
+  event :start_scanning, to: :scanning
+  event :cancel_scanning, to: :canceled
+  event :finish_scanning, to: :scanned, after: %i(create_scan_event set_process_job_required)
+  event :start_processing, to: :processing
+  event :fail_processing, to: :processing_failed
+  event :retry_processing, to: :retrying_processing, after: %i(set_process_job_required)
+  event :finish_processing, to: :processed, after: %i(update_source_last_scan set_analyze_job_required)
+  event :start_analysis, to: :analyzing
   event :fail_analysis, to: :analysis_failed
-  event :retry_analysis, to: :processed, after: %i(set_analyze_job_required)
+  event :retry_analysis, to: :retrying_analysis, after: %i(set_analyze_job_required)
   event :finish_analysis, to: :analyzed
 
   belongs_to :scanner, class_name: 'MediaScanner'
@@ -50,6 +52,18 @@ class MediaScan < ActiveRecord::Base
     else
       100
     end
+  end
+
+  def scanning_finished?
+    state == 'scanned' || processing_started?
+  end
+
+  def processing_started?
+    %w(processing processing_failed retrying_processing processed analyzing analysis_failed retrying_analysis analyzed).include? state
+  end
+
+  def analysis_started?
+    %w(analyzing analysis_failed retrying_analysis analyzed).include? state
   end
 
   private

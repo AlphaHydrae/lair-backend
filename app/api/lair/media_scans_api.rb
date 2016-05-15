@@ -30,14 +30,16 @@ module Lair
           record = MediaScan.new
           update_record_from_params record
 
-          processing_scan = MediaScan.where('media_scans.source_id = ? AND media_scans.state IN (?)', record.source_id, %w(scanned)).first
+          processing_scan = MediaScan.where('media_scans.source_id = ? AND media_scans.state IN (?)', record.source_id, %w(scanned processing retrying_processing processed analyzing retrying_analysis)).first
           raise 'Scan already in progress' if processing_scan.present?
 
           record.save!
 
-          MediaScan.where('media_scans.id != ? AND media_scans.source_id = ? AND media_scans.state NOT IN (?)', record.id, record.source_id, %w(canceled failed processed)).to_a.each do |incomplete_scan|
-            incomplete_scan.cancel_scan!
+          MediaScan.where('media_scans.id != ? AND media_scans.source_id = ? AND media_scans.state IN (?)', record.id, record.source_id, %w(scanning)).to_a.each do |incomplete_scan|
+            incomplete_scan.cancel_scanning!
           end
+
+          record.start_scanning!
 
           serialize record
         end
@@ -74,8 +76,8 @@ module Lair
 
             record.files_count = params[:filesCount] if params.key? :filesCount
 
-            if record.state == 'started' && params[:state] == 'scanned'
-              record.close_scan!
+            if record.state == 'scanning' && params[:state] == 'scanned'
+              record.finish_scanning!
             end
 
             record.save!
@@ -88,13 +90,13 @@ module Lair
             authorize! record, :update
 
             MediaScan.transaction do
-              if %w(failed).include? record.state
-                record.retry_scan!
+              if %w(processing_failed).include? record.state
+                record.retry_processing!
               elsif %w(analysis_failed).include? record.state
                 record.retry_analysis!
               else
                 error = ValidationError.new
-                error.add "Scanning can only be retried from the failed or analysisFailed states"
+                error.add "Scanning can only be retried from the processingFailed or analysisFailed states"
                 error.raise_if_any
               end
 
@@ -107,7 +109,7 @@ module Lair
           post do
             authorize! MediaScan, :update
 
-            raise 'Scan completed' if record.state.to_s != 'started'
+            raise 'Scan completed' if record.state.to_s != 'scanning'
 
             files = JSON.parse request.body.read
             raise 'Array required' unless files.kind_of? Array

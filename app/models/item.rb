@@ -146,12 +146,13 @@ class Item < ActiveRecord::Base
     update_end_year = work.end_year.blank? || original_release_date.year > work.end_year
 
     if update_start_year || update_end_year
-      work.cache_previous_version
-      work.start_year = original_release_date.year if update_start_year
-      work.end_year = original_release_date.year if update_end_year
-      work.updater = updater
-      # FIXME: set event cause
-      work.save!
+      with_last_tracking_event do
+        work.cache_previous_version
+        work.start_year = original_release_date.year if update_start_year
+        work.end_year = original_release_date.year if update_end_year
+        work.updater = updater
+        work.save!
+      end
     end
   end
 
