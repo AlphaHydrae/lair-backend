@@ -69,7 +69,7 @@ group :development, :test do
   # Solve http://mislav.net/2013/07/ruby-openssl/
   gem 'certified'
 
-  gem 'capistrano'
+  gem 'sshkit'
   gem 'handlebars'
   gem 'dotenv-rails'
 

@@ -10,18 +10,9 @@
 require 'dotenv'
 Dotenv.load! '.env.vagrant'
 
-# get SSH config from vagrant
-system 'vagrant up'
-ssh_config = `vagrant ssh-config`
-raise 'Could not execute `vagrant ssh-config`' unless $?.success?
-
-# extract SSH port
-ssh_config_parts = ssh_config.split("\n").reject{ |l| l.strip.empty? }
-ssh_port = ssh_config_parts.select{ |l| l.match /\A\s*Port\s+(?:\d+)\s*\Z/ }.first.gsub(/[^\d]+/, '').to_i
-
 # add vagrant machine as a server
 server '127.0.0.1', user: 'root', roles: %w(app), ssh_options: {
-  port: ssh_port,
+  port: ENV['LAIR_VAGRANT_PORT'] || '2222',
   auth_methods: %w(publickey)
 }
 

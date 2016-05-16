@@ -1,4 +1,6 @@
+.git
 bower_components
+local
 log
 node_modules
 tmp

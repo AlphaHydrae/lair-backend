@@ -1,96 +1,113 @@
-# Nginx web server.
-web:
-  image: nginx
-  command: nginx
-  links:
-    - app
-  ports:
-    - "80:80"
-    - "443:443"
-  volumes:
-    - "{{ release_path }}/nginx.conf:/etc/nginx/nginx.conf:ro"
-    - "{{ release_path }}/public:/var/lib/lair/public"
-    - "/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}:/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}"
-    - "/var/www/blog:/var/www/blog"
-  restart: always
+version: "2"
 
-# Application in production mode.
-# The application will not serve assets.
-app:
-  image: alphahydrae/lair
-  links:
-    - db
-    - cache
-  volumes:
-    - "{{ release_path }}/public:/usr/src/app/public"
-  env_file:
-    - .env
-  environment:
-    LAIR_LOG_TO_STDOUT: "1"
-  restart: always
+services:
 
-# Background job processing task.
-job:
-  image: alphahydrae/lair
-  command: rake resque:work
-  links:
-    - db
-    - cache
-  env_file:
-    - .env
-  environment:
-    QUEUE: "*"
-    INTERVAL: "2"
-    TERM_CHILD: "1"
-    LAIR_LOG_TO_STDOUT: "1"
-  restart: always
+  # Nginx web server.
+  web:
+    image: alphahydrae/lair-nginx
+    command: /opt/lair/start.sh
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/lib/lair/public:/var/lib/lair/public"
+      - "/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}:/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}"
+      - "/var/www/blog:/var/www/blog"
+    env_file:
+      - .env
+    depends_on:
+      - serf
+    restart: always
 
-# PostgreSQL database.
-db:
-  image: postgres:9.4
-  volumes:
-    - "{{ release_path }}/db-init-scripts:/docker-entrypoint-initdb.d"
-    - "{{ deploy_to }}/postgresql/data:/var/lib/postgresql/data"
-  environment:
-    POSTGRES_PASSWORD: {{ LAIR_POSTGRES_PASSWORD }}
-    LAIR_DATABASE_NAME: {{ LAIR_DATABASE_NAME }}
-    LAIR_DATABASE_USERNAME: {{ LAIR_DATABASE_USERNAME }}
-    LAIR_DATABASE_PASSWORD: {{ LAIR_DATABASE_PASSWORD }}
-  restart: always
+  # Application in production mode.
+  # The application will not serve assets.
+  app:
+    image: alphahydrae/lair
+    entrypoint: /usr/src/app/docker/bin/wait.sh
+    command: /usr/src/app/docker/bin/start-supervisord.sh
+    volumes:
+      - "/var/lib/lair/public:/usr/src/app/public"
+    env_file:
+      - .env
+    environment:
+      LAIR_LOG_TO_STDOUT: "1"
+    depends_on:
+      - db
+      - cache
+      - serf
+    restart: always
 
-# Redis in-memory database.
-cache:
-  image: redis:2.8
-  command: redis-server --appendonly yes
-  volumes:
-    - "{{ deploy_to }}/redis/data:/data"
-  restart: always
+  # Background job processing task.
+  job:
+    image: alphahydrae/lair
+    entrypoint: /usr/src/app/docker/bin/wait.sh
+    command: /usr/src/app/docker/bin/start-resque-worker.sh
+    env_file:
+      - .env
+    environment:
+      QUEUE: "*"
+      INTERVAL: "2"
+      TERM_CHILD: "1"
+      LAIR_LOG_TO_STDOUT: "1"
+    depends_on:
+      - db
+      - cache
+    restart: always
 
-# Rake task.
-# This is meant to be run as a one-off task (with "run" instead of "up").
-task:
-  image: alphahydrae/lair
-  command: rake -T
-  links:
-    - db
-    - cache
-  volumes:
-    - "{{ release_path }}/public:/usr/src/app/public"
-    - "{{ release_path }}/tmp:/usr/src/app/tmp"
-  env_file:
-    - .env
-  restart: no
+  # Serf master.
+  serf:
+    image: alphahydrae/lair
+    entrypoint: /opt/bin/serf
+    command: agent
+    container_name: lair_serf
+    restart: always
 
-# Backup script.
-# This is meant to be run as a one-off task (with "run" instead of "up").
-backup:
-  image: alphahydrae/lair-backup
-  links:
-    - db
-    - cache
-  volumes:
-    - "{{ release_path }}/backup:/backup"
-    - "/var/lib/lair/backup:/var/lib/lair/backup"
-  env_file:
-    - .env
-  restart: no
+  # PostgreSQL database.
+  db:
+    image: postgres:9.5
+    container_name: lair_db
+    volumes:
+      - "/var/lib/lair/postgresql/init-scripts:/docker-entrypoint-initdb.d"
+      - "/var/lib/lair/postgresql/data:/var/lib/postgresql/data"
+    environment:
+      POSTGRES_PASSWORD:
+      LAIR_DATABASE_NAME:
+      LAIR_DATABASE_USERNAME:
+      LAIR_DATABASE_PASSWORD:
+    restart: always
+
+  # Redis in-memory database.
+  cache:
+    image: redis:3.2
+    command: redis-server --appendonly yes
+    container_name: lair_cache
+    volumes:
+      - "/var/lib/lair/redis/data:/data"
+    restart: always
+
+  # Rake task.
+  # This is meant to be run as a one-off task (with "run" instead of "up").
+  task:
+    image: alphahydrae/lair
+    entrypoint: ./docker/bin/start-job.sh
+    command: rake -T
+    volumes:
+      - "/var/lib/lair/public:/usr/src/app/public"
+      - "/var/lib/lair/tmp:/usr/src/app/tmp"
+    env_file:
+      - .env
+    restart: "no"
+
+  # Backup script.
+  # This is meant to be run as a one-off task (with "run" instead of "up").
+  backup:
+    image: alphahydrae/lair-backup
+    links:
+      - db
+      - cache
+    volumes:
+      - "/var/lib/lair/backup:/backup"
+      - "/var/lib/lair/backup:/var/lib/lair/backup"
+    env_file:
+      - .env
+    restart: "no"

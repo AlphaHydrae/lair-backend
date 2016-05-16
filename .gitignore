@@ -6,6 +6,7 @@
 /ansible/deploy*
 /ansible/certificates
 /ansible/production*
+/ansible/*.retry
 /bower_components
 /dragonfly*
 /lib/tasks/local*
