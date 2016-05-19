@@ -1,5 +1,10 @@
 version: "2"
 
+networks:
+  shared:
+    external:
+      name: "${LAIR_DEPLOY_SHARED_NETWORK}"
+
 services:
 
   # Nginx web server.
@@ -11,37 +16,40 @@ services:
       - "443:443"
     volumes:
       - "/var/lib/lair/public:/var/lib/lair/public"
-      - "/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}:/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}"
+      #- "/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}:/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}"
       - "/var/www/blog:/var/www/blog"
     env_file:
       - .env
     depends_on:
       - serf
+    networks:
+      - shared
+      - default
     restart: always
 
   # Application in production mode.
   # The application will not serve assets.
   app:
     image: alphahydrae/lair
-    entrypoint: /usr/src/app/docker/bin/wait.sh
-    command: /usr/src/app/docker/bin/start-supervisord.sh
     volumes:
       - "/var/lib/lair/public:/usr/src/app/public"
     env_file:
       - .env
     environment:
       LAIR_LOG_TO_STDOUT: "1"
+      LAIR_CONTAINER_TYPE: app
     depends_on:
       - db
       - cache
       - serf
+    networks:
+      - shared
+      - default
     restart: always
 
   # Background job processing task.
   job:
     image: alphahydrae/lair
-    entrypoint: /usr/src/app/docker/bin/wait.sh
-    command: /usr/src/app/docker/bin/start-resque-worker.sh
     env_file:
       - .env
     environment:
@@ -49,17 +57,23 @@ services:
       INTERVAL: "2"
       TERM_CHILD: "1"
       LAIR_LOG_TO_STDOUT: "1"
+      LAIR_CONTAINER_TYPE: job
     depends_on:
       - db
       - cache
+    networks:
+      - default
     restart: always
 
   # Serf master.
   serf:
     image: alphahydrae/lair
-    entrypoint: /opt/bin/serf
-    command: agent
     container_name: lair_serf
+    environment:
+      LAIR_CONTAINER_TYPE: serf
+    networks:
+      - shared
+      - default
     restart: always
 
   # PostgreSQL database.
@@ -74,6 +88,8 @@ services:
       LAIR_DATABASE_NAME:
       LAIR_DATABASE_USERNAME:
       LAIR_DATABASE_PASSWORD:
+    networks:
+      - default
     restart: always
 
   # Redis in-memory database.
@@ -83,6 +99,8 @@ services:
     container_name: lair_cache
     volumes:
       - "/var/lib/lair/redis/data:/data"
+    networks:
+      - default
     restart: always
 
   # Rake task.
@@ -96,6 +114,8 @@ services:
       - "/var/lib/lair/tmp:/usr/src/app/tmp"
     env_file:
       - .env
+    networks:
+      - default
     restart: "no"
 
   # Backup script.
@@ -110,4 +130,6 @@ services:
       - "/var/lib/lair/backup:/var/lib/lair/backup"
     env_file:
       - .env
+    networks:
+      - default
     restart: "no"

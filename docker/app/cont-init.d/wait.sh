@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#!/usr/bin/with-contenv bash
 set -e
 
 export PGPASSWORD="$LAIR_DATABASE_PASSWORD"
@@ -10,7 +9,9 @@ done
 
 >&2 echo "Postgres is up"
 
-until (echo > /dev/tcp/lair_cache/6379) >/dev/null 2>&1; do
+REDIS_ADDRESS=$(echo "$LAIR_REDIS_URL"|cut -d : -f 1)
+REDIS_PORT=$(echo "$LAIR_REDIS_URL"|cut -d : -f 2)
+until (echo > "/dev/tcp/$REDIS_ADDRESS/$REDIS_PORT") >/dev/null 2>&1; do
   >&2 echo "Redis is unavailable - waiting"
   sleep 1
 done

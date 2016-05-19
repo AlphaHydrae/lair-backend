@@ -53,7 +53,7 @@ namespace :deploy do
   end
 
   namespace :serf do
-    task run: %i(deploy:config deploy:build:app) do
+    task run: %i(deploy:config) do
       on LAIR_HOSTS do
         within LAIR_ROOT do
           docker_compose_up :serf
@@ -105,7 +105,7 @@ namespace :deploy do
     task run: :prepare_env do
       on LAIR_HOSTS do
         within LAIR_ROOT do
-          docker_compose_up :cache, recreate: false
+          docker_compose_up :cache
         end
       end
     end
@@ -119,7 +119,7 @@ namespace :deploy do
           env = ENV.select{ |k,v| !!k.match(/^LAIR_(?:DATABASE|POSTGRES)_/) }
           env['POSTGRES_PASSWORD'] = env.delete 'LAIR_POSTGRES_PASSWORD'
 
-          docker_compose_up :db, recreate: false, env: env
+          docker_compose_up :db, env: env
         end
       end
     end
@@ -133,13 +133,13 @@ namespace :deploy do
     Dir.mktmpdir nil, tmp do |dir|
 
       env = ENV.select{ |k,v| k.index('LAIR_') == 0 || k == 'RAILS_ENV' }
-      docker_compose_config = generate_config :docker_compose, env
-      env_config = generate_config :env, env
+      docker_compose_config = generate_config name: :docker_compose, path: File.join(File.dirname(__FILE__), '..', '..', 'docker', 'docker-compose.yml'), template_options: env
+      env_config = generate_config name: :env, path: File.join(File.dirname(__FILE__), '..', '..', 'config', 'templates', 'env.handlebars'), template_options: env
 
       docker_compose_file = save_tmp_config :docker_compose, dir, docker_compose_config
       env_file = save_tmp_config :env, dir, env_config
 
-      db_init_script = File.join File.dirname(__FILE__), '..', '..', 'docker', 'db-init-scripts', 'lair.sh'
+      db_init_script = File.join File.dirname(__FILE__), '..', '..', 'docker', 'db', 'init-scripts', 'lair.sh'
 
       on LAIR_HOSTS do
         execute :mkdir, '-p', LAIR_ROOT, '/var/lib/lair/postgresql/init-scripts', '/var/lib/lair/redis'
@@ -158,12 +158,9 @@ namespace :deploy do
   end
 end
 
-def generate_config name, template_options = {}
-
+def generate_config name:, path:, template_options: {}
   handlebars = Handlebars::Context.new
-  templates_dir = File.join File.dirname(__FILE__), '..', '..', 'config', 'templates'
-
-  template = handlebars.compile File.read(File.join(templates_dir, "#{name}.handlebars"))
+  template = handlebars.compile File.read(path)
   template.call template_options
 end
 
@@ -174,7 +171,10 @@ def save_tmp_config name, tmp_dir, config
 end
 
 def docker_compose_up service, recreate: false, env: {}
-  with env do
+
+  deploy_env = ENV.select{ |k,v| k.index('LAIR_DEPLOY_') == 0 }
+
+  with deploy_env.merge(env) do
 
     args = [ :'docker-compose', '-p', 'lair', 'up', '--no-deps' ]
     args << '--no-recreate' unless recreate

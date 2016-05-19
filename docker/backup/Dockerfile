@@ -1,5 +1,7 @@
 FROM ruby:2.2
 
+MAINTAINER Simon Oulevay (Alpha Hydrae) <docker@alphahydrae.com>
+
 RUN gem install backup
 
 RUN apt-get update -y
