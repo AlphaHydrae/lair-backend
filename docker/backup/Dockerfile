@@ -11,6 +11,7 @@ RUN apt-get update -q -y \
     && apt-get install -q -y --no-install-recommends gnupg postgresql-client
 
 # Install the backup gem.
+# FIXME: use Gemfile to fix version
 RUN gem install backup
 
 # Initialize GnuPG.
