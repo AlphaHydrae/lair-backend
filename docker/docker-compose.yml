@@ -102,11 +102,7 @@ services:
   # This is meant to be run as a one-off task (with "run" instead of "up").
   backup:
     image: alphahydrae/lair-backup
-    links:
-      - db
-      - cache
     volumes:
-      - "/var/lib/lair/backup:/backup"
       - "/var/lib/lair/backup:/var/lib/lair/backup"
     env_file:
       - .env

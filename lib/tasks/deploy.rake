@@ -78,7 +78,7 @@ namespace :deploy do
   end
 
   namespace :repo do
-    task :update do
+    task update: %i(deploy:env) do
       on LAIR_HOSTS do
         repo_dir = File.join LAIR_ROOT, 'repo'
         if test "[ ! -d #{repo_dir} ]"
@@ -150,7 +150,7 @@ namespace :deploy do
 
   namespace :backup do
     task run: %i(deploy:env) do
-
+      execute :mkdir, '-p', File.join(LAIR_ROOT, 'backup')
     end
 
     task build: %i(deploy:env) do

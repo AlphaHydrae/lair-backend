@@ -17,7 +17,8 @@ RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Add backup configuration.
-COPY config.rb models /backup/
+COPY config.rb /backup/
+COPY models /backup/models
 
 # Set backup as the entrypoint.
 ENTRYPOINT [ "/usr/local/bundle/bin/backup" ]
