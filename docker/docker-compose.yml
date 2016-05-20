@@ -7,26 +7,6 @@ networks:
 
 services:
 
-  # Nginx web server.
-  web:
-    image: alphahydrae/lair-nginx
-    command: /opt/lair/start.sh
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "/var/lib/lair/public:/var/lib/lair/public"
-      #- "/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}:/web/certificates/{{ LAIR_NGINX_SSL_DOMAIN }}"
-      - "/var/www/blog:/var/www/blog"
-    env_file:
-      - .env
-    depends_on:
-      - serf
-    networks:
-      - shared
-      - default
-    restart: always
-
   # Application in production mode.
   # The application will not serve assets.
   app:
@@ -107,8 +87,8 @@ services:
   # This is meant to be run as a one-off task (with "run" instead of "up").
   task:
     image: alphahydrae/lair
-    entrypoint: ./docker/bin/start-job.sh
-    command: rake -T
+    entrypoint: rake
+    command: -T
     volumes:
       - "/var/lib/lair/public:/usr/src/app/public"
       - "/var/lib/lair/tmp:/usr/src/app/tmp"

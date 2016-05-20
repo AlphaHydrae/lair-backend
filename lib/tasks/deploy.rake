@@ -5,12 +5,18 @@ if Rails.env != 'production'
   include SSHKit::DSL
 end
 
-LAIR_HOSTS = %w(root@127.0.0.1:2222)
+LAIR_HOSTS = []
 LAIR_ROOT = '/var/lib/lair'
 
 SSHKit.config.output_verbosity = :debug if ENV['DEBUG']
 
-task deploy: %i(deploy:config deploy:serf:run deploy:cache:run deploy:db:run deploy:app:run deploy:job:run deploy:scale)
+task deploy: %i(deploy:config deploy:serf:run deploy:cache:run deploy:db:run deploy:assets:compile deploy:app:run deploy:job:run deploy:scale)
+
+%i(vagrant production).each do |env|
+  task env do
+    ENV['DEPLOY_ENV'] = env.to_s
+  end
+end
 
 namespace :deploy do
   task :scale do
@@ -22,7 +28,7 @@ namespace :deploy do
   end
 
   namespace :app do
-    task run: %(deploy:build:app) do
+    task run: %i(deploy:env deploy:build:app) do
       on LAIR_HOSTS do
         within LAIR_ROOT do
           docker_compose_up :app, recreate: true
@@ -31,8 +37,19 @@ namespace :deploy do
     end
   end
 
+  namespace :assets do
+    task compile: %i(deploy:env deploy:build:app) do
+      on LAIR_HOSTS do
+        within LAIR_ROOT do
+          docker_compose_run :task, 'assets:precompile', 'assets:clean'
+          docker_compose_run :task, 'templates:precompile'
+        end
+      end
+    end
+  end
+
   namespace :job do
-    task run: %(deploy:build:app) do
+    task run: %i(deploy:env deploy:build:app) do
       on LAIR_HOSTS do
         within LAIR_ROOT do
           docker_compose_up :job, recreate: true
@@ -45,15 +62,13 @@ namespace :deploy do
     task app: %i(deploy:repo:checkout) do
       on LAIR_HOSTS do
         current_dir = File.join LAIR_ROOT, 'current'
-        # FIXME: vagrant
-        current_dir = '/vagrant'
         docker_build path: current_dir, name: 'alphahydrae/lair'
       end
     end
   end
 
   namespace :serf do
-    task run: %i(deploy:config) do
+    task run: %i(deploy:config deploy:build:app) do
       on LAIR_HOSTS do
         within LAIR_ROOT do
           docker_compose_up :serf
@@ -78,7 +93,7 @@ namespace :deploy do
       end
     end
 
-    task checkout: %i(deploy:repo:update) do
+    task checkout: %i(deploy:env deploy:repo:update) do
       on LAIR_HOSTS do
 
         repo_dir = File.join LAIR_ROOT, 'repo'
@@ -102,7 +117,7 @@ namespace :deploy do
   end
 
   namespace :cache do
-    task run: :prepare_env do
+    task run: %i(deploy:env) do
       on LAIR_HOSTS do
         within LAIR_ROOT do
           docker_compose_up :cache
@@ -112,7 +127,7 @@ namespace :deploy do
   end
 
   namespace :db do
-    task run: :prepare_env do
+    task run: %i(deploy:env) do
       on LAIR_HOSTS do
         within LAIR_ROOT do
 
@@ -123,42 +138,88 @@ namespace :deploy do
         end
       end
     end
+
+    task migrate: %i(deploy:env deploy:build:app) do
+      on LAIR_HOSTS do
+        within LAIR_ROOT do
+          docker_compose_run :task, 'db:migrate'
+        end
+      end
+    end
   end
 
-  task config: :prepare_env do
+  namespace :backup do
+    task run: %i(deploy:env) do
+
+    end
+
+    task build: %i(deploy:env) do
+      on LAIR_HOSTS do
+        docker_build name: 'alphahydrae/lair-backup', path: File.join(current_version_dir, 'docker', 'backup')
+      end
+    end
+  end
+
+  task config: %i(deploy:env) do
 
     tmp = File.join File.dirname(__FILE__), '..', '..', 'tmp', 'deploy'
     FileUtils.mkdir_p tmp
 
     Dir.mktmpdir nil, tmp do |dir|
 
+      project_root = File.join File.dirname(__FILE__), '..', '..'
       env = ENV.select{ |k,v| k.index('LAIR_') == 0 || k == 'RAILS_ENV' }
-      docker_compose_config = generate_config name: :docker_compose, path: File.join(File.dirname(__FILE__), '..', '..', 'docker', 'docker-compose.yml'), template_options: env
-      env_config = generate_config name: :env, path: File.join(File.dirname(__FILE__), '..', '..', 'config', 'templates', 'env.handlebars'), template_options: env
 
+      docker_compose_config = generate_config path: File.join(project_root, 'docker', 'docker-compose.yml'), template_options: env
       docker_compose_file = save_tmp_config :docker_compose, dir, docker_compose_config
+
+      env_config = generate_config path: File.join(project_root, 'docker', 'env.hbs'), template_options: env
       env_file = save_tmp_config :env, dir, env_config
 
-      db_init_script = File.join File.dirname(__FILE__), '..', '..', 'docker', 'db', 'init-scripts', 'lair.sh'
+      db_init_script = File.join project_root, 'docker', 'db', 'init-scripts', 'lair.sh'
+
+      nginx_serf_conf = File.join project_root, 'docker', 'nginx', 'config.yml'
+      nginx_conf = generate_config path: File.join(project_root, 'docker', 'nginx', 'lair.serf.conf.hbs'), template_options: env
+      nginx_file = save_tmp_config :nginx, dir, nginx_conf
 
       on LAIR_HOSTS do
-        execute :mkdir, '-p', LAIR_ROOT, '/var/lib/lair/postgresql/init-scripts', '/var/lib/lair/redis'
+        execute :mkdir, '-p', '/etc/nginx-serf/sites' # TODO: move to ansible
+        execute :mkdir, '-p', LAIR_ROOT, '/var/lib/lair/postgresql/init-scripts', '/var/lib/lair/redis', '/var/lib/lair/public'
         within LAIR_ROOT do
           upload! docker_compose_file, '/var/lib/lair/docker-compose.yml'
           upload! env_file, '/var/lib/lair/.env'
           upload! db_init_script, '/var/lib/lair/postgresql/init-scripts/lair.sh'
+          upload! nginx_file, '/etc/nginx-serf/sites/lair.conf.hbs'
+          upload! nginx_serf_conf, '/etc/nginx-serf/config.yml' # TODO: move to ansible
         end
       end
     end
   end
 
-  task :prepare_env do
+  task :env do
     ENV.reject!{ |k,v| k.index('LAIR_') == 0 || k == 'RAILS_ENV' }
-    Dotenv.load! '.env.vagrant'
+
+    deploy_env = ENV['DEPLOY_ENV']
+    raise "$DEPLOY_ENV must be set" unless deploy_env
+
+    Dotenv.load! ".env.#{deploy_env}"
+
+    if ENV['LAIR_SSH_HOST']
+      host = ENV['LAIR_SSH_HOST']
+      host = "#{ENV['LAIR_SSH_USER']}@#{host}" if ENV['LAIR_SSH_USER']
+      host = "#{host}:#{ENV['LAIR_SSH_PORT']}" if ENV['LAIR_SSH_PORT']
+      LAIR_HOSTS << host
+    else
+      LAIR_HOSTS << 'root@127.0.0.1:2222'
+    end
   end
 end
 
-def generate_config name:, path:, template_options: {}
+def current_version_dir
+  ENV['LAIR_DEPLOY_CURRENT_VERSION_DIR'] || File.join(LAIR_ROOT, 'current')
+end
+
+def generate_config path:, template_options: {}
   handlebars = Handlebars::Context.new
   template = handlebars.compile File.read(path)
   template.call template_options
@@ -171,9 +232,7 @@ def save_tmp_config name, tmp_dir, config
 end
 
 def docker_compose_up service, recreate: false, env: {}
-
   deploy_env = ENV.select{ |k,v| k.index('LAIR_DEPLOY_') == 0 }
-
   with deploy_env.merge(env) do
 
     args = [ :'docker-compose', '-p', 'lair', 'up', '--no-deps' ]
@@ -184,14 +243,28 @@ def docker_compose_up service, recreate: false, env: {}
   end
 end
 
-def docker_compose_scale services:
+def docker_compose_run *service_and_args, env: {}
+  deploy_env = ENV.select{ |k,v| k.index('LAIR_DEPLOY_') == 0 }
+  with deploy_env.merge(env) do
+
+    args = [ :'docker-compose', '-p', 'lair', 'run', '--no-deps', '--rm' ]
+    args += service_and_args.collect(&:to_s)
+
+    execute *args
+  end
+end
+
+def docker_compose_scale services:, env: {}
 
   args = [ :'docker-compose', '-p', 'lair', 'scale' ]
   services.each do |service,number|
     args << "#{service}=#{number}"
   end
 
-  execute *args
+  deploy_env = ENV.select{ |k,v| k.index('LAIR_DEPLOY_') == 0 }
+  with deploy_env.merge(env) do
+    execute *args
+  end
 end
 
 def docker_build path:, name:

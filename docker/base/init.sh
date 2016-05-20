@@ -14,11 +14,6 @@ if [ -d cont-finish.d ]; then
   cp cont-finish.d/* /etc/cont-finish.d
 fi
 
-if [ -d cont-init.d ]; then
-  echo "Copying cont-init.d scripts..."
-  cp cont-init.d/* /etc/cont-init.d
-fi
-
 if [ -d services.d ]; then
   echo "Copying services.d scripts..."
   cp -R services.d/* /etc/services.d
@@ -27,4 +22,11 @@ fi
 if [ -f serf.conf ]; then
   echo "Copying serf.conf..."
   cp serf.conf /etc/serf.conf
+fi
+
+if [ -d cont-init.d ]; then
+  echo "Sourcing cont-init.d scripts..."
+  for FILE in $(ls -1 cont-init.d); do
+    source $FILE
+  done
 fi

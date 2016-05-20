@@ -1,0 +1,7 @@
+nginx_template_options:
+  worker_processes: 5
+  worker_connections: 1024
+
+serf:
+  tags:
+    role: server
