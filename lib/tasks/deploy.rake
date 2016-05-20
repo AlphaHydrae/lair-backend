@@ -83,7 +83,7 @@ namespace :deploy do
         repo_dir = File.join LAIR_ROOT, 'repo'
         if test "[ ! -d #{repo_dir} ]"
           within LAIR_ROOT do
-            execute :git, 'clone', '--bare', ENV['LAIR_REPO_URL'], 'repo'
+            execute :git, 'clone', '--mirror', ENV['LAIR_REPO_URL'], 'repo'
           end
         else
           within File.join(LAIR_ROOT, 'repo') do
@@ -150,7 +150,12 @@ namespace :deploy do
 
   namespace :backup do
     task run: %i(deploy:env) do
-      execute :mkdir, '-p', File.join(LAIR_ROOT, 'backup')
+      on LAIR_HOSTS do
+        execute :mkdir, '-p', File.join(LAIR_ROOT, 'backup')
+        within LAIR_ROOT do
+          docker_compose_run :backup
+        end
+      end
     end
 
     task build: %i(deploy:env) do
