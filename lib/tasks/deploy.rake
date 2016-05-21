@@ -33,7 +33,7 @@ end
 
 # TASKS
 
-task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:app:stop deploy:job:stop deploy:cache:run deploy:db:migrate deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:app:stop deploy:job:stop deploy:db:migrate deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
 fetch(:envs).each do |env|
   task env do
@@ -45,7 +45,7 @@ namespace :deploy do
 
   task hot: %i(deploy:app:ensure_running deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
-  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:cache:run deploy:db:load_schema deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:db:load_schema deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
   namespace :cold do
     deploy_task ensure_not_run: %i(deploy:env) do
@@ -92,14 +92,8 @@ namespace :deploy do
     end
   end
 
-  namespace :cache do
-    deploy_task run: %i(deploy:config) do
-      docker_compose_up :cache
-    end
-  end
-
   namespace :db do
-    deploy_task run: %i(deploy:config) do
+    deploy_task run: %i(deploy:config deploy:cache:run) do
 
       env = ENV.select{ |k,v| !!k.match(/^LAIR_(?:DATABASE|POSTGRES)_/) }
       env['POSTGRES_PASSWORD'] = env.delete 'LAIR_POSTGRES_PASSWORD'
@@ -115,6 +109,16 @@ namespace :deploy do
 
     deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run deploy:wait) do
       docker_compose_run :task, 'db:schema:load', 'db:seed'
+    end
+
+    deploy_task load_dump: %i(deploy:repo:checkout deploy:db:run deploy:wait) do
+      docker_run '--entrypoint', '/tmp/load-dump.sh', '--volume', '/var/lib/lair/checkout/docker/db/load-dump.sh:/tmp/load-dump.sh', '--volume /var/lib/postgresql/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
+    end
+  end
+
+  namespace :cache do
+    deploy_task run: %i(deploy:config) do
+      docker_compose_up :cache
     end
   end
 
@@ -208,12 +212,12 @@ namespace :deploy do
     env_file = generate_handlebars_template path: local_docker_file('env.hbs'), template_options: fetch(:env_vars)
     nginx_conf_file = generate_handlebars_template path: local_docker_file('nginx', 'lair.serf.conf.hbs'), template_options: fetch(:env_vars)
 
-    db_init_script_file = File.join fetch(:local_docker), 'db', 'init-scripts', 'lair.sh'
+    db_init_script_file = File.join fetch(:local_docker), 'db', 'init.sh'
     nginx_serf_conf_file = File.join fetch(:local_docker), 'nginx', 'config.yml'
 
     upload! docker_compose_file, remote_file('docker-compose.yml')
     upload! env_file, remote_file('.env')
-    upload! db_init_script_file, remote_file('postgresql/init-scripts/lair.sh')
+    upload! db_init_script_file, remote_file('postgresql/init-scripts/00_lair.sh')
     upload! nginx_conf_file, '/etc/nginx-serf/sites/lair.conf.hbs'
     upload! nginx_serf_conf_file, '/etc/nginx-serf/config.yml' # TODO: move to ansible
   end
@@ -387,6 +391,12 @@ end
 def docker_build path:, name:
   within path.to_s do
     execute :docker, 'build', '-t', name.to_s, '.'
+  end
+end
+
+def docker_run *run_args
+  within fetch(:root) do
+    capture :docker, 'run', '--rm', '--env-file', '.env', '--net', 'lair_default', *run_args
   end
 end
 
