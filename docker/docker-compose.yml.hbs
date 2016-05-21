@@ -87,7 +87,9 @@ services:
   # This is meant to be run as a one-off task (with "run" instead of "up").
   task:
     image: alphahydrae/lair
-    entrypoint: rake
+    entrypoint:
+      - /init
+      - rake
     command: -T
     volumes:
       - "/var/lib/lair/public:/usr/src/app/public"

@@ -4,7 +4,7 @@ set -e
 TYPE="$LAIR_CONTAINER_TYPE"
 
 if [ -z "$TYPE" ]; then
-  >&2 echo "Unknown lair container type: '${TYPE}'"
+  >&2 echo "$LAIR_CONTAINER_TYPE must be set"
 fi
 
 cd "/usr/src/app/docker/${TYPE}"
@@ -27,6 +27,6 @@ fi
 if [ -d cont-init.d ]; then
   echo "Sourcing cont-init.d scripts..."
   for FILE in $(ls -1 cont-init.d); do
-    source $FILE
+    source cont-init.d/$FILE
   done
 fi

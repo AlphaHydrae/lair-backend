@@ -33,7 +33,7 @@ end
 
 # TASKS
 
-task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:serf:run deploy:cache:run deploy:app:stop deploy:job:stop deploy:db:run deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:serf:run deploy:cache:run deploy:app:stop deploy:job:stop deploy:db:migrate deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
 fetch(:envs).each do |env|
   task env do
@@ -43,11 +43,17 @@ end
 
 namespace :deploy do
 
-  task hot: %i(deploy:hot:check_running deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+  task hot: %i(deploy:app:ensure_running deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
-  namespace :hot do
-    deploy_task :check_running do
-      raise "No application containers are running" unless docker_container_id(compose_service: 'app', status: 'running')
+  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:serf:run deploy:cache:run deploy:db:load_schema deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+
+  namespace :cold do
+    deploy_task ensure_not_run: %i(deploy:env) do
+      raise "An app container has already been run" if docker_container_id(compose_service: 'app')
+      raise "A job container has already been run" if docker_container_id(compose_service: 'job')
+      raise "A db container has already been run" if docker_container_id(compose_service: 'db')
+      raise "A cache container has already been run" if docker_container_id(compose_service: 'cache')
+      raise "A serf container has already been run" if docker_container_id(compose_service: 'serf')
     end
   end
 
@@ -73,6 +79,10 @@ namespace :deploy do
 
     deploy_task ensure_build: %i(deploy:env) do
       ensure_docker_image_built 'alphahydrae/lair'
+    end
+
+    deploy_task :ensure_running do
+      raise "No app containers are running" unless docker_container_id(compose_service: 'app', status: 'running')
     end
   end
 
@@ -103,8 +113,12 @@ namespace :deploy do
       end
     end
 
-    deploy_task migrate: %i(deploy:app:ensure_build deploy:config) do
+    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run) do
       docker_compose_run :task, 'db:migrate'
+    end
+
+    deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run) do
+      docker_compose_run :task, 'db:schema:load', 'db:seed'
     end
   end
 
@@ -134,6 +148,23 @@ namespace :deploy do
     deploy_task ensure_build: %i(deploy:env) do
       ensure_docker_image_built 'alphahydrae/lair-backup'
     end
+  end
+
+  deploy_task ps: %i(deploy:env) do
+
+    containers = docker_ps.split /\n+/
+
+    puts
+
+    if containers.length <= 1
+      puts "No containers are running"
+    else
+      containers.each do |container|
+        puts container
+      end
+    end
+
+    puts
   end
 
   namespace :repo do
@@ -200,12 +231,19 @@ namespace :deploy do
     containers = docker_ps
 
     puts
-    puts "The following containers would be removed:"
+    puts "The following containers will be stopped and removed:"
     puts
 
     containers.split(/\n+/).each do |container|
       puts container
     end
+
+    files_to_delete = %w(checkout docker-compose.yml .env postgresql public redis repo tmp).collect{ |dir| File.join fetch(:root), dir }
+    files_to_delete << '/etc/nginx-serf/sites/lair.conf.hbs'
+
+    puts
+    puts "The following files will be deleted:"
+    files_to_delete.each{ |f| puts "- #{f}" }
 
     unless env == 'vagrant'
       puts
@@ -224,10 +262,7 @@ namespace :deploy do
       execute :docker, 'rm', id
     end
 
-    to_delete = %w(current docker-compose.yml .env postgresql public redis repo tmp).collect{ |dir| File.join fetch(:root), dir }
-    to_delete << '/etc/nginx-serf/sites/lair.conf.hbs'
-
-    execute :rm, '-fr', *to_delete
+    execute :rm, '-fr', *files_to_delete
   end
 
   deploy_task setup: %i(deploy:env) do
