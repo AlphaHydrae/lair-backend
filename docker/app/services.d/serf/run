@@ -7,6 +7,6 @@ sigterm() {
 
 trap sigterm SIGTERM
 
-/opt/bin/serf agent --config-file /etc/serf.conf &
+/opt/bin/serf agent --bind $(cat /etc/hosts|grep $(hostname)|cut -f 1):7946 --config-file /etc/serf.conf &
 pid=$!
 wait

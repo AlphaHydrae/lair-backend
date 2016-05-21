@@ -112,7 +112,7 @@ namespace :deploy do
     end
 
     deploy_task load_dump: %i(deploy:repo:checkout deploy:db:run deploy:wait) do
-      docker_run '--entrypoint', '/tmp/load-dump.sh', '--volume', '/var/lib/lair/checkout/docker/db/load-dump.sh:/tmp/load-dump.sh', '--volume /var/lib/postgresql/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
+      docker_run '--entrypoint', '/tmp/load-dump.sh', '--volume', '/var/lib/lair/checkout/docker/db/load-dump.sh:/tmp/load-dump.sh', '--volume /var/lib/lair/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
     end
   end
 
