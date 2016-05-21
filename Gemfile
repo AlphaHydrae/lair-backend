@@ -70,6 +70,7 @@ group :development, :test do
   gem 'certified'
 
   gem 'sshkit'
+  gem 'highline'
   gem 'handlebars'
   gem 'dotenv-rails'
 

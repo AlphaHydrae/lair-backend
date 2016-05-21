@@ -5,8 +5,7 @@ RUN bundle config --global frozen 1
 
 # Install dependencies.
 WORKDIR /usr/src/app
-COPY Gemfile /usr/src/app/
-COPY Gemfile.lock /usr/src/app/
+COPY Gemfile Gemfile.lock /usr/src/app/
 RUN bundle install --without development test
 
 # Copy the application.

@@ -167,6 +167,7 @@ GEM
     handlebars-source (3.0.3)
     hashie (3.4.2)
     hashr (0.0.22)
+    highline (1.6.21)
     hiredis (0.6.0)
     hitimes (1.2.2)
     httparty (0.13.7)
@@ -467,6 +468,7 @@ DEPENDENCIES
   guard-process
   guard-rake
   handlebars
+  highline
   hiredis
   httparty
   iso
