@@ -87,17 +87,13 @@ services:
   # This is meant to be run as a one-off task (with "run" instead of "up").
   task:
     image: alphahydrae/lair
-    entrypoint:
-      - /usr/src/app/docker/task/wait.sh
-      - rake
+    entrypoint: rake
     command: -T
     volumes:
       - "/var/lib/lair/public:/usr/src/app/public"
       - "/var/lib/lair/tmp:/usr/src/app/tmp"
     env_file:
       - .env
-    environment:
-      LAIR_CONTAINER_TYPE: task
     networks:
       - default
     restart: "no"
@@ -108,6 +104,17 @@ services:
     image: alphahydrae/lair-backup
     volumes:
       - "/var/lib/lair/backup:/var/lib/lair/backup"
+    env_file:
+      - .env
+    networks:
+      - default
+    restart: "no"
+
+  # Wait for cache and database to be available.
+  # This is meant to be run as a one-off task (with "run" instead of "up").
+  wait:
+    image: alphahydrae/lair
+    entrypoint: /usr/src/app/docker/wait.sh
     env_file:
       - .env
     networks:

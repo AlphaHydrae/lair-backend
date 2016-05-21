@@ -1,4 +1,1 @@
 - file: path=/var/lib/lair owner=root group=root mode=0700 state=directory
-# TODO: extract this into server repo
-- file: path=/var/www owner=root group=root mode=0700 state=directory
-- file: path=/var/www/blog owner=root group=root mode=0755 state=directory

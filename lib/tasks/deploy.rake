@@ -33,7 +33,7 @@ end
 
 # TASKS
 
-task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:serf:run deploy:cache:run deploy:app:stop deploy:job:stop deploy:db:migrate deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:app:stop deploy:job:stop deploy:cache:run deploy:db:migrate deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
 fetch(:envs).each do |env|
   task env do
@@ -45,15 +45,11 @@ namespace :deploy do
 
   task hot: %i(deploy:app:ensure_running deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
-  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:serf:run deploy:cache:run deploy:db:load_schema deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:cache:run deploy:db:load_schema deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
   namespace :cold do
     deploy_task ensure_not_run: %i(deploy:env) do
-      raise "An app container has already been run" if docker_container_id(compose_service: 'app')
-      raise "A job container has already been run" if docker_container_id(compose_service: 'job')
-      raise "A db container has already been run" if docker_container_id(compose_service: 'db')
-      raise "A cache container has already been run" if docker_container_id(compose_service: 'cache')
-      raise "A serf container has already been run" if docker_container_id(compose_service: 'serf')
+      raise "Containers have already been run" if docker_container_id
     end
   end
 
@@ -113,11 +109,11 @@ namespace :deploy do
       end
     end
 
-    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run) do
+    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run deploy:wait) do
       docker_compose_run :task, 'db:migrate'
     end
 
-    deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run) do
+    deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run deploy:wait) do
       docker_compose_run :task, 'db:schema:load', 'db:seed'
     end
   end
@@ -133,6 +129,10 @@ namespace :deploy do
       docker_compose_run :task, 'assets:precompile', 'assets:clean'
       docker_compose_run :task, 'templates:precompile'
     end
+  end
+
+  deploy_task wait: %i(deploy:app:ensure_build deploy:config) do
+    docker_compose_run :wait
   end
 
   namespace :backup do
