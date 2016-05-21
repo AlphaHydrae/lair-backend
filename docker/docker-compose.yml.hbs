@@ -88,7 +88,7 @@ services:
   task:
     image: alphahydrae/lair
     entrypoint:
-      - /init
+      - /usr/src/app/docker/task/wait.sh
       - rake
     command: -T
     volumes:
@@ -96,6 +96,8 @@ services:
       - "/var/lib/lair/tmp:/usr/src/app/tmp"
     env_file:
       - .env
+    environment:
+      LAIR_CONTAINER_TYPE: task
     networks:
       - default
     restart: "no"

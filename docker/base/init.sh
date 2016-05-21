@@ -5,6 +5,7 @@ TYPE="$LAIR_CONTAINER_TYPE"
 
 if [ -z "$TYPE" ]; then
   >&2 echo "$LAIR_CONTAINER_TYPE must be set"
+  exit 1
 fi
 
 cd "/usr/src/app/docker/${TYPE}"
