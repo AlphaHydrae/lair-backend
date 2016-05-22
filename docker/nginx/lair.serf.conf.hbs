@@ -7,13 +7,13 @@ upstream lair_cluster {
 \{{/with_members}}
 
 server {
-  listen 80 default_server;
+  listen 80;
   server_name {{ LAIR_NGINX_SERVER_NAME }};
   return 302 https://$server_name$request_uri;
 }
 
 server {
-  listen 443 ssl default_server;
+  listen 443 ssl;
   server_name {{ LAIR_NGINX_SERVER_NAME }};
 
   # certs sent to the client in SERVER HELLO are concatenated in ssl_certificate

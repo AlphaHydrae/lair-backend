@@ -124,7 +124,7 @@ namespace :deploy do
       docker_compose_run :task, 'db:schema:load', 'db:seed'
     end
 
-    deploy_task load_dump: %i(deploy:repo:checkout deploy:db:run deploy:wait) do
+    deploy_task load_dump: %i(deploy:app:build deploy:db:run deploy:wait) do
       docker_run '--entrypoint', '/tmp/load-dump.sh', '--volume', '/var/lib/lair/checkout/docker/db/load-dump.sh:/tmp/load-dump.sh', '--volume /var/lib/lair/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
     end
   end
@@ -160,12 +160,12 @@ namespace :deploy do
     docker_compose_run :wait
   end
 
-  namespace :backup do
-    deploy_task run: %i(deploy:backup:ensure_build deploy:config deploy:network:create) do
-      execute :mkdir, '-p', File.join(fetch(:root), 'backup')
-      docker_compose_run :backup
-    end
+  deploy_task backup: %i(deploy:backup:ensure_build deploy:config) do
+    execute :mkdir, '-p', File.join(fetch(:root), 'backup')
+    docker_compose_run :backup
+  end
 
+  namespace :backup do
     deploy_task build: %i(deploy:repo:checkout) do
       docker_build name: 'alphahydrae/lair-backup', path: File.join(fetch(:checkout), 'docker', 'backup')
     end
