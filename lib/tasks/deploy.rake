@@ -15,7 +15,12 @@ set :local_docker, ->{ File.join fetch(:local_root), 'docker' }
 set :root, ->{ ENV['LAIR_DEPLOY_ROOT'] || '/var/lib/lair' }
 set :repo, ->{ File.join fetch(:root), 'repo' }
 set :checkout, ->{ File.join fetch(:root), 'checkout' }
+set :build, ->{ ENV['LAIR_DEPLOY_BUILD'] || fetch(:checkout) }
 set :tmp, ->{ File.join fetch(:root), 'tmp' }
+set :network, ->{ ENV['LAIR_DEPLOY_NETWORK'] }
+
+set :app_containers, ->{ ENV['LAIR_DOCKER_APP_CONTAINERS'].try(:to_i) || 3 }
+set :job_containers, ->{ ENV['LAIR_DOCKER_JOB_CONTAINERS'].try(:to_i) || 2 }
 
 set :repo_url, ->{ ENV['LAIR_REPO_URL'] }
 set :branch, ->{ ENV['LAIR_REPO_BRANCH'] || 'master' }
@@ -53,15 +58,15 @@ namespace :deploy do
     end
   end
 
-  deploy_task :scale do
+  deploy_task :scale, %i(apps jobs) => %i(deploy:app:ensure_running) do |t,args|
     docker_compose_scale services: {
-      app: ENV['LAIR_DOCKER_APP_CONTAINERS'].try(:to_i) || 3,
-      job: ENV['LAIR_DOCKER_JOB_CONTAINERS'].try(:to_i) || 3
+      app: args[:apps] || fetch(:app_containers),
+      job: args[:jobs] || fetch(:job_containers)
     }
   end
 
   namespace :app do
-    deploy_task run: %i(deploy:app:ensure_build deploy:config) do
+    deploy_task run: %i(deploy:app:ensure_build deploy:network:create deploy:config) do
       docker_compose_up :app, recreate: true
     end
 
@@ -69,31 +74,39 @@ namespace :deploy do
       docker_compose_stop :app
     end
 
+    deploy_task rm: %i(deploy:app:stop) do
+      docker_compose_rm :app
+    end
+
     deploy_task build: %i(deploy:repo:checkout) do
-      docker_build path: fetch(:checkout), name: 'alphahydrae/lair'
+      docker_build path: fetch(:build), name: 'alphahydrae/lair'
     end
 
     deploy_task ensure_build: %i(deploy:env) do
       ensure_docker_image_built 'alphahydrae/lair'
     end
 
-    deploy_task :ensure_running do
+    deploy_task ensure_running: %i(deploy:env) do
       raise "No app containers are running" unless docker_container_id(compose_service: 'app', status: 'running')
     end
   end
 
   namespace :job do
-    deploy_task run: %i(deploy:app:ensure_build deploy:config) do
+    deploy_task run: %i(deploy:app:ensure_build deploy:network:create deploy:config) do
       docker_compose_up :job, recreate: true
     end
 
     deploy_task stop: %i(deploy:config) do
       docker_compose_stop :job
     end
+
+    deploy_task rm: %i(deploy:job:stop) do
+      docker_compose_rm :job
+    end
   end
 
   namespace :db do
-    deploy_task run: %i(deploy:config deploy:cache:run) do
+    deploy_task run: %i(deploy:config deploy:network:create deploy:cache:run) do
 
       env = ENV.select{ |k,v| !!k.match(/^LAIR_(?:DATABASE|POSTGRES)_/) }
       env['POSTGRES_PASSWORD'] = env.delete 'LAIR_POSTGRES_PASSWORD'
@@ -117,30 +130,38 @@ namespace :deploy do
   end
 
   namespace :cache do
-    deploy_task run: %i(deploy:config) do
+    deploy_task run: %i(deploy:config deploy:network:create) do
       docker_compose_up :cache
     end
   end
 
   namespace :serf do
-    deploy_task run: %i(deploy:app:ensure_build deploy:config) do
+    deploy_task run: %i(deploy:app:ensure_build deploy:network:create deploy:config) do
       docker_compose_up :serf
+    end
+
+    deploy_task stop: %i(deploy:config) do
+      docker_compose_stop :serf
+    end
+
+    deploy_task rm: %i(deploy:serf:stop) do
+      docker_compose_rm :serf
     end
   end
 
   namespace :assets do
-    deploy_task compile: %i(deploy:app:ensure_build deploy:config) do
+    deploy_task compile: %i(deploy:app:ensure_build deploy:config deploy:network:create) do
       docker_compose_run :task, 'assets:precompile', 'assets:clean'
       docker_compose_run :task, 'templates:precompile'
     end
   end
 
-  deploy_task wait: %i(deploy:app:ensure_build deploy:config) do
+  deploy_task wait: %i(deploy:app:ensure_build deploy:config deploy:network:create) do
     docker_compose_run :wait
   end
 
   namespace :backup do
-    deploy_task run: %i(deploy:backup:ensure_build deploy:config) do
+    deploy_task run: %i(deploy:backup:ensure_build deploy:config deploy:network:create) do
       execute :mkdir, '-p', File.join(fetch(:root), 'backup')
       docker_compose_run :backup
     end
@@ -151,6 +172,14 @@ namespace :deploy do
 
     deploy_task ensure_build: %i(deploy:env) do
       ensure_docker_image_built 'alphahydrae/lair-backup'
+    end
+  end
+
+  namespace :network do
+    deploy_task create: %i(deploy:env) do
+      unless test "docker network inspect #{fetch(:network)} &>/dev/null"
+        docker_network_create fetch(:network)
+      end
     end
   end
 
@@ -362,15 +391,19 @@ def docker_compose_up service, recreate: false
   up_args << '--no-recreate' unless recreate
   up_args << '-d' << service.to_s
 
-  docker_compose 'up', '--no-deps', *up_args
+  docker_compose :up, '--no-deps', *up_args
 end
 
 def docker_compose_stop service
-  docker_compose 'stop', service.to_s
+  docker_compose :stop, service.to_s
+end
+
+def docker_compose_rm service
+  docker_compose :rm, '-f', '--all', service.to_s
 end
 
 def docker_compose_run *service_and_args
-  docker_compose 'run', '--no-deps', '--rm', *service_and_args.collect(&:to_s)
+  docker_compose :run, '--no-deps', '--rm', *service_and_args.collect(&:to_s)
 end
 
 def docker_compose_scale services:
@@ -379,12 +412,12 @@ def docker_compose_scale services:
     memo << "#{service}=#{number}"
   end
 
-  docker_compose 'scale', *scale_args
+  docker_compose :scale, *scale_args
 end
 
 def docker_compose *args
   within fetch(:root) do
-    capture *([ :'docker-compose', '-p', 'lair' ] + args)
+    capture *([ :'docker-compose', '-p', 'lair' ] + args).collect(&:to_s)
   end
 end
 
@@ -396,7 +429,7 @@ end
 
 def docker_run *run_args
   within fetch(:root) do
-    capture :docker, 'run', '--rm', '--env-file', '.env', '--net', 'lair_default', *run_args
+    capture :docker, 'run', '--rm', '--env-file', '.env', '--net', fetch(:network), *run_args
   end
 end
 
@@ -425,6 +458,26 @@ def docker_inspect id, format: nil
   inspect_args << id.to_s
 
   output = capture :docker, 'inspect', *inspect_args
+  output.strip
+end
+
+def docker_network_create name, driver: 'bridge'
+
+  create_args = []
+  create_args << '--driver' << driver.to_s if driver
+  create_args << name.to_s
+
+  output = capture :docker, 'network', 'create', *create_args
+  output.strip
+end
+
+def docker_network_inspect name, format: nil
+
+  inspect_args = []
+  inspect_args << '--format' << Shellwords.shellescape(format.to_s) if format
+  inspect_args << name.to_s
+
+  output = capture :docker, 'network', 'inspect', *inspect_args
   output.strip
 end
 

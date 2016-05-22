@@ -30,10 +30,10 @@ end
 set :local_tmp, ->{ Dir.mktmpdir }
 
 def deploy_task *args, &block
-  task *args do
+  task *args do |*task_args|
     on fetch(:host) do
       begin
-        instance_eval &block
+        instance_exec *task_args, &block
       ensure
         tmp_dir = LAIR_DEPLOY_DATA[:local_tmp]
         if !tmp_dir.respond_to?(:call)

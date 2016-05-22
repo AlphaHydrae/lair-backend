@@ -1,9 +1,9 @@
 version: "2"
 
 networks:
-  shared:
+  default:
     external:
-      name: "{{ LAIR_DEPLOY_SHARED_NETWORK }}"
+      name: "{{ LAIR_DEPLOY_NETWORK }}"
 
 services:
 
@@ -22,9 +22,6 @@ services:
       - db
       - cache
       - serf
-    networks:
-      - shared
-      - default
     restart: always
 
   # Background job processing task.
@@ -41,8 +38,6 @@ services:
     depends_on:
       - db
       - cache
-    networks:
-      - default
     restart: always
 
   # Serf master.
@@ -51,9 +46,6 @@ services:
     container_name: lair_serf
     environment:
       LAIR_CONTAINER_TYPE: serf
-    networks:
-      - shared
-      - default
     restart: always
 
   # PostgreSQL database.
@@ -68,8 +60,6 @@ services:
       LAIR_DATABASE_NAME:
       LAIR_DATABASE_USERNAME:
       LAIR_DATABASE_PASSWORD:
-    networks:
-      - default
     restart: always
 
   # Redis in-memory database.
@@ -79,8 +69,6 @@ services:
     container_name: lair_cache
     volumes:
       - "/var/lib/lair/redis/data:/data"
-    networks:
-      - default
     restart: always
 
   # Rake task.
@@ -94,8 +82,6 @@ services:
       - "/var/lib/lair/tmp:/usr/src/app/tmp"
     env_file:
       - .env
-    networks:
-      - default
     restart: "no"
 
   # Backup script.
@@ -106,8 +92,6 @@ services:
       - "/var/lib/lair/backup:/var/lib/lair/backup"
     env_file:
       - .env
-    networks:
-      - default
     restart: "no"
 
   # Wait for cache and database to be available.
@@ -117,6 +101,4 @@ services:
     entrypoint: /usr/src/app/docker/wait.sh
     env_file:
       - .env
-    networks:
-      - default
     restart: "no"
