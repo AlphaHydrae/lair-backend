@@ -25,9 +25,9 @@ module Lair
           if params[:relationships].kind_of?(Array)
             params[:relationships].each do |p|
               if p.key? :personId
-                work.person_relationships.build relation: p[:relation].to_s.underscore, details: p[:details], person: Person.where(api_id: p[:personId]).first!
+                work.person_relationships.build relation: p[:relation], details: p[:details], person: Person.where(api_id: p[:personId]).first!
               elsif p.key? :companyId
-                work.company_relationships.build relation: p[:relation].to_s.underscore, details: p[:details], company: Company.where(api_id: p[:companyId]).first!
+                work.company_relationships.build relation: p[:relation], details: p[:details], company: Company.where(api_id: p[:companyId]).first!
               end
             end
           end
@@ -176,7 +176,7 @@ module Lair
             end
 
             relationships_to_add.each do |relationship|
-              data = { relation: relationship[:relation].to_s.underscore, details: relationship[:details] }
+              data = { relation: relationship[:relation], details: relationship[:details] }
               data[relation_association] = relation_model.where(api_id: relationship[id_type]).first!
               work.send(association).build data
             end

@@ -125,9 +125,9 @@ class ApplicationScraper
         person.save!
       end
 
-      relationships = work.person_relationships.where(relation: relation).includes(:person).to_a
+      relationships = work.person_relationships.where(normalized_relation: relation.to_s.downcase).includes(:person).to_a
 
-      if existing_relationship = relationships.find{ |r| r.person == person && r.relation == relation }
+      if existing_relationship = relationships.find{ |r| r.person == person && r.normalized_relation == relation.to_s.downcase }
         existing_relationship.details = details
       else
         relationship = WorkPerson.new work: work, person: person, relation: relation, details: details

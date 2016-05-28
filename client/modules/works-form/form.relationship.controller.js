@@ -68,7 +68,7 @@ angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(ap
       $scope[matchingVar].push(resource);
       $scope.relationship[idVar] = resource.id;
     }, function() {
-      if ($scope.relationship.personId === -1) {
+      if ($scope.relationship[idVar] === -1) {
         $scope.relationship[idVar] = false;
       }
     });

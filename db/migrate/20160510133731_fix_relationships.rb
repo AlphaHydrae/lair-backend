@@ -18,7 +18,7 @@ class FixRelationships < ActiveRecord::Migration
       end
 
       WorkCompany.find_each do |wc|
-        wc.update_columns relation: wc.relation.underscore.humanize, normalized_relation: wc.relation.downcase
+        wc.update_columns relation: wc.relation.humanize, normalized_relation: wc.relation.downcase
       end
     end
 
@@ -30,7 +30,7 @@ class FixRelationships < ActiveRecord::Migration
         if event.previous_version.present? && event.previous_version['relationships'].present?
           event.previous_version['relationships'].each do |relationship|
             if relationship['relation'].present?
-              relationship['relation'] = relationship['relation'].underscore.humanize
+              relationship['relation'] = relationship['relation'].humanize
             end
           end
         end
