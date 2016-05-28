@@ -53,7 +53,8 @@
       h4 ng-show='work.relationships.length' People
       ul ng-show='work.relationships.length'
         li ng-repeat='relationship in work.relationships'
-          person-name person='relationship.person'
+          person-name ng-if='relationship.person' person='relationship.person'
+          company-name ng-if='relationship.company' company='relationship.company'
           span ng-if='relationship.relation'
             small.text-muted<
               | - {{ relationship.relation }}
