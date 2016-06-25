@@ -1,0 +1,22 @@
+#media-ident-dialog
+
+  .modal-header
+    h3
+      span> Identify media: {{ mediaDirectory.path }}
+
+  .modal-body
+
+    p ng-if='!search' No results found.
+
+    table.table.table-hover.table-striped ng-if='search'
+      caption Search results
+      tbody
+        tr ng-repeat='result in search.results'
+          td
+            img ng-if='result.image' ng-src='{{ result.image }}' alt='Search result image' width=32
+          td
+            | {{ result.title }}
+
+  .modal-footer
+    .btn-group.pull-right
+      button.btn.btn-default type='button' ng-click='$dismiss()' Close

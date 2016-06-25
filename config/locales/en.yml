@@ -48,6 +48,10 @@ en:
               invalid_files_count: "does not match the expected number of files after taking additions and deletions into account"
             state:
               unprocessed_files: "cannot be set to processed because there are scanned files that have not been processed yet"
+        media_search:
+          attributes:
+            selected:
+              out_of_bounds: "is larger than the available number of results"
         scrap:
           attributes:
             state:

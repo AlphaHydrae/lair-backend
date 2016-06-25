@@ -8,7 +8,8 @@ module Lair
 
         def serialization_options *args
           Hash.new.tap do |options|
-            options[:with_scan_paths] = true_flag? :withScanPaths
+            options[:include_user] = include_in_response? :user
+            options[:include_scan_paths] = include_in_response? :scanPaths
           end
         end
 

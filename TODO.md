@@ -4,6 +4,7 @@
 * test authorization for collections and ownerships
 * remove image from s3 when deleted
 * fix save and add part
+* set missing images page should not find serial items (shows, anime)
 
 # Medium Priority
 

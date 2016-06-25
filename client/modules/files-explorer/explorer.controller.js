@@ -76,7 +76,7 @@ angular.module('lair.files.explorer').controller('FileExplorerCtrl', function(ap
     url: '/media/sources',
     params: {
       userId: auth.currentUser.id,
-      withScanPaths: 1
+      include: 'scanPaths'
     }
   }).then(function(sources) {
     $scope.mediaSources = sources;

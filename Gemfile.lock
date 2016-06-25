@@ -477,6 +477,7 @@ DEPENDENCIES
   less-rails
   library_stdnums
   ngannotate-rails
+  nokogiri
   ox
   paint
   pg

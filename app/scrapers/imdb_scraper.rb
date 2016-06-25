@@ -4,6 +4,38 @@ class ImdbScraper < ApplicationScraper
     :imdb
   end
 
+  def self.search query:
+
+    results = search_imdb query: query
+
+    if results.blank? && m = query.match(/^(.+)\s+\([^\)]+\)\s*$/)
+      results = search_imdb query: m[1]
+    end
+
+    results.inject [] do |memo,imdb_result|
+
+      link = imdb_result.css 'a[href]'
+      next memo unless link
+
+      url = IMDB_URL + link.attribute('href').try(:value)
+      media_url = MediaUrl.resolve url: url
+      next memo unless media_url && media_url.provider.to_s == provider.to_s
+
+      image = imdb_result.at_css 'img[src]'
+      next memo unless image
+
+      result = {
+        image: image.attribute('src').try(:value),
+        url: media_url.url
+      }
+
+      title = imdb_result.at_css('.result_text').try(:content).try(:strip)
+      result[:title] = title if title.present?
+
+      memo << result
+    end
+  end
+
   def self.scrap scrap
     contents = fetch_data scrap.media_url
     scrap.contents = contents
@@ -121,6 +153,8 @@ class ImdbScraper < ApplicationScraper
   private
 
   OMDB_URL = 'http://www.omdbapi.com'
+  IMDB_URL = 'http://www.imdb.com'
+  IMDB_SEARCH_URL = 'http://www.imdb.com/find'
 
   def self.fetch_data media_url
 
@@ -144,6 +178,23 @@ class ImdbScraper < ApplicationScraper
     end
 
     json
+  end
+
+  def self.search_imdb query:
+
+    start = Time.now
+
+    res = HTTParty.get(IMDB_SEARCH_URL, query: {
+      'q' => Rack::Utils.escape(query.strip),
+      's' => 'tt' # search for titles only (not actors and other items)
+    })
+
+    duration = (Time.now.to_f - start.to_f).round 3
+    Rails.logger.debug %/IMDB search for "#{query}" performed in #{duration}s/
+
+    doc = Nokogiri::HTML res.body
+
+    doc.css '.findResult'
   end
 
   def self.add_people scrap:, work:, property:, string:, relation:

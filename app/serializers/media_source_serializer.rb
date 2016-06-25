@@ -9,7 +9,7 @@ class MediaSourceSerializer < ApplicationSerializer
     json.filesCount record.files_count
     json.scansCount record.scans_count
 
-    json.scanPaths record.scan_paths.sort.collect &:to_h if options[:with_scan_paths]
+    json.scanPaths record.scan_paths.sort.collect &:to_h if options[:include_scan_paths]
 
     json.properties record.properties
 

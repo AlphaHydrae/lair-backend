@@ -43,6 +43,29 @@ class MediaUrl < ActiveRecord::Base
     media_url
   end
 
+  def self.resolve_provider category:
+    case category.to_s.strip.downcase
+    when 'anime'
+      'anidb'
+    when 'movie', 'show'
+      'imdb'
+    end
+  end
+
+  def self.search provider:, query:
+
+    scraper = case provider
+    when 'anidb'
+      AnidbScraper
+    when 'imdb'
+      ImdbScraper
+    else
+      raise "Unknown provider #{provider}"
+    end
+
+    scraper.search query: query
+  end
+
   def queue_scraping
     return if scrap.present?
 

@@ -4,9 +4,7 @@ module Lair
       helpers do
         def serialization_options *args
           {
-            include_media_url: include_in_response?(:mediaUrl),
-            include_files_count: include_in_response?(:filesCount),
-            include_linked_files_count: include_in_response?(:linkedFilesCount)
+            include_media_url: include_in_response?(:mediaUrl)
           }
         end
 
@@ -41,20 +39,49 @@ module Lair
             rel = rel.where 'users.api_id = ?', current_user.api_id
           end
 
+          if true_flag? :nfo
+            rel = rel.where '(media_files.type = ? AND media_files.extension = ?) OR (media_files.type = ? AND media_files.nfo_files_count >= 1)', MediaFile.name, 'nfo', MediaDirectory.name
+          elsif false_flag? :nfo
+            rel = rel.where '(media_files.type = ? AND media_files.extension != ?) OR (media_files.type = ? AND media_files.nfo_files_count <= 0)', MediaFile.name, 'nfo', MediaDirectory.name
+          end
+
+          if true_flag? :linked
+            rel = rel.where '(media_files.type = ? AND media_files.state = ?) OR (media_files.type = ? AND media_files.linked_files_count = media_files.files_count)', MediaFile.name, 'linked', MediaDirectory.name
+          elsif false_flag? :linked
+            rel = rel.where '(media_files.type = ? AND media_files.state != ?) OR (media_files.type = ? AND media_files.linked_files_count < media_files.files_count)', MediaFile.name, 'linked', MediaDirectory.name
+          end
+
           if params.key? :sourceId
             rel = rel.where 'media_sources.api_id = ?', params[:sourceId].to_s
 
             if params.key?(:directory)
-              dir = MediaDirectory.joins(:source).where('media_sources.api_id = ?', params[:sourceId]).where(path: params[:directory].to_s).first
-              if dir
-                rel = rel.where 'media_files.id != ?', dir.id
-                rel = rel.where "media_files.id IN (#{dir.child_files_sql})" unless dir.depth == 0
 
-                if params.key? :maxDepth
-                  rel = rel.where 'media_files.depth <= ?', dir.depth + params[:maxDepth].to_i
-                end
-              else
+              paths = params[:directory].kind_of?(Array) ? params[:directory].collect(&:to_s) : params[:directory].to_s
+              dirs = MediaDirectory.joins(:source).where('media_sources.api_id = ?', params[:sourceId]).where(path: paths).to_a
+
+              if dirs.blank?
                 rel = rel.none
+              elsif root_dir = dirs.find{ |dir| dir.depth == 0 }
+                rel = rel.where 'media_files.id != ?', root_dir.id
+                rel = rel.where 'media_files.depth = ?', params[:maxDepth].to_i if params.key? :maxDepth
+              elsif dirs.present?
+
+                conditions = []
+                values = []
+
+                dirs.each do |dir|
+                  condition = "media_files.id IN (#{dir.child_files_sql})"
+
+                  if params.key? :maxDepth
+                    condition += ' AND media_files.depth <= ?'
+                    values << dir.depth + params[:maxDepth].to_i
+                  end
+
+                  conditions << condition
+                end
+
+                where_clause = [ conditions.collect{ |cond| "(#{cond})" }.join(' OR ') ] + values
+                rel = rel.where *where_clause
               end
             end
           else
@@ -79,26 +106,6 @@ module Lair
         files = load_resources rel
 
         options = {}
-
-        if %i(filesCount linkedFilesCount).any?{ |attr| include_in_response? attr }
-          options[:directory_counts] = {}
-
-          directories = files.select &:directory?
-          directories.each do |dir|
-
-            dir_files_rel = MediaFile
-              .where(source_id: dir.source_id, deleted: false)
-
-            dir_files_rel = dir_files_rel.where("media_files.id IN (#{dir.child_files_sql})") unless dir.depth == 0
-
-            options[:directory_counts][dir.api_id] = {}
-            options[:directory_counts][dir.api_id][:files_count] = dir_files_rel.count if include_in_response? :filesCount
-
-            if include_in_response? :linkedFilesCount
-              options[:directory_counts][dir.api_id][:linked_files_count] = dir_files_rel.where('media_files.state = ?', 'linked').count
-            end
-          end
-        end
 
         if include_in_response? :mediaUrl
           options[:media_urls] = MediaUrl.where(id: files.collect(&:media_url_id).compact.uniq).includes(:work).to_a

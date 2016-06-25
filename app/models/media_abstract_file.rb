@@ -6,7 +6,6 @@ class MediaAbstractFile < ActiveRecord::Base
   before_create :set_identifier
 
   belongs_to :source, class_name: 'MediaSource', counter_cache: :files_count
-  belongs_to :directory, class_name: 'MediaAbstractFile', counter_cache: :files_count
 
   strip_attributes
   # TODO: validate max depth

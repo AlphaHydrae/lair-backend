@@ -29,18 +29,19 @@ angular.module('lair.auth').factory('auth', function(appStore, $auth, $log, $roo
       }
     },
 
+    currentUserIs: function() {
+      if (!service.currentUser) {
+        return false;
+      }
+
+      var requiredRoles = Array.prototype.slice.call(arguments),
+          currentUserRoles = service.currentUser.roles || [];
+
+      return _.intersection(currentUserRoles, requiredRoles).length == requiredRoles.length;
+    },
+
     addAuthFunctions: function($scope) {
-
-      $scope.currentUserIs = function() {
-        if (!$rootScope.currentUser) {
-          return false;
-        }
-
-        var requiredRoles = Array.prototype.slice.call(arguments),
-            currentUserRoles = $rootScope.currentUser.roles || [];
-
-        return _.intersection(currentUserRoles, requiredRoles).length == requiredRoles.length;
-      };
+      $scope.currentUserIs = service.currentUserIs;
     }
   };
 

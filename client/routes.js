@@ -104,6 +104,13 @@ angular.module('lair.routes', [ 'ui.router' ])
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
       })
 
+      .state('mediaIdent', {
+        url: '^/mediaIdent?source',
+        reloadOnSearch: false,
+        controller: 'MediaIdentCtrl',
+        templateUrl: '/templates/modules/media-ident/ident.template.html'
+      })
+
       .state('mediaScans', {
         abstract: true,
         url: '^/mediaScanning',

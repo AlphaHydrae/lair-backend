@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160528110641) do
+ActiveRecord::Schema.define(version: 20160602192230) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -232,27 +232,29 @@ ActiveRecord::Schema.define(version: 20160528110641) do
   add_index "languages", ["tag"], name: "index_languages_on_tag", unique: true, using: :btree
 
   create_table "media_files", force: :cascade do |t|
-    t.string   "type",             limit: 14,                 null: false
-    t.string   "api_id",           limit: 12,                 null: false
-    t.text     "path",                                        null: false
-    t.boolean  "deleted",                     default: false, null: false
-    t.integer  "source_id",                                   null: false
+    t.string   "type",               limit: 14,                 null: false
+    t.string   "api_id",             limit: 12,                 null: false
+    t.text     "path",                                          null: false
+    t.boolean  "deleted",                       default: false, null: false
+    t.integer  "source_id",                                     null: false
     t.integer  "directory_id"
-    t.integer  "depth",                       default: 0,     null: false
-    t.integer  "bytesize",         limit: 8
-    t.integer  "files_count",                 default: 0,     null: false
+    t.integer  "depth",                         default: 0,     null: false
+    t.integer  "bytesize",           limit: 8
+    t.integer  "files_count",                   default: 0,     null: false
     t.datetime "scanned_at"
     t.integer  "last_scan_id"
     t.datetime "file_created_at"
     t.datetime "file_modified_at"
     t.datetime "deleted_at"
-    t.datetime "created_at",                                  null: false
-    t.datetime "updated_at",                                  null: false
+    t.datetime "created_at",                                    null: false
+    t.datetime "updated_at",                                    null: false
     t.json     "properties"
-    t.string   "state",            limit: 20
-    t.string   "extension",        limit: 20
+    t.string   "state",              limit: 20
+    t.string   "extension",          limit: 20
     t.integer  "media_url_id"
     t.integer  "ownership_id"
+    t.integer  "nfo_files_count",               default: 0,     null: false
+    t.integer  "linked_files_count",            default: 0,     null: false
   end
 
   add_index "media_files", ["api_id"], name: "index_media_files_on_api_id", unique: true, using: :btree
@@ -335,6 +337,18 @@ ActiveRecord::Schema.define(version: 20160528110641) do
 
   add_index "media_scraps", ["api_id"], name: "index_media_scraps_on_api_id", unique: true, using: :btree
   add_index "media_scraps", ["media_url_id"], name: "index_media_scraps_on_media_url_id", unique: true, using: :btree
+
+  create_table "media_searches", force: :cascade do |t|
+    t.string   "api_id",        limit: 12, null: false
+    t.string   "query",                    null: false
+    t.string   "provider",      limit: 20, null: false
+    t.json     "results",                  null: false
+    t.integer  "results_count",            null: false
+    t.integer  "selected"
+    t.integer  "user_id",                  null: false
+    t.datetime "created_at",               null: false
+    t.datetime "updated_at",               null: false
+  end
 
   create_table "media_sources", force: :cascade do |t|
     t.string   "api_id",          limit: 12,             null: false

@@ -41,6 +41,7 @@ gem 'library_stdnums'
 
 # Data
 gem 'ox'
+gem 'nokogiri'
 
 # API & Services
 gem 'jwt'
