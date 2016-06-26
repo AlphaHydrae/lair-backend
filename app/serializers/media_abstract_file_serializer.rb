@@ -4,5 +4,11 @@ class MediaAbstractFileSerializer < ApplicationSerializer
     json.path record.path
     json.deleted record.deleted
     json.sourceId record.source.api_id
+
+    basename = File.basename record.path
+    json.basename basename
+
+    dirname = File.dirname record.path
+    json.dirname dirname if dirname != record.path
   end
 end

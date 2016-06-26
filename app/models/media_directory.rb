@@ -2,6 +2,11 @@ class MediaDirectory < MediaAbstractFile
   include SqlHelper
 
   has_many :files, class_name: 'MediaAbstractFile', foreign_key: :directory_id
+  has_and_belongs_to_many :searches, class_name: 'MediaSearch', join_table: :media_directories_searches, foreign_key: :media_directory_id
+
+  def media_search
+    searches.first
+  end
 
   def child_files &block
     MediaAbstractFile.where("id IN (#{child_files_sql(&block)})")

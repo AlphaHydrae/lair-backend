@@ -40,7 +40,7 @@ angular.module('lair.infinite').controller('InfiniteCtrl', function(api, auth, $
       number: length === 0 ? 60 : 24
     });
 
-    api({
+    return api({
       url: $scope.httpSettings.url,
       params: params
     }).then(addRecords, handleError);

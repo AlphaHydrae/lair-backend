@@ -9,21 +9,17 @@ module Lair
         end
 
         def with_serialization_includes rel
-          rel
+          rel.includes :directories
         end
 
         def update_record_from_params record
 
-          if params.key?(:sourceId) && params.key?(:directory)
+          if params[:directoryIds].kind_of? Array
+            directories = MediaDirectory.where(api_id: params[:directoryIds].collect(&:to_s)).includes(:source).to_a
+            record.directories = directories
 
-            directory = MediaDirectory
-              .joins(:source)
-              .where('media_sources.api_id = ? AND media_files.path = ?', params[:sourceId].to_s, params[:directory].to_s)
-              .includes(:source)
-              .first
-
-            if directory.present?
-
+            if record.directories.present?
+              directory = record.directories.first
               record.query = File.basename directory.path
 
               scan_path = directory.source.scan_paths.find{ |sp| directory.path.index(sp.path) == 0 }
@@ -33,9 +29,9 @@ module Lair
             end
           end
 
-          record.query = params[:query].to_s if params.key? :query
-          record.provider = params[:provider].to_s if params.key? :provider
-          record.selected = params[:selected] if !record.new_record? && params.key?(:selected)
+          record.query = params[:query].to_s if record.new_record? && params.key?(:query)
+          record.provider = params[:provider].to_s if record.new_record? && params.key?(:provider)
+          record.selected_url = params[:selectedUrl] if !record.new_record? && params.key?(:selectedUrl)
         end
       end
 
@@ -59,16 +55,75 @@ module Lair
       get do
         authorize! MediaSearch, :index
 
-        rel = policy_scope MediaSearch.order('created_at DESC')
+        rel = policy_scope MediaSearch.order('media_searches.created_at DESC')
 
         rel = paginated rel do |rel|
 
           rel = rel.where query: params[:query].to_s if params.key? :query
 
+          if params.key? :provider
+            rel = rel.where provider: params[:provider].to_s
+          elsif params.key? :category
+            if provider = MediaUrl.resolve_provider(category: params[:category].to_s)
+              rel = rel.where provider: provider
+            else
+              rel = rel.none
+            end
+          end
+
+          if params.key? :directoryId
+            rel = rel.joins(:directories).where 'media_files.type = ? AND media_files.api_id IN (?)', MediaDirectory.name, Array.wrap(params[:directoryId]).collect(&:to_s)
+          end
+
           rel
         end
 
         serialize load_resources(rel)
+      end
+
+      namespace '/:id' do
+        helpers do
+          def record
+            @record ||= load_resource!(MediaSearch.where(api_id: params[:id].to_s))
+          end
+        end
+
+        patch do
+          authorize! record, :update
+
+          MediaSource.transaction do
+            update_record_from_params record
+            record.save!
+            serialize record
+          end
+        end
+
+        namespace :directoryIds do
+          post do
+            authorize! record, :update
+
+            new_ids = JSON.parse request.body.read
+
+            if new_ids.kind_of? Array
+              new_directories = MediaDirectory.where(api_id: new_ids).to_a
+              record.directories = (record.directories + new_directories).uniq
+            end
+
+            record.directories.collect &:api_id
+          end
+        end
+
+        namespace :results do
+          post do
+            authorize! record, :update
+
+            MediaSearch.transaction do
+              record.results = MediaUrl.search provider: record.provider, query: record.query
+              record.save!
+              record.results
+            end
+          end
+        end
       end
     end
   end

@@ -7,7 +7,9 @@ class MediaSearchSerializer < ApplicationSerializer
     json.results record.results if options[:include_results]
     json.resultsCount record.results_count
 
-    json.selected record.selected if record.selected
+    json.selectedUrl record.selected_url if record.selected_url
+
+    json.directoryIds record.directories.collect(&:api_id)
 
     json.createdAt record.created_at.iso8601(3)
     json.updatedAt record.updated_at.iso8601(3)

@@ -14,7 +14,7 @@ angular.module('lair.mediaIdent.dialog').factory('mediaIdentDialog', function($m
         templateUrl: '/templates/modules/media-ident-dialog/dialog.template.html'
       });
 
-      return modal.result;
+      return modal;
     }
   };
 

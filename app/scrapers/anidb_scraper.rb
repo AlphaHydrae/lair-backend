@@ -1,3 +1,6 @@
+require 'zlib'
+require 'stringio'
+
 class AnidbScraper < ApplicationScraper
   def self.scraps? *args
     config[:enabled] && super(*args)
@@ -5,6 +8,27 @@ class AnidbScraper < ApplicationScraper
 
   def self.provider
     :anidb
+  end
+
+  def self.search query:
+
+    dump = latest_anidb_dump
+
+    document = Ox.parse dump.content
+    anime_elements = locate document.root, 'anime'
+
+    results = search_anidb_titles query: query, anime_elements: anime_elements
+
+    if results.blank?
+      searchable_query_parts = query.to_s.strip.downcase.split(/\s+/).select{ |p| p.length >= 4 }.sort{ |a,b| b.length <=> a.length }
+      results = searchable_query_parts.inject [] do |memo,searchable_query_part|
+        memo + search_anidb_titles(query: searchable_query_part, anime_elements: anime_elements)
+      end
+    end
+
+    results.uniq!{ |result| result[:url] }
+
+    results.length > 250 ? results[0, 250] : results
   end
 
   def self.scrap scrap
@@ -146,6 +170,61 @@ class AnidbScraper < ApplicationScraper
 
   ANIDB_URL = 'http://api.anidb.net:9001/httpapi?request=anime&client=%{client_id}&clientver=%{client_version}&protover=1&aid=%{anime_id}'
   ANIDB_IMAGE_URL = 'http://img7.anidb.net/pics/anime/%{image}'
+  ANIDB_DUMP_URL = 'http://anidb.net/api/anime-titles.xml.gz'
+
+  def self.latest_anidb_dump
+
+    dump = MediaDump.where(provider: provider.to_s, category: 'titles').order('created_at DESC').first
+    if dump.present? && Time.now - dump.created_at < 1.week
+      Rails.logger.debug "Using latest AniDB title dump from #{dump.created_at}"
+      return dump
+    end
+
+    unless $redis.set 'anidb:dump:throttle', true, ex: 2.days.to_i, nx: true
+      raise "Could not retrieve AniDB title dump" unless dump
+      Rails.logger.debug "Using latest AniDB title dump from #{dump.created_at} due to throttling"
+      return dump
+    end
+
+    start = Time.now
+    latest_dump = MediaDump.new provider: provider.to_s, category: 'titles'
+
+    res = HTTParty.get ANIDB_DUMP_URL
+
+    duration = (Time.now.to_f - start.to_f).round 3
+    Rails.logger.info "Downloaded latest AniDB title dump in #{duration}s"
+
+    latest_dump.content = res.body.to_s
+    latest_dump.content_type = 'application/xml'
+
+    latest_dump.tap &:save!
+  end
+
+  def self.search_anidb_titles query:, anime_elements:
+
+    query = query.to_s.strip.downcase
+
+    matching_anime_elements = anime_elements.inject [] do |memo,anime_element|
+      next memo unless anime_element['aid']
+
+      title_elements = locate anime_element, 'title'
+      matching_title = title_elements.find do |title_element|
+        element_text(title_element).downcase.index query
+      end
+
+      if matching_title
+        media_url = MediaUrl.new provider: provider, category: 'anime', provider_id: anime_element['aid']
+        main_title_elements = title_elements.select{ |e| %w(main official).include?(e['type']) }
+
+        memo << {
+          url: media_url.url,
+          title: main_title_elements.collect{ |t| element_text(t) }.join(', ')
+        }
+      end
+
+      memo
+    end
+  end
 
   def self.fetch_data media_url
 

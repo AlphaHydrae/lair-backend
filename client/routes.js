@@ -105,7 +105,7 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('mediaIdent', {
-        url: '^/mediaIdent?source',
+        url: '^/media/ident?source&directory',
         reloadOnSearch: false,
         controller: 'MediaIdentCtrl',
         templateUrl: '/templates/modules/media-ident/ident.template.html'

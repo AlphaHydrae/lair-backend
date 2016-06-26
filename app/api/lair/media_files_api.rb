@@ -4,12 +4,14 @@ module Lair
       helpers do
         def serialization_options *args
           {
+            include_media_search: include_in_response?(:mediaSearch),
             include_media_url: include_in_response?(:mediaUrl)
           }
         end
 
         def with_serialization_includes rel
           rel = rel.includes :source
+          rel = rel.includes :searches if params[:type] == 'directory' && include_in_response?(:mediaSearch)
           rel
         end
       end
@@ -105,7 +107,7 @@ module Lair
 
         files = load_resources rel
 
-        options = {}
+        options = serialization_options
 
         if include_in_response? :mediaUrl
           options[:media_urls] = MediaUrl.where(id: files.collect(&:media_url_id).compact.uniq).includes(:work).to_a

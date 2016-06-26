@@ -2,21 +2,81 @@
 
   .modal-header
     h3
-      span> Identify media: {{ mediaDirectory.path }}
+      span> Search for {{ mediaDirectory.basename }}
+      small
+        span ng-if='mediaDirectory.dirname' in {{ mediaDirectory.dirname }}
+        span ng-if='mediaSource'
+          |  from {{ mediaSource.name }}
+          span ng-if='currentUserIs("admin")'  ({{ mediaSource.user.name }})
 
-  .modal-body
+  form name='mediaSearchForm' novalidate=true ng-submit='mediaSearchForm.$valid && saveSelectedSearchResult()'
+    .modal-body
 
-    p ng-if='!search' No results found.
+      .progress ng-if='busy'
+        .progress-bar.progress-bar-striped.active role='progressbar' aria-valuenow='100' aria-valuemin='0' aria-valuemax='100' style='width: 100%;'
+          | Searching...
 
-    table.table.table-hover.table-striped ng-if='search'
-      caption Search results
-      tbody
-        tr ng-repeat='result in search.results'
-          td
-            img ng-if='result.image' ng-src='{{ result.image }}' alt='Search result image' width=32
-          td
-            | {{ result.title }}
+      .existing-search ng-if='similarSearch'
+        p
+          | A search was already run for
+          strong<> {{ mediaDirectory.basename }}
+          | on
+          scraper-label< scraper='{{ similarSearch.provider }}'
+        p ng-if='similarSearch.selectedResult || similarSearch.selectedUrl'
+          | The following result was selected:
+          a< target='_blank' href='{{ similarSearch.selectedUrl }}' {{ similarSearch.selectedResult.title || similarSearch.selectedUrl }}
+        .btn-group
+          button.btn.btn-success type='button' ng-click='runNewSearch()' Run a new search
+          button.btn.btn-primary type='button' ng-click='useSimilarSearch()' Select this search
 
-  .modal-footer
-    .btn-group.pull-right
-      button.btn.btn-default type='button' ng-click='$dismiss()' Close
+      .search ng-if='search'
+        .lead Select a search result or paste a custom URL in the field below.
+
+        .form-group
+          input.form-control type='text' ng-model='search.selectedUrl' placeholder='Media URL' required=true
+          .help-block
+            | If using a custom URL, it should be from a
+            a<> href='#' ng-click='showSupportedScrapers()' supported media provider
+            | .
+
+        .search-results ng-if='search'
+          .btn-group.btn-group-xs.pull-right
+            button.btn.btn-default type='button' ng-click='refresh()' tooltip='Refresh search results' tooltip-append-to-body='true'
+              span.glyphicon.glyphicon-refresh
+            button.btn.btn-warning type='button' ng-click='goToNextSearch()' Next search
+            button.btn.btn-primary type='button' ng-disabled='!search.selectedUrl' ng-click='mediaSearchForm.$valid && saveSelectedSearchResult()' Save selected choice
+
+          h4
+            | Search results
+            span ng-if='!search.new'
+              |  from
+              span< am-time-ago='search.createdAt'
+            small ng-if='search.results.length'
+              span<
+              ng-pluralize count='search.results.length' when='{one: "1 matching title found", other: "{} matching titles found"}'
+
+          p.empty ng-if='!search.results.length'
+            | No matching title found.
+
+          table.table.table-hover.table-striped.clearfix ng-if='search.results.length'
+            tbody
+              tr ng-repeat='result in search.results'
+                td
+                  input type='radio' ng-model='search.selectedUrl' ng-value='result.url'
+                td
+                  a href='#' ng-click='selectSearchResult(result)'
+                    img ng-if='result.image' ng-src='{{ result.image }}' alt='Search result image' width=32
+                    span.glyphicon.glyphicon-picture ng-if='!result.image'
+                td
+                  a target='_blank' href='{{ result.url }}'
+                    | {{ result.title }}
+
+    .modal-footer
+      .btn-group.pull-right
+        .checkbox ng-if='search'
+          label
+            input type='checkbox' ng-model='settings.next'
+            |  go to next search
+        button.btn.btn-default type='button' ng-click='$dismiss()' Cancel
+        button.btn.btn-warning type='button' ng-click='goToNextSearch()' Next search
+        button.btn.btn-primary ng-if='search' type='submit' ng-disabled='!search.selectedUrl' Save selected choice

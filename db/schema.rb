@@ -231,6 +231,22 @@ ActiveRecord::Schema.define(version: 20160602192230) do
 
   add_index "languages", ["tag"], name: "index_languages_on_tag", unique: true, using: :btree
 
+  create_table "media_directories_searches", id: false, force: :cascade do |t|
+    t.integer "media_directory_id", null: false
+    t.integer "media_search_id",    null: false
+  end
+
+  add_index "media_directories_searches", ["media_directory_id"], name: "index_media_directories_searches_on_media_directory_id", unique: true, using: :btree
+
+  create_table "media_dumps", force: :cascade do |t|
+    t.string   "api_id",       limit: 12, null: false
+    t.string   "provider",     limit: 20, null: false
+    t.string   "category",     limit: 20, null: false
+    t.text     "content",                 null: false
+    t.string   "content_type", limit: 50, null: false
+    t.datetime "created_at",              null: false
+  end
+
   create_table "media_files", force: :cascade do |t|
     t.string   "type",               limit: 14,                 null: false
     t.string   "api_id",             limit: 12,                 null: false
@@ -344,7 +360,7 @@ ActiveRecord::Schema.define(version: 20160602192230) do
     t.string   "provider",      limit: 20, null: false
     t.json     "results",                  null: false
     t.integer  "results_count",            null: false
-    t.integer  "selected"
+    t.string   "selected_url"
     t.integer  "user_id",                  null: false
     t.datetime "created_at",               null: false
     t.datetime "updated_at",               null: false
@@ -540,6 +556,8 @@ ActiveRecord::Schema.define(version: 20160602192230) do
   add_foreign_key "items_audio_languages", "languages", on_delete: :restrict
   add_foreign_key "items_subtitle_languages", "items", column: "video_id", on_delete: :cascade
   add_foreign_key "items_subtitle_languages", "languages", on_delete: :restrict
+  add_foreign_key "media_directories_searches", "media_files", column: "media_directory_id"
+  add_foreign_key "media_directories_searches", "media_searches"
   add_foreign_key "media_files", "media_files", column: "directory_id", on_delete: :cascade
   add_foreign_key "media_files", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_files", "media_sources", column: "source_id", on_delete: :cascade
