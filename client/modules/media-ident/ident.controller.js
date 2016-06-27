@@ -8,7 +8,8 @@ angular.module('lair.mediaIdent').controller('MediaIdentCtrl', function(api, aut
         type: 'directory',
         nfo: 0,
         linked: 0,
-        include: 'mediaSearch'
+        include: 'mediaSearch',
+        mediaSearchCompleted: $stateParams.completed ? '*' : 0
       }
     },
     infiniteOptions: {
@@ -16,11 +17,11 @@ angular.module('lair.mediaIdent').controller('MediaIdentCtrl', function(api, aut
     }
   };
 
-  var route = $scope.route = _.pick($stateParams, 'source', 'directory');
+  var route = $scope.route = _.pick($stateParams, 'source', 'directory', 'completed');
 
   fetchMediaSources();
 
-  $scope.$watchGroup([ 'route.source', 'route.directory' ], onSelectionChanged);
+  $scope.$watch('route', onSelectionChanged, true);
 
   $scope.$on('$locationChangeSuccess', function() {
 
@@ -33,6 +34,10 @@ angular.module('lair.mediaIdent').controller('MediaIdentCtrl', function(api, aut
     if (search.directory != route.directory) {
       route.directory = search.directory;
     }
+
+    if (search.completed != route.completed) {
+      route.completed = search.completed;
+    }
   });
 
   $scope.identifyMedia = function(directory) {
@@ -43,30 +48,33 @@ angular.module('lair.mediaIdent').controller('MediaIdentCtrl', function(api, aut
     scrapers.openSupportModal($scope);
   };
 
-  function onSelectionChanged(newValues, oldValues) {
+  function onSelectionChanged(newRoute, oldRoute) {
 
-    var source = newValues[0],
-        directory = newValues[1];
-
-    var sourceChanged = source != oldValues[0],
-        directoryChanged = directory != oldValues[1];
+    var sourceChanged = newRoute.source != oldRoute.source,
+        directoryChanged = newRoute.directory != oldRoute.directory,
+        completedChanged = newRoute.completed != oldRoute.completed;
 
     if (sourceChanged) {
-      $location.search('source', source);
-      updateMediaSource(source);
-    } else if (source) {
-      updateMediaSource(source);
+      $location.search('source', newRoute.source);
+      updateMediaSource(newRoute.source);
+    } else if (newRoute.source) {
+      updateMediaSource(newRoute.source);
     }
 
     if (directoryChanged) {
-      $location.search('directory', directory);
-      if (directory) {
-        identifyMedia(directory);
+      $location.search('directory', newRoute.directory);
+      if (newRoute.directory) {
+        identifyMedia(newRoute.directory);
       } else {
         closeMediaIdentDialog();
       }
-    } else if (directory) {
-      identifyMedia(directory);
+    } else if (newRoute.directory) {
+      identifyMedia(newRoute.directory);
+    }
+
+    if (completedChanged) {
+      $location.search('completed', newRoute.completed);
+      $scope.mediaIdentList.httpSettings.params.mediaSearchCompleted = newRoute.completed ? '*' : 0;
     }
   }
 
@@ -88,6 +96,11 @@ angular.module('lair.mediaIdent').controller('MediaIdentCtrl', function(api, aut
           var matchingDirectory = _.find($scope.mediaIdentList.records, { id: directory.id });
           if (matchingDirectory) {
             matchingDirectory.mediaSearch = result.mediaSearch;
+            if (!route.completed && result.mediaSearch.selectedUrl) {
+              $timeout(function() {
+                $scope.mediaIdentList.records.splice($scope.mediaIdentList.records.indexOf(matchingDirectory), 1);
+              }, 1);
+            }
           }
         }
 

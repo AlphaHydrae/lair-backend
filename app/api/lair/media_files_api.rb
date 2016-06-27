@@ -11,7 +11,7 @@ module Lair
 
         def with_serialization_includes rel
           rel = rel.includes :source
-          rel = rel.includes :searches if params[:type] == 'directory' && include_in_response?(:mediaSearch)
+          rel = rel.preload :searches if params[:type] == 'directory' && include_in_response?(:mediaSearch)
           rel
         end
       end
@@ -19,19 +19,19 @@ module Lair
       get do
         authorize! MediaAbstractFile, :index
 
-        rel = policy_scope MediaAbstractFile.order('media_sources.name ASC, media_files.path ASC')
+        rel = if !params.key?(:type)
+          MediaAbstractFile
+        elsif params[:type] == 'file'
+          MediaFile
+        elsif params[:type] == 'directory'
+          MediaDirectory
+        else
+          MediaAbstractFile.none
+        end
+
+        rel = policy_scope rel.joins(source: :user).order('media_sources.name ASC, media_files.path ASC')
 
         rel = paginated rel do |rel|
-
-          if params.key? :type
-            if params[:type] == 'file'
-              rel = rel.where 'media_files.type = ?', MediaFile.name
-            elsif params[:type] == 'directory'
-              rel = rel.where 'media_files.type = ?', MediaDirectory.name
-            else
-              rel = rel.none
-            end
-          end
 
           if current_user.admin? && params.key?(:userId)
             rel = rel.where 'users.api_id = ?', params[:userId].to_s
@@ -100,6 +100,24 @@ module Lair
             rel = rel.where deleted: true
           elsif !all_flag?(:deleted)
             rel = rel.where deleted: false
+          end
+
+          if params[:type] == 'directory'
+            if true_flag? :mediaSearchCompleted
+              rel = rel.joins(:searches).where 'media_searches.selected_url IS NOT NULL'
+            elsif false_flag? :mediaSearchCompleted
+              rel = rel
+                .joins('LEFT OUTER JOIN media_directories_searches ON media_files.id = media_directories_searches.media_directory_id')
+                .joins('LEFT OUTER JOIN media_searches ON media_directories_searches.media_search_id = media_searches.id')
+                .where 'media_searches.selected_url IS NULL'
+            elsif true_flag? :mediaSearch
+              rel = rel.joins(:searches).where 'media_searches.id IS NOT NULL'
+            elsif false_flag? :mediaSearch
+              rel = rel
+                .joins('LEFT OUTER JOIN media_directories_searches ON media_files.id = media_directories_searches.media_directory_id')
+                .joins('LEFT OUTER JOIN media_searches ON media_directories_searches.media_search_id = media_searches.id')
+                .where 'media_searches.id IS NULL'
+            end
           end
 
           rel

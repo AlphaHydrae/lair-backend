@@ -8,6 +8,19 @@ class MediaDirectory < MediaAbstractFile
     searches.first
   end
 
+  def update_files_counts counts = {}
+    statements = %i(files_count nfo_files_count linked_files_count).inject [] do |memo,column|
+      memo << update_files_count_statement(column: column, by: counts[column]) if counts.key?(column) && counts[column] != 0
+      memo
+    end
+
+    with_parent_directories.update_all statements.join(', ')
+  end
+
+  def with_parent_directories
+    MediaDirectory.where "media_files.id = #{id} OR media_files.id IN (#{parent_directories_sql})"
+  end
+
   def child_files &block
     MediaAbstractFile.where("id IN (#{child_files_sql(&block)})")
   end
@@ -30,5 +43,12 @@ class MediaDirectory < MediaAbstractFile
     SQL
 
     strip_sql sql
+  end
+
+  private
+
+  def update_files_count_statement column:, by: 0
+    operator = by >= 0 ? '+' : '-'
+    "#{column} = COALESCE(#{column}, 0) #{operator} #{by.abs}"
   end
 end

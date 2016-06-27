@@ -43,7 +43,7 @@
           td.status
             a href='#' ng-click='showMediaScan(scan)'
               .label.label-default ng-if='scan.state == "canceled"' Canceled
-              .label.label-danger ng-if='scan.state == "failed" || scan.state == "analysisFailed"' Error
+              .label.label-danger ng-if='scan.state == "failed" || scan.state == "analysisFailed" || scan.state == "processingFailed"' Error
               .label.label-success ng-if='scan.state == "analyzed"' Complete
               progressbar.progress-striped.active ng-if='scanIsInProgress(scan)' type='primary' value='scan.analysisProgress' animate='true'
       tfoot

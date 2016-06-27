@@ -53,10 +53,16 @@ class MediaFile < MediaAbstractFile
     end
   end
 
+  def path= path
+    super path
+    set_extension
+    path
+  end
+
   private
 
   def set_extension
     ext = File.extname(path).sub(/^\./, '')
-    self.extension = ext.downcase if ext.present? && ext.length <= 20
+    self.extension = ext.present? && ext.length <= 20 ? ext.downcase : nil
   end
 end

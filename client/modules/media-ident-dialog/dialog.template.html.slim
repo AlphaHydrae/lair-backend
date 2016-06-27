@@ -1,6 +1,10 @@
 #media-ident-dialog
 
   .modal-header
+    .status.pull-right
+      .label.label-success ng-if='settings.selectedUrl && settings.selectedUrl == search.selectedUrl && !settings.similarSearch' Search complete
+      .label.label-warning ng-if='settings.selectedUrl && (settings.selectedUrl != search.selectedUrl || settings.similarSearch)' Selection not saved
+      .label.label-danger ng-if='!settings.selectedUrl' No result selected
     h3
       span> Search for {{ mediaDirectory.basename }}
       small
@@ -16,35 +20,25 @@
         .progress-bar.progress-bar-striped.active role='progressbar' aria-valuenow='100' aria-valuemin='0' aria-valuemax='100' style='width: 100%;'
           | Searching...
 
-      .existing-search ng-if='similarSearch'
-        p
-          | A search was already run for
-          strong<> {{ mediaDirectory.basename }}
-          | on
-          scraper-label< scraper='{{ similarSearch.provider }}'
-        p ng-if='similarSearch.selectedResult || similarSearch.selectedUrl'
-          | The following result was selected:
-          a< target='_blank' href='{{ similarSearch.selectedUrl }}' {{ similarSearch.selectedResult.title || similarSearch.selectedUrl }}
-        .btn-group
-          button.btn.btn-success type='button' ng-click='runNewSearch()' Run a new search
-          button.btn.btn-primary type='button' ng-click='useSimilarSearch()' Select this search
-
       .search ng-if='search'
-        .lead Select a search result or paste a custom URL in the field below.
+        p.lead Select a search result or paste a custom URL in the field below.
 
         .form-group
-          input.form-control type='text' ng-model='search.selectedUrl' placeholder='Media URL' required=true
+          input.form-control type='text' ng-model='settings.selectedUrl' ng-disabled='settings.similarSearch' placeholder='Media URL' required=true
           .help-block
             | If using a custom URL, it should be from a
             a<> href='#' ng-click='showSupportedScrapers()' supported media provider
             | .
 
         .search-results ng-if='search'
+
           .btn-group.btn-group-xs.pull-right
-            button.btn.btn-default type='button' ng-click='refresh()' tooltip='Refresh search results' tooltip-append-to-body='true'
+            button.btn.btn-warning type='button' ng-if='!settings.similarSearch && !search.new' ng-click='refresh()' tooltip='Refresh search results' tooltip-append-to-body='true'
               span.glyphicon.glyphicon-refresh
-            button.btn.btn-warning type='button' ng-click='goToNextSearch()' Next search
-            button.btn.btn-primary type='button' ng-disabled='!search.selectedUrl' ng-click='mediaSearchForm.$valid && saveSelectedSearchResult()' Save selected choice
+            button.btn.btn-warning type='button' ng-if='settings.similarSearch' ng-click='runNewSearch()' Run a new search
+            button.btn.btn-info type='button' ng-click='goToNextSearch()' Next search
+            button.btn.btn-primary type='button' ng-if='!settings.similarSearch' ng-disabled='!settings.selectedUrl' ng-click='mediaSearchForm.$valid && saveSelectedSearchResult()' Save selected choice
+            button.btn.btn-primary type='button' ng-if='settings.similarSearch' ng-click='useSimilarSearch()' Use the existing search
 
           h4
             | Search results
@@ -58,25 +52,38 @@
           p.empty ng-if='!search.results.length'
             | No matching title found.
 
+          .alert.alert-info ng-if='settings.similarSearch'
+            strong> Existing search:
+            | a search was already run for
+            strong<> {{ mediaDirectory.basename }}
+            | on
+            scraper-label<> scraper='{{ search.provider }}'
+            | . You can either use the same search results for this directory or run a different search.
+
+          .form-group ng-if='!settings.similarSearch && search.results.length >= 2'
+            input.form-control type='text' ng-model='settings.filter' placeholder='Type here to filter search results'
+
           table.table.table-hover.table-striped.clearfix ng-if='search.results.length'
             tbody
-              tr ng-repeat='result in search.results'
+              tr ng-repeat='result in search.results | filter: settings.filter'
                 td
-                  input type='radio' ng-model='search.selectedUrl' ng-value='result.url'
+                  input type='radio' ng-model='settings.selectedUrl' ng-value='result.url' ng-disabled='settings.similarSearch'
                 td
                   a href='#' ng-click='selectSearchResult(result)'
                     img ng-if='result.image' ng-src='{{ result.image }}' alt='Search result image' width=32
                     span.glyphicon.glyphicon-picture ng-if='!result.image'
                 td
                   a target='_blank' href='{{ result.url }}'
-                    | {{ result.title }}
+                    span ng-bind-html='result.title | highlight: settings.filter'
 
     .modal-footer
-      .btn-group.pull-right
-        .checkbox ng-if='search'
-          label
-            input type='checkbox' ng-model='settings.next'
-            |  go to next search
+      .checkbox.pull-left
+        label
+          input type='checkbox' ng-model='settings.next'
+          |  go to next search
+      .btn-group
         button.btn.btn-default type='button' ng-click='$dismiss()' Cancel
-        button.btn.btn-warning type='button' ng-click='goToNextSearch()' Next search
-        button.btn.btn-primary ng-if='search' type='submit' ng-disabled='!search.selectedUrl' Save selected choice
+        button.btn.btn-warning type='button' ng-if='settings.similarSearch' ng-click='runNewSearch()' Run a new search
+        button.btn.btn-info type='button' ng-click='goToNextSearch()' Next search
+        button.btn.btn-primary type='submit' ng-if='!settings.similarSearch && search' ng-disabled='!settings.selectedUrl' Save selected choice
+        button.btn.btn-primary type='button' ng-if='settings.similarSearch && search' ng-click='useSimilarSearch()' Use the existing search

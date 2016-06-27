@@ -4,12 +4,17 @@ angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', func
 
   fetchMediaSource().then(setSearch);
 
-  $scope.settings = {
-    next: true
+  var settings = $scope.settings = {
+    next: true,
+    similarSearch: false
   };
 
   $scope.selectSearchResult = function(result) {
-    $scope.search.selectedUrl = result.url;
+    if (settings.similarSearch) {
+      return;
+    }
+
+    settings.selectedUrl = result.url;
   };
 
   $scope.goToNextSearch = function() {
@@ -24,13 +29,16 @@ angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', func
       method: 'PATCH',
       url: '/media/searches/' + $scope.search.id,
       data: {
-        selectedUrl: $scope.search.selectedUrl
+        selectedUrl: settings.selectedUrl
       }
     }).then(function(res) {
+
+      $scope.search.selectedUrl = settings.selectedUrl;
+
       $modalInstance.close(_.extend({
         mediaDirectory: $scope.mediaDirectory,
         mediaSearch: res.data
-      }, _.pick($scope.settings, 'next')));
+      }, _.pick(settings, 'next')));
     });
   };
 
@@ -45,49 +53,65 @@ angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', func
   };
 
   $scope.runNewSearch = function() {
-
+    return performNewSearch().then(function(search) {
+      $scope.search = search;
+      autoSelectFirstResult(search);
+      settings.similarSearch = false;
+      return search;
+    });
   };
 
   $scope.useSimilarSearch = function() {
     return api({
       method: 'POST',
-      url: '/media/searches/' + $scope.similarSearch.id + '/directoryIds',
+      url: '/media/searches/' + $scope.search.id + '/directoryIds',
       data: [ $scope.mediaDirectory.id ]
     }).then(function(res) {
-      $scope.similarSearch.directoryIds = res.data;
-      $scope.search = $scope.similarSearch;
-      delete $scope.similarSearch;
+
+      $scope.search.directoryIds = res.data;
+      settings.similarSearch = false;
+
+      if ($scope.search.selectedUrl) {
+        $modalInstance.close(_.extend({
+          mediaDirectory: $scope.mediaDirectory,
+          mediaSearch: $scope.search
+        }, _.pick(settings, 'next')));
+      } else {
+        autoSelectFirstResult($scope.search);
+      }
+
       return res.data;
     });
   };
 
   function setSearch() {
     return fetchExistingSearch().then(function(search) {
-      if (search) {
-        $scope.search = search;
-        return search;
-      }
-
-      return fetchSimilarSearch().then(function(search) {
+      return search || fetchSimilarSearch().then(function(search) {
         if (search) {
-
-          $scope.similarSearch = search;
-          if ($scope.similarSearch.selectedUrl) {
-            $scope.similarSearch.selectedResult = _.find($scope.similarSearch.results, { url: $scope.similarSearch.selectedUrl });
-          }
-
+          settings.similarSearch = true;
           return search;
         }
-
-        return performNewSearch().then(function(search) {
-          $scope.search = search;
-          if (!$scope.search.selectedUrl && search.resultsCount) {
-            $scope.search.selectedUrl = search.results[0].url;
-          }
-        });
       });
-      return search || fetchSimilarSearch();
+    }).then(function(search) {
+      return search || performNewSearch();
+    }).then(function(search) {
+      if (search && !settings.similarSearch) {
+        autoSelectFirstResult(search);
+      }
+
+      return search;
+    }).then(function(search) {
+      $scope.search = search;
+      if (search && search.selectedUrl) {
+        settings.selectedUrl = search.selectedUrl;
+      }
     }).finally(_.partial(busy, $scope, false));
+  }
+
+  function autoSelectFirstResult(search) {
+    if (!search.selectedUrl && search.resultsCount) {
+      settings.selectedUrl = search.results[0].url;
+    }
   }
 
   function fetchExistingSearch() {
