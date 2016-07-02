@@ -83,7 +83,8 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
   end
 
   def self.mark_files_as files:, state:, media_url: nil, files_counts_updates:
+    relation = MediaFile.where id: files.collect(&:id)
     MediaDirectory.track_linked_files_counts updates: files_counts_updates, changed_relation: relation, linked: state.to_s == 'linked'
-    MediaFile.where(id: files.collect(&:id)).update_all state: state.to_s, media_url_id: media_url.try(:id)
+    relation.update_all state: state.to_s, media_url_id: media_url.try(:id)
   end
 end
