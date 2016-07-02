@@ -29,7 +29,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
         scanned_files = scanned_files_rel.to_a
 
         directories_by_path = {}
-        files_counts_updates_by_directory = {}
+        files_counts_updates = {}
         paths_to_check_for_deletion = Set.new
 
         scanned_files.each do |scanned_file|
@@ -38,7 +38,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
             if file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path).includes(:directory).first!
               paths_to_check_for_deletion << File.dirname(scanned_file.path)
 
-              update_files_count updates: files_counts_updates_by_directory, file: file, change: :deleted
+              MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :deleted
 
               file.deleted = true
               file.mark_as_deleted if file.nfo?
@@ -79,14 +79,14 @@ class ProcessMediaScanFilesJob < ApplicationJob
             file.directory = directory
             file.depth = directory.depth + 1
             file.path = scanned_file.path
-            update_files_count updates: files_counts_updates_by_directory, file: file, change: :created
+            MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :created
           elsif file.deleted?
             file.media_url = nil
             file.mark_as_created
-            update_files_count updates: files_counts_updates_by_directory, file: file, change: :created
+            MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :created
           elsif file.nfo?
             file.mark_as_changed
-            update_files_count updates: files_counts_updates_by_directory, file: file, change: :unlinked if previous_state == 'linked'
+            MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :unlinked if previous_state == 'linked'
           end
 
           FILE_PROPERTIES.each do |key|
@@ -112,9 +112,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
         paths_to_check_for_deletion -= directories_by_path.keys
         delete_directories scan, paths_to_check_for_deletion unless paths_to_check_for_deletion.empty?
 
-        files_counts_updates_by_directory.each do |directory,updates|
-          directory.update_files_counts updates
-        end
+        MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
         scanned_files_rel.update_all processed: true
 
@@ -152,27 +150,5 @@ class ProcessMediaScanFilesJob < ApplicationJob
     end
 
     delete_directories scan, paths_to_check_for_deletion unless paths_to_check_for_deletion.empty?
-  end
-
-  def self.update_files_count updates:, file:, change:
-    updates[file.directory] ||= {
-      files_count: 0,
-      nfo_files_count: 0,
-      linked_files_count: 0
-    }
-
-    if change == :created
-      updates[file.directory][:files_count] += 1
-      updates[file.directory][:nfo_files_count] += 1 if file.nfo?
-      updates[file.directory][:linked_files_count] += 1 if file.state.to_s == 'linked'
-    elsif change == :deleted
-      updates[file.directory][:files_count] -= 1
-      updates[file.directory][:nfo_files_count] -= 1 if file.nfo?
-      updates[file.directory][:linked_files_count] -= 1 if file.state.to_s == 'linked'
-    elsif change == :unlinked
-      updates[file.directory][:linked_files_count] -= 1
-    else
-      raise "Unsupported files count change type #{change.inspect}"
-    end
   end
 end

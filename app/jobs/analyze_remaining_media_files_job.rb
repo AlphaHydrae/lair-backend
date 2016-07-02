@@ -15,7 +15,9 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
   end
 
   def self.perform scan_id, first_id, last_id
+
     scan = MediaScan.find scan_id
+    files_counts_updates = {}
 
     job_transaction cause: scan, rescue_event: :fail_analysis! do
       Rails.application.with_current_event scan.last_scan_event do
@@ -42,14 +44,16 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
             # If exactly one NFO file applies to this directory and it is linked,
             # link the current file and all files in that directory to the same media
             # as the NFO file.
-            mark_files_as files: directory_files, state: :linked, media_url: nfo_files.first.media_url
+            mark_files_as files: directory_files, state: :linked, media_url: nfo_files.first.media_url, files_counts_updates: files_counts_updates
           else
             # If no NFO file or multiple NFO files apply to this directory, or if
             # the NFO file that applies is not linked, mark all files in that directory
             # as unlinked.
-            mark_files_as files: directory_files, state: :unlinked
+            mark_files_as files: directory_files, state: :unlinked, files_counts_updates: files_counts_updates
           end
         end
+
+        MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
         analyzed_media_files_count = scan.analyzed_media_files_count + new_media_files_count
         if analyzed_media_files_count > scan.new_media_files_count
@@ -78,7 +82,8 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
     directory_files_rel.to_a + parent_directory_files_rel.to_a
   end
 
-  def self.mark_files_as files:, state:, media_url: nil
+  def self.mark_files_as files:, state:, media_url: nil, files_counts_updates:
+    MediaDirectory.track_linked_files_counts updates: files_counts_updates, changed_relation: relation, linked: state.to_s == 'linked'
     MediaFile.where(id: files.collect(&:id)).update_all state: state.to_s, media_url_id: media_url.try(:id)
   end
 end
