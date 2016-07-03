@@ -24,6 +24,17 @@ class AnidbScraper < ApplicationScraper
       results = searchable_query_parts.inject [] do |memo,searchable_query_part|
         memo + search_anidb_titles(query: searchable_query_part, anime_elements: anime_elements)
       end
+
+      results.sort! do |a,b|
+        qualities = [ a, b ].collect{ |result| searchable_query_parts.inject(0){ |memo,part| part = part.to_s.strip.downcase; memo + (result[:title].to_s.downcase.index(part) ? part.length : 0) } }
+        diff = qualities[1] <=> qualities[0]
+        if diff != 0
+          puts "#{a[:title]} = #{qualities[0]} ||| #{b[:title]} = #{qualities[1]}"
+          diff
+        else
+          a[:title] <=> b[:title]
+        end
+      end
     end
 
     results.uniq!{ |result| result[:url] }
