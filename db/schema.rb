@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160602192230) do
+ActiveRecord::Schema.define(version: 20160706201943) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -556,8 +556,8 @@ ActiveRecord::Schema.define(version: 20160602192230) do
   add_foreign_key "items_audio_languages", "languages", on_delete: :restrict
   add_foreign_key "items_subtitle_languages", "items", column: "video_id", on_delete: :cascade
   add_foreign_key "items_subtitle_languages", "languages", on_delete: :restrict
-  add_foreign_key "media_directories_searches", "media_files", column: "media_directory_id"
-  add_foreign_key "media_directories_searches", "media_searches"
+  add_foreign_key "media_directories_searches", "media_files", column: "media_directory_id", on_delete: :cascade
+  add_foreign_key "media_directories_searches", "media_searches", on_delete: :cascade
   add_foreign_key "media_files", "media_files", column: "directory_id", on_delete: :cascade
   add_foreign_key "media_files", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_files", "media_sources", column: "source_id", on_delete: :cascade

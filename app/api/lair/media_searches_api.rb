@@ -4,12 +4,17 @@ module Lair
       helpers do
         def serialization_options *args
           {
+            include_directories: include_in_response?(:directories),
             include_results: include_in_response?(:results)
           }
         end
 
         def with_serialization_includes rel
-          rel.includes :directories
+          if include_in_response? :directories
+            rel.includes directories: :source
+          else
+            rel.includes :directories
+          end
         end
 
         def update_record_from_params record
@@ -71,8 +76,31 @@ module Lair
             end
           end
 
-          if params.key? :directoryId
-            rel = rel.joins(:directories).where 'media_files.type = ? AND media_files.api_id IN (?)', MediaDirectory.name, Array.wrap(params[:directoryId]).collect(&:to_s)
+          if params.key?(:directory) || params.key?(:directoryId) || params.key?(:sourceId)
+
+            rel = if params.key? :sourceId
+              rel.joins directories: :source
+            else
+              rel.joins :directories
+            end
+
+            if params.key? :sourceId
+              rel = rel.where 'media_sources.api_id IN (?)', Array.wrap(params[:sourceId]).collect(&:to_s)
+            end
+
+            if params.key? :directory
+              rel = rel.where 'media_files.type = ? AND media_files.path IN (?)', MediaDirectory.name, Array.wrap(params[:directory]).collect(&:to_s)
+            end
+
+            if params.key? :directoryId
+              rel = rel.where 'media_files.type = ? AND media_files.api_id IN (?)', MediaDirectory.name, Array.wrap(params[:directoryId]).collect(&:to_s)
+            end
+          end
+
+          if true_flag? :completed
+            rel = rel.where 'media_searches.selected_url IS NOT NULL'
+          elsif false_flag? :completed
+            rel = rel.where 'media_searches.selected_url IS NULL'
           end
 
           rel

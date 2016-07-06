@@ -10,6 +10,7 @@ class MediaSearchSerializer < ApplicationSerializer
     json.selectedUrl record.selected_url if record.selected_url
 
     json.directoryIds record.directories.collect(&:api_id)
+    json.directories serialize(record.directories.to_a) if options[:include_directories]
 
     json.createdAt record.created_at.iso8601(3)
     json.updatedAt record.updated_at.iso8601(3)

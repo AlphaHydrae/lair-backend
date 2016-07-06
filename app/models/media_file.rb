@@ -5,6 +5,7 @@ class MediaFile < MediaAbstractFile
   include ResourceWithProperties
 
   before_create :set_extension
+  before_update :remove_searches
 
   states :created, :unlinked, :changed, :deleted, :invalid, :duplicated, :linked
   event :mark_as_created, to: :created
@@ -64,5 +65,22 @@ class MediaFile < MediaAbstractFile
   def set_extension
     ext = File.extname(path).sub(/^\./, '')
     self.extension = ext.present? && ext.length <= 20 ? ext.downcase : nil
+  end
+
+  def remove_searches
+    return unless state_changed? && state.to_s == 'linked'
+
+    affected_directories = directory.with_child_files do |rel|
+      rel = rel.where 'media_files.type = ?', MediaDirectory.name
+    end.select :id
+
+    MediaSearch.joins(:directories).where('media_files.id IN (?)', affected_directories.collect(&:id)).includes(:directories).find_each do |search|
+      if search.directories.length == 1
+        search.destroy
+        Rails.logger.info "Deleted search #{search.api_id} due to linking of NFO file #{api_id}"
+      else
+        search.directories -= directory
+      end
+    end
   end
 end

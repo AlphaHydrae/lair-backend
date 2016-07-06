@@ -70,7 +70,11 @@ class MediaDirectory < MediaAbstractFile
   end
 
   def child_files &block
-    MediaAbstractFile.where("id IN (#{child_files_sql(&block)})")
+    MediaAbstractFile.where "media_files.id IN (#{child_files_sql(&block)})"
+  end
+
+  def with_child_files &block
+    MediaAbstractFile.where "media_files.id = #{id} OR media_files.id IN (#{child_files_sql(&block)})"
   end
 
   def child_files_sql
