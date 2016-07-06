@@ -8,7 +8,7 @@ class MediaSearchPolicy < ApplicationPolicy
   end
 
   def update?
-    admin? || (authenticated? && record.user == current_user)
+    admin? || (authenticated? && user == record.user)
   end
 
   class Scope < Scope
