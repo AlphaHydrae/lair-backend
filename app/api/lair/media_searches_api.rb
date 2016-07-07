@@ -19,7 +19,7 @@ module Lair
 
         def update_record_from_params record
 
-          if params[:directoryIds].kind_of? Array
+          if new_record? && params[:directoryIds].kind_of?(Array)
             directories = MediaDirectory.where(api_id: params[:directoryIds].collect(&:to_s)).includes(:source).to_a
             record.directories = directories
 
