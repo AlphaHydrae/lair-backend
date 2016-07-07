@@ -14,7 +14,7 @@ class MediaDirectory < MediaAbstractFile
       memo
     end
 
-    with_parent_directories.update_all statements.join(', ')
+    with_parent_directories.update_all statements.join(', ') if statements.present?
   end
 
   def self.track_linked_files_counts updates:, linked:, changed_relation: nil, changed_file: nil
