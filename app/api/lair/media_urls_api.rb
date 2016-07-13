@@ -40,7 +40,13 @@ module Lair
 
         rel = paginated rel do |rel|
 
-          rel = rel.joins :scrap if params[:scrapStates].present? || params[:scrapWarnings].present?
+          group = false
+
+          rel = rel.where provider: Array.wrap(params[:provider]).collect(&:to_s) if params[:provider].present?
+          rel = rel.where category: Array.wrap(params[:category]).collect(&:to_s) if params[:category].present?
+          rel = rel.where provider_id: Array.wrap(params[:providerId]).collect(&:to_s) if params[:providerId].present?
+
+          rel = rel.joins :scrap if params[:scrapStates].present? || true_flag?(:scrapWarnings) || false_flag?(:scrapWarnings)
 
           if params[:scrapStates].present?
             states = Array.wrap(params[:scrapStates]).collect(&:to_s).collect &:underscore
@@ -52,6 +58,16 @@ module Lair
           elsif false_flag? :scrapWarnings
             rel = rel.where 'media_scraps.warnings_count <= 0'
           end
+
+          if params[:search].present?
+            group = true
+            rel = rel.joins work: :titles
+            rel = rel.where 'LOWER(work_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
+          end
+
+          @pagination_filtered_count = rel.count 'distinct media_urls.id'
+
+          rel = rel.group 'media_urls.id' if group
 
           rel
         end

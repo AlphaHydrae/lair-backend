@@ -11,6 +11,7 @@ class Ownership < ActiveRecord::Base
   belongs_to :media_url
   has_many :collection_ownerships
   has_many :collections, through: :collection_ownerships
+  has_and_belongs_to_many :media_files
 
   strip_attributes
   validates :item, presence: true

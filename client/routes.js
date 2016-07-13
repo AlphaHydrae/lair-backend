@@ -131,7 +131,7 @@ angular.module('lair.routes', [ 'ui.router' ])
       })
 
       .state('mediaUrls.list', {
-        url: '?show&warnings',
+        url: '?show&warnings&provider&providerId&search',
         reloadOnSearch: false,
         controller: 'MediaUrlsListCtrl',
         templateUrl: '/templates/modules/media-urls-list/list.template.html'

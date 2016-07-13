@@ -29,7 +29,7 @@
         span.glyphicon.glyphicon-wrench>
         span.hidden-xs Retry selected
     table-filters filters='mediaUrlsList.params'
-      form.filters.form-horizontal
+      form.filters.form-inline
         .btn-group
           button.btn.btn-danger ng-model='filters.show' btn-radio='"errors"' uncheckable=true
             span.glyphicon.glyphicon-thumbs-down>
@@ -42,6 +42,17 @@
             input type='checkbox' ng-model='filters.warnings'
             span.glyphicon.glyphicon-warning-sign<>
             | Show warnings
+        br
+        .form-section
+          .form-group ng-if='providers'
+            ui-select#media-urls-provider ng-model='filters.provider' reset-search-input=true
+              ui-select-match placeholder='Provider' allow-clear='true' {{ $select.selected.name | humanize }}
+              ui-select-choices repeat='provider.name as provider in providers | filter: $select.search'
+                span ng-bind-html='provider.name | humanize'
+          .form-group
+            input.form-control#media-urls-provider-id type='text' placeholder='Provider ID' ng-model='filters.providerId' ng-model-options='{updateOn: "default blur", debounce: {default: 500, blur: 0}}'
+          .form-group
+            input.form-control#media-urls-search type='text' placeholder='Search' ng-model='filters.search' ng-model-options='{updateOn: "default blur", debounce: {default: 500, blur: 0}}'
     table.table.table-striped.table-hover
       thead
         tr
@@ -60,7 +71,7 @@
           td
             scraper-label scraper='{{ url.provider }}'
           td
-            a href='{{ url.url }}' {{ url.url }}
+            a href='{{ url.url }}' target='_blank' {{ url.url }}
           td
             span ng-if='!url.work'
               | -
@@ -82,7 +93,9 @@
             a href='#' ng-if='url.scrap.state == "expansionFailed" && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='Scraped data could not be parsed'
               .label.label-danger Expansion error
 
-            .label.label-success ng-if='url.scrap.state == "expanded"' Scraped
+            .label.label-success ng-if='url.scrap.state == "expanded" && !currentUserIs("admin")' Scraped
+            a href='#' ng-if='url.scrap.state == "expanded" && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='Show scraped data'
+              .label.label-success Scraped
 
             a href='#' ng-if='url.scrap.warningsCount >= 1 && currentUserIs("admin")' ng-click='showScrapingError(url.scrap)' tooltip='Warnings: {{ url.scrap.warningsCount }}'
               span.warnings.text-warning.glyphicon.glyphicon-warning-sign

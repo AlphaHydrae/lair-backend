@@ -101,7 +101,21 @@ module Lair
               rel = rel.where 'LOWER(work_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
             end
 
-            @pagination_filtered_count = rel.count 'distinct works.id'
+            count_rel = rel
+
+            if params[:notOwnedBy].present?
+              not_owner = User.where(api_id: params[:notOwnedBy].to_s).first
+              if not_owner.present?
+                rel = rel
+                  .joins('LEFT OUTER JOIN items not_owned_items ON works.id = not_owned_items.work_id')
+                  .joins("LEFT OUTER JOIN ownerships not_ownerships ON not_owned_items.id = not_ownerships.item_id AND not_ownerships.user_id = #{not_owner.id.to_i}")
+                  .having('count(not_ownerships.id) = 0')
+
+                @pagination_filtered_count = rel.group('works.id').count('distinct works.id').keys.length
+              end
+            end
+
+            @pagination_filtered_count ||= count_rel.count 'distinct works.id'
 
             rel
           end
@@ -120,7 +134,7 @@ module Lair
         authorize! Work, :index
         rel = search_works
 
-        grouped = params[:search].present? || params[:title].present? || params[:collectionId].present? || params[:ownerIds].present?
+        grouped = params[:search].present? || params[:title].present? || params[:collectionId].present? || params[:ownerIds].present? || params[:notOwnedBy].present?
 
         if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
           rel = rel.order 'RANDOM()'
@@ -130,7 +144,7 @@ module Lair
           rel = rel.group 'works.id, original_titles.id' if grouped
         end
 
-        includes = [ :language, :links, { person_relationships: :person, company_relationships: :company, titles: :language } ]
+        includes = [ :genres, :image, :language, :links, :tags, { person_relationships: :person, company_relationships: :company, titles: :language } ]
 
         image_from_search = true_flag? :imageFromSearch
         includes << :last_image_search if image_from_search

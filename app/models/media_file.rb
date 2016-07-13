@@ -19,6 +19,7 @@ class MediaFile < MediaAbstractFile
   belongs_to :media_url
   belongs_to :source, class_name: 'MediaSource'
   belongs_to :last_scan, class_name: 'MediaScan'
+  has_and_belongs_to_many :ownerships
 
   strip_attributes
   validates :bytesize, presence: true, numericality: { only_integer: true, allow_blank: true }
@@ -38,20 +39,41 @@ class MediaFile < MediaAbstractFile
   end
 
   def file_type
-    case extension.to_s
-    when 'nfo'
-      'nfo'
-    when 'yml'
-      'meta'
-    when 'gif', 'jpg', 'png'
-      'image'
-    when 'avi', 'divx', 'mkv', 'mp4', 'ogm', 'rm'
-      'video'
-    when 'idx', 'srt', 'ssa', 'sub'
-      'subtitle'
-    else
-      'unknown'
+    %i(nfo meta image audio video subtitle).find do |type|
+      file_type_extensions(type).include? extension.to_s
     end
+  end
+
+  def self.file_type_extensions type
+    case type.to_s
+    when 'video'
+      %w(avi divx m4v mkv mp4 ogm rm wmv)
+    when 'nfo'
+      %w(nfo)
+    when 'subtitle'
+      %w(ass idx srt ssa sub sup)
+    when 'meta'
+      %w(yml)
+    when 'audio'
+      %w(flac mka mp3)
+    when 'image'
+      %w(gif jpg png)
+    end
+  end
+
+  def file_type_extensions type
+    self.class.file_type_extensions type
+  end
+
+  def range
+    markers = episode_markers
+    return nil if markers.blank?
+    numbers = markers.collect{ |marker| marker.sub(/.*x/, '').to_i }
+    Range.new numbers.first, numbers.last
+  end
+
+  def special?
+    episode_markers.any?{ |marker| marker.match /^0x/ }
   end
 
   def path= path
@@ -61,6 +83,12 @@ class MediaFile < MediaAbstractFile
   end
 
   private
+
+  EPISODE_MARKER_REGEXP = /\d+x\d+/
+
+  def episode_markers
+    File.basename(path).scan EPISODE_MARKER_REGEXP
+  end
 
   def set_extension
     ext = File.extname(path).sub(/^\./, '')

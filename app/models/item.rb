@@ -62,7 +62,7 @@ class Item < ActiveRecord::Base
     if original_title = titles.first
       original_title.contents
     else
-      [ work_title.contents, range ].compact.join ' '
+      [ work_title.contents, human_range ].compact.join ' '
     end
   end
 
@@ -78,9 +78,21 @@ class Item < ActiveRecord::Base
     ([ self ] + titles).any?{ |r| r.new_record? || r.changed? }
   end
 
+  def range
+    if range_start && range_end
+      range_start..range_end
+    else
+      nil
+    end
+  end
+
+  def special?
+    special
+  end
+
   private
 
-  def range
+  def human_range
     return nil unless range_start
     range_end != range_start ? "#{range_start}-#{range_end}" : range_start.to_s
   end

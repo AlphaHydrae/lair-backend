@@ -1,4 +1,4 @@
-angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(api, $location, newMediaUrlDialog, $scope, scrapers, $stateParams, tables) {
+angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(api, $location, mediaUrls, newMediaUrlDialog, $scope, scrapers, $stateParams, tables) {
 
   var errorScrapStates = [ 'scrapingFailed', 'expansionFailed' ],
       inProgressScrapStates = [ 'created', 'scraping', 'scraped', 'expanding' ];
@@ -12,8 +12,15 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
 
   $scope.filters = {
     show: $stateParams.show,
-    warnings: !!$stateParams.warnings
+    warnings: !!$stateParams.warnings,
+    provider: $stateParams.provider,
+    providerId: $stateParams.providerId,
+    search: $stateParams.search
   };
+
+  mediaUrls.loadProviders().then(function(providers) {
+    $scope.providers = providers;
+  });
 
   $scope.$watch('filters', function(value, oldValue) {
     if (value && value != oldValue) {
@@ -28,6 +35,12 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
       if (value.warnings != search.warnings) {
         $location.search('warnings', value.warnings ? 'true' : null);
       }
+
+      _.each([ 'provider', 'providerId', 'search' ], function(param) {
+        if (value[param] != search[param]) {
+          $location.search(param, value[param] ? value[param] : null);
+        }
+      });
     }
   }, true);
 
@@ -43,6 +56,12 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
     if (!!search.warnings != filters.warnings) {
       filters.warnings = search.warnings;
     }
+
+    _.each([ 'provider', 'providerId', 'search' ], function(param) {
+      if (search[param] != filters[param]) {
+        filters[param] = search[param];
+      }
+    });
   });
 
   function applyFilters() {
@@ -58,6 +77,14 @@ angular.module('lair.mediaUrls.list').controller('MediaUrlsListCtrl', function(a
     } else {
       delete $scope.mediaUrlsList.params.scrapWarnings;
     }
+
+    _.each([ 'provider', 'providerId', 'search' ], function(param) {
+      if ($scope.filters[param]) {
+        $scope.mediaUrlsList.params[param] = $scope.filters[param];
+      } else {
+        delete $scope.mediaUrlsList.params[param];
+      }
+    });
   }
 
   applyFilters();
