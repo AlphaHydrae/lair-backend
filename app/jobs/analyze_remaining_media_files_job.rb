@@ -16,7 +16,7 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
 
   def self.perform scan_id, first_id, last_id
 
-    scan = MediaScan.find scan_id
+    scan = MediaScan.includes(source: :user).find scan_id
     files_counts_updates = {}
 
     job_transaction cause: scan, rescue_event: :fail_analysis! do
@@ -31,6 +31,7 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
           .to_a
 
         new_media_files_count = new_media_files.count
+        affected_media_urls = Set.new
 
         while new_media_files.any?
 
@@ -45,6 +46,7 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
             # link the current file and all files in that directory to the same media
             # as the NFO file.
             mark_files_as files: directory_files, state: :linked, media_url: nfo_files.first.media_url, files_counts_updates: files_counts_updates
+            affected_media_urls << nfo_files.first.media_url
           else
             # If no NFO file or multiple NFO files apply to this directory, or if
             # the NFO file that applies is not linked, mark all files in that directory
@@ -55,13 +57,16 @@ class AnalyzeRemainingMediaFilesJob < ApplicationJob
 
         MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
+        affected_media_urls.each do |media_url|
+          UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: scan.source.user, event: scan.last_scan_event
+        end
+
         analyzed_media_files_count = scan.analyzed_media_files_count + new_media_files_count
         if analyzed_media_files_count > scan.new_media_files_count
           raise "Unexpectedly analyzed #{analyzed_media_files_count} media files when there are only #{scan.new_media_files_count}"
         elsif analyzed_media_files_count == scan.new_media_files_count
           scan.analyzed_media_files_count = analyzed_media_files_count
           scan.finish_analysis!
-          Rails.logger.debug "TODO: update media ownerships after media files analysis (only for existing media URLs)"
         else
           MediaScan.update_counters scan.id, analyzed_media_files_count: new_media_files_count
         end

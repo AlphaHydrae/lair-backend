@@ -62,7 +62,6 @@ class Work < ActiveRecord::Base
 
   def update_media_ownerships
     return unless media_url.present?
-    Rails.logger.debug "TODO: update media ownerships after scraped work creation"
-    #UpdateMediaOwnershipsJob.enqueue media_url, event: Rails.application.current_event
+    UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: creator, event: Rails.application.current_event
   end
 end

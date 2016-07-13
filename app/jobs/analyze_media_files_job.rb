@@ -61,8 +61,6 @@ class AnalyzeMediaFilesJob < ApplicationJob
         else
           scan.finish_analysis!
         end
-
-        Rails.logger.debug "TODO: update media ownerships after media files analysis (only for existing media URLs)"
       end
     end
   end

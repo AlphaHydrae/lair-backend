@@ -17,11 +17,13 @@ class AnalyzeChangedNfoFileJob < ApplicationJob
   def self.perform scan_id, nfo_file_id
 
     scan = MediaScan.includes(source: :user).find scan_id
-    nfo_file = MediaFile.includes(:directory).find nfo_file_id
+    nfo_file = MediaFile.includes(:directory, :media_url).find nfo_file_id
     files_counts_updates = {}
 
     job_transaction cause: scan, rescue_event: :fail_analysis! do
       Rails.application.with_current_event scan.last_scan_event do
+
+        affected_media_url = nfo_file.media_url
 
         # Handle deleted NFO files.
         if nfo_file.deleted == true && nfo_file.state == 'deleted'
@@ -62,6 +64,9 @@ class AnalyzeChangedNfoFileJob < ApplicationJob
           raise "Unexpected changed NFO file state: #{nfo_file.inspect}"
         end
 
+        affected_media_url ||= nfo_file.media_url
+        UpdateMediaOwnershipsJob.enqueue media_url: affected_media_url, user: scan.source.user, event: scan.last_scan_event if affected_media_url.present?
+
         analyzed_nfo_files_count = scan.analyzed_nfo_files_count + 1
         if analyzed_nfo_files_count > scan.changed_nfo_files_count
           raise "Unexpectedly analyzed #{analyzed_nfo_files_count} NFO files when there are only #{scan.changed_nfo_files_count} that changed"
@@ -75,8 +80,6 @@ class AnalyzeChangedNfoFileJob < ApplicationJob
         end
 
         MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
-
-        Rails.logger.debug "TODO: update media ownerships after media files analysis (only for existing media URLs)"
       end
     end
   end
