@@ -2,7 +2,6 @@ class UpdateMediaOwnerships < ActiveRecord::Migration
 
   def up
 
-=begin
     i = 0
     n = MediaUrl.count
 
@@ -31,7 +30,6 @@ class UpdateMediaOwnerships < ActiveRecord::Migration
         media_url_ids_by_user[user] += media_urls.collect(&:id)
       end
     end
-=end
   end
 
   def down
