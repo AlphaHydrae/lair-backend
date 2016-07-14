@@ -104,6 +104,12 @@ angular.module('lair.routes', [ 'ui.router' ])
         templateUrl: '/templates/modules/files-explorer/explorer.template.html'
       })
 
+      .state('mediaCompare', {
+        url: '^/media/compare',
+        controller: 'MediaCompareCtrl',
+        templateUrl: '/templates/modules/media-compare/compare.template.html'
+      })
+
       .state('mediaIdent', {
         url: '^/media/ident?source&directory&completed',
         reloadOnSearch: false,

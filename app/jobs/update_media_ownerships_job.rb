@@ -55,7 +55,9 @@ class UpdateMediaOwnershipsJob < ApplicationJob
 
     items = work.items.where(media_url_id: media_url.id).to_a
     ownerships = Ownership.joins(:item).where('items.id IN (?) AND ownerships.user_id = ? AND ownerships.owned = ? AND ownerships.media_url_id = ?', items.collect(&:id), user.id, true, media_url.id).to_a
-    files = MediaFile.joins(:source).where('media_files.media_url_id = ? AND media_sources.user_id = ? AND media_files.deleted = ?', media_url.id, user.id, false).to_a
+    files = MediaFile.joins(:source).where('media_files.media_url_id = ? AND media_sources.user_id = ? AND media_files.deleted = ?', media_url.id, user.id, false).includes(:source).to_a
+
+    update_fingerprints media_url: media_url, media_files: files
 
     main_items = items.reject &:special?
 
@@ -84,14 +86,8 @@ class UpdateMediaOwnershipsJob < ApplicationJob
         ownerships_files[ownership] += matching_files
 
         remaining_files -= matching_files
-      elsif ownership.present? && ownership.owned
+      elsif ownership.present?
         ownership.media_files.clear
-        ownership.yielded_at = Time.now
-
-        ownership.cache_previous_version
-        ownership.updater = user
-
-        ownership.save!
       end
     end
 
@@ -99,7 +95,7 @@ class UpdateMediaOwnershipsJob < ApplicationJob
       ownership.media_files = files
     end
 
-    remaining_files.each{ |f| f.ownerships.clear }
+    remaining_files.each{ |f| f.ownerships.clear if f.ownerships.any? }
   end
 
   def self.update_single_item_ownership media_url:, user:, work:
@@ -107,7 +103,9 @@ class UpdateMediaOwnershipsJob < ApplicationJob
     item = work.items.where(media_url_id: media_url.id).first
     ownership = item.ownerships.where(media_url_id: media_url.id, user_id: user.id).first
 
-    files = MediaFile.joins(:source).where('media_files.media_url_id = ? AND media_sources.user_id = ? AND media_files.deleted = ?', media_url.id, user.id, false).to_a
+    files = MediaFile.joins(:source).where('media_files.media_url_id = ? AND media_sources.user_id = ? AND media_files.deleted = ?', media_url.id, user.id, false).includes(:source).to_a
+
+    update_fingerprints media_url: media_url, media_files: files
 
     if ownership.blank?
       ownership = create_ownership item: item, user: user, media_url: media_url, files: files
@@ -123,5 +121,28 @@ class UpdateMediaOwnershipsJob < ApplicationJob
     gotten_at ||= files.collect(&:created_at).sort.first
 
     Ownership.new(item: item, user: user, media_url: media_url, creator: user, gotten_at: gotten_at).tap &:save!
+  end
+
+  def self.update_fingerprints media_url:, media_files:
+
+    media_files_by_source = media_files.inject({}) do |memo,f|
+      memo[f.source] ||= []
+      memo[f.source] << f
+      memo
+    end
+
+    media_files_by_source.each do |source,files|
+
+      fingerprint = MediaFingerprint.where(media_url: media_url, source: source).first_or_initialize
+
+      fingerprint.total_files_count = files.length
+      fingerprint.total_bytesize = files.inject(0){ |memo,f| memo + f.bytesize }
+
+      media_content_files = files.select &:content?
+      fingerprint.content_files_count = media_content_files.length
+      fingerprint.content_bytesize = media_content_files.inject(0){ |memo,f| memo + f.bytesize }
+
+      fingerprint.save! if fingerprint.new_record? || fingerprint.changed?
+    end
   end
 end

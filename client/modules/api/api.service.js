@@ -35,18 +35,18 @@ angular.module('lair.api').service('api', function(apiPagination, apiRateLimit, 
 
   service.all = function(options) {
 
-    var data = [];
+    options._data = options._data || [];
     options.params = options.params || {};
     options.params.start = options.params.start || 0;
     options.params.number = options.params.number || 100;
 
     return service(options).then(function(res) {
-      data = data.concat(res.data);
-      if (res.pagination().hasMorePages() && options.start < 100 * options.number) {
+      options._data = options._data.concat(res.data);
+      if (res.pagination().hasMorePages() && options.params.start < 100 * options.params.number) {
         options.params.start += res.data.length;
-        return service(options);
+        return service.all(options);
       } else {
-        return data;
+        return options._data;
       }
     });
   };

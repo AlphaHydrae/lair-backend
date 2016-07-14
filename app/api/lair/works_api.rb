@@ -101,8 +101,26 @@ module Lair
               rel = rel.where 'LOWER(work_titles.contents) LIKE ?', "%#{params[:search].to_s.downcase}%"
             end
 
-            count_rel = rel
+            all_owners = nil
+=begin
+            if params[:ownedByAll].present?
+              all_owners = User.where(api_id: Array.wrap(params[:ownedByAll]).collect(&:to_s)).to_a.first 2
+              if all_owners.present?
+                all_owners.each.with_index do |user,i|
 
+                  join_table = "all_owned_items_#{i + 1}"
+                  ownership_table = "all_ownerships_#{i + 1}"
+
+                  rel = rel
+                    .joins("LEFT OUTER JOIN items #{join_table} ON works.id = #{join_table}.work_id")
+                    .joins("LEFT OUTER JOIN ownerships #{ownership_table} ON #{join_table}.id = #{ownership_table}.item_id AND #{ownership_table}.user_id = #{user.id.to_i}")
+                    .having("count(#{ownership_table}.id) >= 1")
+                end
+              end
+            end
+=end
+
+            not_owner = nil
             if params[:notOwnedBy].present?
               not_owner = User.where(api_id: params[:notOwnedBy].to_s).first
               if not_owner.present?
@@ -110,12 +128,25 @@ module Lair
                   .joins('LEFT OUTER JOIN items not_owned_items ON works.id = not_owned_items.work_id')
                   .joins("LEFT OUTER JOIN ownerships not_ownerships ON not_owned_items.id = not_ownerships.item_id AND not_ownerships.user_id = #{not_owner.id.to_i}")
                   .having('count(not_ownerships.id) = 0')
-
-                @pagination_filtered_count = rel.group('works.id').count('distinct works.id').keys.length
               end
             end
 
-            @pagination_filtered_count ||= count_rel.count 'distinct works.id'
+            if params[:mediaSourceId].present?
+              # FIXME: check authorization
+              media_sources = MediaSource.where(api_id: Array.wrap(params[:mediaSourceId]).collect(&:to_s)).to_a
+              rel = rel.joins(media_url: :files).where('media_files.source_id IN (?)', media_sources.collect(&:id))
+            end
+
+            if params[:mediaUrlId].present?
+              media_urls = MediaUrl.where(api_id: Array.wrap(params[:mediaUrlId]).collect(&:to_s)).to_a
+              rel = rel.where('works.media_url_id IN (?)', media_urls.collect(&:id))
+            end
+
+            @pagination_filtered_count = if not_owner.present? || all_owners.present?
+              rel.group('works.id').count('distinct works.id').keys.length
+            else
+              rel.count 'distinct works.id'
+            end
 
             rel
           end
@@ -134,7 +165,7 @@ module Lair
         authorize! Work, :index
         rel = search_works
 
-        grouped = params[:search].present? || params[:title].present? || params[:collectionId].present? || params[:ownerIds].present? || params[:notOwnedBy].present?
+        grouped = params[:search].present? || params[:title].present? || params[:collectionId].present? || params[:ownerIds].present? || params[:notOwnedBy].present? || params[:ownedByAll].present? || params[:mediaSourceId].present?
 
         if params[:random].to_s.match /\A(?:1|y|yes|t|true)\Z/i
           rel = rel.order 'RANDOM()'
@@ -144,7 +175,7 @@ module Lair
           rel = rel.group 'works.id, original_titles.id' if grouped
         end
 
-        includes = [ :genres, :image, :language, :links, :tags, { person_relationships: :person, company_relationships: :company, titles: :language } ]
+        includes = [ :genres, :image, :language, :links, :media_url, :tags, { person_relationships: :person, company_relationships: :company, titles: :language } ]
 
         image_from_search = true_flag? :imageFromSearch
         includes << :last_image_search if image_from_search

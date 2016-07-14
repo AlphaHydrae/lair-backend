@@ -31,15 +31,19 @@ class MediaFile < MediaAbstractFile
   end
 
   def nfo?
-    file_type == 'nfo'
+    file_type.to_s == 'nfo'
   end
 
   def deleted?
     deleted
   end
 
+  def content?
+    !%w(nfo meta).include?(file_type.to_s)
+  end
+
   def file_type
-    %i(nfo meta image audio video subtitle).find do |type|
+    %i(video nfo subtitle meta audio image).find do |type|
       file_type_extensions(type).include? extension.to_s
     end
   end

@@ -282,6 +282,21 @@ ActiveRecord::Schema.define(version: 20160713202123) do
 
   add_index "media_files_ownerships", ["media_file_id", "ownership_id"], name: "index_media_files_ownerships_on_media_file_id_and_ownership_id", unique: true, using: :btree
 
+  create_table "media_fingerprints", force: :cascade do |t|
+    t.string   "api_id",              limit: 36,             null: false
+    t.integer  "content_files_count",            default: 0, null: false
+    t.integer  "content_bytesize",    limit: 8,  default: 0, null: false
+    t.integer  "total_files_count",              default: 0, null: false
+    t.integer  "total_bytesize",      limit: 8,  default: 0, null: false
+    t.integer  "source_id",                                  null: false
+    t.integer  "media_url_id",                               null: false
+    t.datetime "created_at",                                 null: false
+    t.datetime "updated_at",                                 null: false
+  end
+
+  add_index "media_fingerprints", ["api_id"], name: "index_media_fingerprints_on_api_id", unique: true, using: :btree
+  add_index "media_fingerprints", ["source_id", "media_url_id"], name: "index_media_fingerprints_on_source_id_and_media_url_id", unique: true, using: :btree
+
   create_table "media_scan_files", force: :cascade do |t|
     t.integer "scan_id",                                null: false
     t.text    "path",                                   null: false
@@ -570,6 +585,8 @@ ActiveRecord::Schema.define(version: 20160713202123) do
   add_foreign_key "media_files", "media_urls", on_delete: :nullify
   add_foreign_key "media_files_ownerships", "media_files", on_delete: :cascade
   add_foreign_key "media_files_ownerships", "ownerships", on_delete: :cascade
+  add_foreign_key "media_fingerprints", "media_sources", column: "source_id", on_delete: :cascade
+  add_foreign_key "media_fingerprints", "media_urls", on_delete: :cascade
   add_foreign_key "media_scan_files", "media_scans", column: "scan_id", on_delete: :cascade
   add_foreign_key "media_scanners", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_scanners", "users", on_delete: :cascade

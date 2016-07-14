@@ -27,6 +27,7 @@ angular.module('lair.api').factory('apiPagination', function($log) {
     this.filteredTotal = parsePaginationHeader(response, 'X-Pagination-Filtered-Total', false);
     this.total = this.filteredTotal || this.filteredTotal === 0 ? this.filteredTotal : this.grandTotal;
     this.length = response.data.length;
+    this.percentage = (this.start + response.data.length) * 100 / this.total;
 
     this.filtered = (this.filteredTotal || this.filteredTotal === 0) && this.filteredTotal != this.grandTotal;
     this.numberOfPages = this.total === 0 ? 0 : Math.ceil(this.total / this.number);

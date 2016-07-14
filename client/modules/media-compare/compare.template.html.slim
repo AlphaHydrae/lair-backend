@@ -1,0 +1,97 @@
+#media-compare
+  .container
+
+    .page-header
+      h1 Compare media
+
+    .row ng-if='categories && users'
+      form
+        .col-xs-12
+          .form-group
+            label for='media-compare-categories' Categories
+            ui-select#media-compare-categories ng-model='filters.categories' multiple=true reset-search-input=true
+              ui-select-match placeholder='All categories' {{ $item.name | humanize }}
+              ui-select-choices repeat='category.name as category in categories | filter: $select.search'
+                span ng-bind-html='category.name | humanize'
+
+        .col-sm-6.col-xs-12
+          .form-group
+            label.control-label for='media-compare-user-1' User 1
+            ui-select#media-compare-user-1 ng-model='filters.user1' ng-disabled='!filters.categories.length' reset-search-input=true
+              ui-select-match placeholder='Select a user' {{ $select.selected.name }}
+              ui-select-choices repeat='user.id as user in users | filter: $select.search'
+                span ng-bind-html='user.name'
+
+          progressbar.progress-striped.active ng-if='fetchingMissingWorksUser1' value='missingWorksPercentage.user1'
+
+          ul.list-group ng-if='missingWorks.user1.length'
+            li.list-group-item ng-repeat='work in missingWorks.user1'
+              span> {{ work.titles[0].text }}
+              small ng-if='secondaryTitle(work)' {{ secondaryTitle(work) }}
+
+        .col-sm-6.col-xs-12
+          .form-group
+            label.control-label for='media-compare-user-2' User 2
+            ui-select#media-compare-user-2 ng-model='filters.user2' ng-disabled='!filters.user1 || !filters.categories.length' reset-search-input=true
+              ui-select-match placeholder='Select another user' {{ $select.selected.name }}
+              ui-select-choices repeat='user.id as user in users2 | filter: $select.search'
+                span ng-bind-html='user.name'
+
+          progressbar.progress-striped.active ng-if='fetchingMissingWorksUser2' value='missingWorksPercentage.user2'
+
+          ul.list-group ng-if='missingWorks.user2.length'
+            li.list-group-item ng-repeat='work in missingWorks.user2'
+              span> {{ work.titles[0].text }}
+              small.secondary-title ng-if='secondaryTitle(work)' {{ secondaryTitle(work) }}
+
+    .row ng-if='users'
+      form
+        .col-sm-6.col-xs-12
+          .form-group
+            label.control-label for='media-compare-source-1' Media source 1
+            ui-select#media-compare-source-1 ng-model='filters.source1' ng-disabled='!sources.user1.length' reset-search-input=true
+              ui-select-match placeholder='Select a media source' {{ $select.selected.name }}
+              ui-select-choices repeat='source.id as source in sources.user1 | filter: $select.search'
+                span ng-bind-html='source.name'
+
+        .col-sm-6.col-xs-12
+          .form-group
+            label.control-label for='media-compare-source-2' Media source 2
+            ui-select#media-compare-source-2 ng-model='filters.source2' ng-disabled='!sources.user2.length' reset-search-input=true
+              ui-select-match placeholder='Select a media source' {{ $select.selected.name }}
+              ui-select-choices repeat='source.id as source in sources.user2 | filter: $select.search'
+                span ng-bind-html='source.name'
+
+        .col-xs-12 ng-if='filters.source1 && filters.source2'
+
+          progressbar.progress-striped.active ng-if='fetchingFingerprints' value='fetchingFingerprintsPercentage'
+
+          table.table.table-striped.table-hover ng-if='comparisons.length'
+            thead
+              tr
+                th Work
+                th Content files
+                th Total files
+                th Content size
+                th Total size
+            tbody
+              tr ng-repeat='comparison in comparisons | orderBy: "work.titles[0].text"' ng-class='{"success": comparison.result == "identical", "info": comparison.result == "totalDifferent", "warning": comparison.result == "contentDifferent"}'
+                td
+                  span> {{ comparison.work.titles[0].text }}
+                  small.secondary-title ng-if='secondaryTitle(comparison.work)' {{ secondaryTitle(comparison.work) }}
+                td
+                  span> {{ comparison.f1.contentFilesCount }}
+                  span ng-if='comparison.f1.contentFilesCount != comparison.f2.contentFilesCount'
+                    | / {{ comparison.f2.contentFilesCount }}
+                td
+                  span> {{ comparison.f1.totalFilesCount }}
+                  span ng-if='comparison.f1.totalFilesCount != comparison.f2.totalFilesCount'
+                    | / {{ comparison.f2.totalFilesCount }}
+                td
+                  span> {{ comparison.f1.contentSize | prettyBytes }}
+                  span ng-if='comparison.f1.contentSize != comparison.f2.contentSize'
+                    | / {{ comparison.f2.contentSize | prettyBytes }}
+                td
+                  span> {{ comparison.f1.totalSize | prettyBytes }}
+                  span ng-if='comparison.f1.totalSize != comparison.f2.totalSize'
+                    | / {{ comparison.f2.totalSize | prettyBytes }}

@@ -10,6 +10,8 @@ class WorkSerializer < ApplicationSerializer
     json.numberOfItems record.number_of_items if record.number_of_items
     json.titles record.titles.to_a.sort_by(&:display_position).collect{ |t| serialize t }
 
+    json.mediaUrlId record.media_url.api_id if record.media_url
+
     json.genres record.genres.collect(&:name)
     json.tags record.tags.collect(&:name)
 

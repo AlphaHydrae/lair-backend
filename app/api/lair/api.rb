@@ -83,6 +83,7 @@ module Lair
 
     namespace :media do
       mount MediaFilesApi
+      mount MediaFingerprintsApi
       mount MediaScannersApi
       mount MediaScansApi
       mount MediaScrapsApi
