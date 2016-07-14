@@ -2,6 +2,7 @@ class UpdateMediaOwnerships < ActiveRecord::Migration
 
   def up
 
+=begin
     i = 0
     n = MediaUrl.count
 
@@ -30,9 +31,7 @@ class UpdateMediaOwnerships < ActiveRecord::Migration
         media_url_ids_by_user[user] += media_urls.collect(&:id)
       end
     end
-
-    remaining_media_urls = MediaUrl.where 'id NOT IN (?)', media_url_ids_by_user.inject(Set.new){ |memo,(user,ids)| memo += ids }.to_a
-    raise "Unexpected remaining media urls: #{remaining_media_urls.inspect}" if remaining_media_urls.any?
+=end
   end
 
   def down
