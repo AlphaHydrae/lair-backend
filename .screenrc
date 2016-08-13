@@ -1,7 +1,7 @@
 source $HOME/.screenrc
 
 screen -t pgc 0
-stuff "psql new-lair\012"
+stuff "psql lair\012"
 screen -t redis 1
 stuff "redis-cli\012"
 screen -t resque 2
