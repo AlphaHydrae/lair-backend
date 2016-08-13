@@ -25,11 +25,11 @@ module.exports = function(grunt) {
           { nonull: true, src: 'bower_components/angular-ui-sortable/sortable.js', dest: 'vendor/assets/javascripts/angular-ui-sortable.js' },
           { nonull: true, src: 'bower_components/angular-ui-select/dist/select.js', dest: 'vendor/assets/javascripts/angular-ui-select.js' },
           { nonull: true, src: 'bower_components/angular-moment/angular-moment.js', dest: 'vendor/assets/javascripts/angular-moment.js' },
-          { nonull: true, src: 'bower_components/angular-ui-date/src/date.js', dest: 'vendor/assets/javascripts/angular-ui-date.js' },
+          { nonull: true, src: 'bower_components/angular-ui-date/dist/date.js', dest: 'vendor/assets/javascripts/angular-ui-date.js' },
           { nonull: true, src: 'bower_components/angular-smart-table/dist/smart-table.js', dest: 'vendor/assets/javascripts/angular-smart-table.js' },
           { nonull: true, src: 'bower_components/angular-pretty-bytes/angular-pretty-bytes.js', dest: 'vendor/assets/javascripts/angular-pretty-bytes.js' },
           { nonull: true, src: 'bower_components/ngInflection/dist/ngInflection.js', dest: 'vendor/assets/javascripts/angular-ng-inflection.js' },
-          { nonull: true, src: 'bower_components/satellizer/satellizer.js', dest: 'vendor/assets/javascripts/satellizer.js' },
+          { nonull: true, src: 'bower_components/satellizer/dist/satellizer.js', dest: 'vendor/assets/javascripts/satellizer.js' },
           { nonull: true, src: 'bower_components/bootstrap/dist/js/bootstrap.js', dest: 'vendor/assets/javascripts/bootstrap.js' },
           // Stylesheets
           { nonull: true, src: 'bower_components/normalize-css/normalize.css', dest: 'vendor/assets/stylesheets/normalize.css' },

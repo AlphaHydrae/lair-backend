@@ -1,199 +1,295 @@
-/**
- * @file jQuery UI Datepicker plugin wrapper
- * @param [ui-date] {object} Options to pass to $.fn.datepicker() merged onto uiDateConfig
- */
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory(require("jquery"), require("angular"), require("jquery-ui/datepicker"));
+	else if(typeof define === 'function' && define.amd)
+		define(["jquery", "angular", "jquery-ui/datepicker"], factory);
+	else if(typeof exports === 'object')
+		exports["angularUiDate"] = factory(require("jquery"), require("angular"), require("jquery-ui/datepicker"));
+	else
+		root["angularUiDate"] = factory(root["jQuery"], root["angular"], root["jquery-ui/datepicker"]);
+})(this, function(__WEBPACK_EXTERNAL_MODULE_1__, __WEBPACK_EXTERNAL_MODULE_2__, __WEBPACK_EXTERNAL_MODULE_3__) {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
 
-/*global angular, jQuery, module, exports*/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
 
-// commonjs package manager support
-if (typeof module !== 'undefined' && typeof exports !== 'undefined' && module.exports === exports) {
-  module.exports = 'ui.date';
-}
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId])
+/******/ 			return installedModules[moduleId].exports;
 
-(function(angular) {
-  'use strict';
-  angular
-    .module('ui.date', [])
-    .constant('uiDateConfig', {})
-    .constant('uiDateFormatConfig', '')
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			exports: {},
+/******/ 			id: moduleId,
+/******/ 			loaded: false
+/******/ 		};
 
-    .factory('uiDateConverter', ['uiDateFormatConfig', function(uiDateFormatConfig) {
-      return {
-        stringToDate: stringToDate,
-        dateToString: dateToString
-      };
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
 
-      function dateToString(dateFormat, value) {
-        dateFormat = dateFormat || uiDateFormatConfig;
-        if (value) {
-          if (dateFormat) {
-            try {
-              return jQuery.datepicker.formatDate(dateFormat, value);
-            } catch (formatException) {
-              return undefined;
-            }
-          }
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
 
-          if (value.toISOString) {
-            return value.toISOString();
-          }
-        }
-        return null;
-      }
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
 
-      function stringToDate(dateFormat, valueToParse) {
-        dateFormat = dateFormat || uiDateFormatConfig;
 
-        if (angular.isDate(valueToParse) && !isNaN(valueToParse)) {
-          return valueToParse;
-        }
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
 
-        if (angular.isString(valueToParse)) {
-          if (dateFormat) {
-            return jQuery.datepicker.parseDate(dateFormat, valueToParse);
-          }
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
 
-          var isoDate = new Date(valueToParse);
-          return isNaN(isoDate.getTime()) ? null : isoDate;
-        }
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "assets";
 
-        if (angular.isNumber(valueToParse)) {
-          // presumably timestamp to date object
-          return new Date(valueToParse);
-        }
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(0);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ function(module, exports, __webpack_require__) {
 
-        return null;
-      }
-    }])
+	'use strict';
 
-    .directive('uiDate', ['uiDateConfig', 'uiDateConverter', function(uiDateConfig, uiDateConverter) {
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
 
-      return {
-        require: '?ngModel',
-        link: function(scope, element, attrs, controller) {
-          var getOptions = function() {
-            return angular.extend({}, uiDateConfig, scope.$eval(attrs.uiDate));
-          };
-          var initDateWidget = function() {
-            var showing = false;
-            var opts = getOptions();
+	var _jquery = __webpack_require__(1);
 
-            function setVal() {
-              var keys = ['Hours', 'Minutes', 'Seconds', 'Milliseconds'];
-              var isDate = angular.isDate(controller.$modelValue);
-              var preserve = {};
+	var _jquery2 = _interopRequireDefault(_jquery);
 
-              if (isDate && controller.$modelValue.toDateString() === element.datepicker('getDate').toDateString()) {
-                return;
-              }
+	var _angular = __webpack_require__(2);
 
-              if (isDate) {
-                angular.forEach(keys, function(key) {
-                  preserve[key] = controller.$modelValue['get' + key]();
-                });
-              }
-              controller.$setViewValue(element.datepicker('getDate'));
+	var _angular2 = _interopRequireDefault(_angular);
 
-              if (isDate) {
-                angular.forEach(keys, function(key) {
-                  controller.$viewValue['set' + key](preserve[key]);
-                });
-              }
-            }
+	var _datepicker = __webpack_require__(3);
 
-            // If we have a controller (i.e. ngModelController) then wire it up
-            if (controller) {
+	var _datepicker2 = _interopRequireDefault(_datepicker);
 
-              // Set the view value in a $apply block when users selects
-              // (calling directive user's function too if provided)
-              var _onSelect = opts.onSelect || angular.noop;
-              opts.onSelect = function(value, picker) {
-                scope.$apply(function() {
-                  showing = true;
-                  setVal();
-                  _onSelect(value, picker);
-                  element.blur();
-                });
-              };
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-              var _beforeShow = opts.beforeShow || angular.noop;
-              opts.beforeShow = function(input, picker) {
-                showing = true;
-                _beforeShow(input, picker);
-              };
+	// sets up jQuery with the datepicker plugin
 
-              var _onClose = opts.onClose || angular.noop;
-              opts.onClose = function(value, picker) {
-                showing = false;
-                _onClose(value, picker);
-              };
+	exports.default = _angular2.default.module('ui.date', []).constant('uiDateConfig', {}).constant('uiDateFormatConfig', '').factory('uiDateConverter', ['uiDateFormatConfig', function (uiDateFormatConfig) {
+	  return {
+	    stringToDate: stringToDate,
+	    dateToString: dateToString
+	  };
 
-              element.off('blur.datepicker').on('blur.datepicker', function() {
-                if (!showing) {
-                  scope.$apply(function() {
-                    element.datepicker('setDate', element.datepicker('getDate'));
-                    setVal();
-                  });
-                }
-              });
+	  function dateToString(uiDateFormat, value) {
+	    var dateFormat = uiDateFormat || uiDateFormatConfig;
+	    if (value) {
+	      if (dateFormat) {
+	        try {
+	          return _jquery2.default.datepicker.formatDate(dateFormat, value);
+	        } catch (formatException) {
+	          return undefined;
+	        }
+	      }
 
-              controller.$validators.uiDateValidator = function uiDateValidator(modelValue, viewValue) {
-                return angular.isDate(uiDateConverter.stringToDate(attrs.uiDateFormat, viewValue));
-              };
+	      if (value.toISOString) {
+	        return value.toISOString();
+	      }
+	    }
+	    return null;
+	  }
 
-              controller.$parsers.push(function uiDateParser(valueToParse) {
-                return uiDateConverter.stringToDate(attrs.uiDateFormat, valueToParse);
-              });
+	  function stringToDate(dateFormat, valueToParse) {
+	    dateFormat = dateFormat || uiDateFormatConfig;
 
-              // Update the date picker when the model changes
-              controller.$render = function() {
-                element.datepicker('setDate', controller.$modelValue);
-              };
-            }
-            // Check if the element already has a datepicker.
-            if (element.data('datepicker')) {
-              // Updates the datepicker options
-              element.datepicker('option', opts);
-              element.datepicker('refresh');
-            } else {
-              // Creates the new datepicker widget
-              element.datepicker(opts);
+	    if (_angular2.default.isDate(valueToParse) && !isNaN(valueToParse)) {
+	      return valueToParse;
+	    }
 
-              //Cleanup on destroy, prevent memory leaking
-              element.on('$destroy', function() {
-                element.datepicker('hide');
-                element.datepicker('destroy');
-              });
-            }
+	    if (_angular2.default.isString(valueToParse)) {
+	      if (dateFormat) {
+	        return _jquery2.default.datepicker.parseDate(dateFormat, valueToParse);
+	      }
 
-            if (controller) {
-              // Force a render to override whatever is in the input text box
-              controller.$render();
-            }
-          };
+	      var isoDate = new Date(valueToParse);
+	      return isNaN(isoDate.getTime()) ? null : isoDate;
+	    }
 
-          // Watch for changes to the directives options
-          scope.$watch(getOptions, initDateWidget, true);
-        }
-      };
-    }])
+	    if (_angular2.default.isNumber(valueToParse)) {
+	      // presumably timestamp to date object
+	      return new Date(valueToParse);
+	    }
 
-    .directive('uiDateFormat', ['uiDateConverter', function(uiDateConverter) {
-      return {
-        require: 'ngModel',
-        link: function(scope, element, attrs, modelCtrl) {
-          var dateFormat = attrs.uiDateFormat;
+	    return null;
+	  }
+	}]).directive('uiDate', ['uiDateConfig', 'uiDateConverter', function uiDateDirective(uiDateConfig, uiDateConverter) {
 
-          // Use the datepicker with the attribute value as the dateFormat string to convert to and from a string
-          modelCtrl.$formatters.unshift(function(value) {
-            return uiDateConverter.stringToDate(dateFormat, value);
-          });
+	  return {
+	    require: '?ngModel',
+	    link: function link(scope, element, attrs, controller) {
 
-          modelCtrl.$parsers.push(function(value) {
-            return uiDateConverter.dateToString(dateFormat, value);
-          });
-        }
-      };
-    }]);
+	      var $element = (0, _jquery2.default)(element);
 
-})(angular);
+	      var getOptions = function getOptions() {
+	        return _angular2.default.extend({}, uiDateConfig, scope.$eval(attrs.uiDate));
+	      };
+	      var initDateWidget = function initDateWidget() {
+	        var showing = false;
+	        var opts = getOptions();
+
+	        function setVal(forcedUpdate) {
+	          var keys = ['Hours', 'Minutes', 'Seconds', 'Milliseconds'];
+	          var isDate = _angular2.default.isDate(controller.$modelValue);
+	          var preserve = {};
+
+	          if (!forcedUpdate && isDate && controller.$modelValue.toDateString() === $element.datepicker('getDate').toDateString()) {
+	            return;
+	          }
+
+	          if (isDate) {
+	            _angular2.default.forEach(keys, function (key) {
+	              preserve[key] = controller.$modelValue['get' + key]();
+	            });
+	          }
+
+	          var newViewValue = $element.datepicker('getDate');
+
+	          if (isDate) {
+	            _angular2.default.forEach(keys, function (key) {
+	              newViewValue['set' + key](preserve[key]);
+	            });
+	          }
+
+	          controller.$setViewValue(newViewValue);
+	        }
+
+	        // If we have a controller (i.e. ngModelController) then wire it up
+	        if (controller) {
+	          // Set the view value in a $apply block when users selects
+	          // (calling directive user's function too if provided)
+	          var _onSelect = opts.onSelect || _angular2.default.noop;
+	          opts.onSelect = function (value, picker) {
+	            scope.$apply(function () {
+	              showing = true;
+	              setVal();
+	              $element.blur();
+	              _onSelect(value, picker, $element);
+	            });
+	          };
+
+	          var _beforeShow = opts.beforeShow || _angular2.default.noop;
+	          opts.beforeShow = function (input, picker) {
+	            showing = true;
+	            _beforeShow(input, picker, $element);
+	          };
+
+	          var _onClose = opts.onClose || _angular2.default.noop;
+	          opts.onClose = function (value, picker) {
+	            showing = false;
+	            $element.focus();
+	            _onClose(value, picker, $element);
+	          };
+
+	          element.on('focus', function (focusEvent) {
+	            if (attrs.readonly) {
+	              focusEvent.stopImmediatePropagation();
+	            }
+	          });
+
+	          $element.off('blur.datepicker').on('blur.datepicker', function () {
+	            if (!showing) {
+	              scope.$apply(function () {
+	                $element.datepicker('setDate', $element.datepicker('getDate'));
+	                setVal();
+	              });
+	            }
+	          });
+
+	          controller.$validators.uiDateValidator = function uiDateValidator(modelValue, viewValue) {
+	            return viewValue === null || viewValue === '' || _angular2.default.isDate(uiDateConverter.stringToDate(attrs.uiDateFormat, viewValue));
+	          };
+
+	          controller.$parsers.push(function uiDateParser(valueToParse) {
+	            return uiDateConverter.stringToDate(attrs.uiDateFormat, valueToParse);
+	          });
+
+	          // Update the date picker when the model changes
+	          controller.$render = function () {
+	            // Force a render to override whatever is in the input text box
+	            if (_angular2.default.isDate(controller.$modelValue) === false && _angular2.default.isString(controller.$modelValue)) {
+	              controller.$modelValue = uiDateConverter.stringToDate(attrs.uiDateFormat, controller.$modelValue);
+	            }
+	            $element.datepicker('setDate', controller.$modelValue);
+	          };
+	        }
+	        // Check if the $element already has a datepicker.
+	        //
+
+	        if ($element.data('datepicker')) {
+	          // Updates the datepicker options
+	          $element.datepicker('option', opts);
+	          $element.datepicker('refresh');
+	        } else {
+	          // Creates the new datepicker widget
+	          $element.datepicker(opts);
+
+	          // Cleanup on destroy, prevent memory leaking
+	          $element.on('$destroy', function () {
+	            $element.datepicker('hide');
+	            $element.datepicker('destroy');
+	          });
+	        }
+
+	        if (controller) {
+	          controller.$render();
+	          // Update the model with the value from the datepicker after parsed
+	          setVal(true);
+	        }
+	      };
+
+	      // Watch for changes to the directives options
+	      scope.$watch(getOptions, initDateWidget, true);
+	    }
+	  };
+	}]).directive('uiDateFormat', ['uiDateConverter', function (uiDateConverter) {
+	  return {
+	    require: 'ngModel',
+	    link: function link(scope, element, attrs, modelCtrl) {
+	      var dateFormat = attrs.uiDateFormat;
+
+	      // Use the datepicker with the attribute value as the dateFormat string to convert to and from a string
+	      modelCtrl.$formatters.unshift(function (value) {
+	        return uiDateConverter.stringToDate(dateFormat, value);
+	      });
+
+	      modelCtrl.$parsers.push(function (value) {
+	        return uiDateConverter.dateToString(dateFormat, value);
+	      });
+	    }
+	  };
+	}]);
+
+/***/ },
+/* 1 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_1__;
+
+/***/ },
+/* 2 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_2__;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_3__;
+
+/***/ }
+/******/ ])
+});
+;
+//# sourceMappingURL=date.js.map
