@@ -1,9 +1,9 @@
-angular.module('lair.mediaUrls.new').factory('newMediaUrlDialog', function($modal) {
+angular.module('lair.mediaUrls.new').factory('newMediaUrlDialog', function($uibModal) {
 
   var service = {
     open: function($scope) {
 
-      var modal = $modal.open({
+      var modal = $uibModal.open({
         scope: $scope,
         controller: 'NewMediaUrlDialogCtrl',
         templateUrl: '/templates/modules/media-urls-new/new.dialog.template.html'
@@ -15,7 +15,7 @@ angular.module('lair.mediaUrls.new').factory('newMediaUrlDialog', function($moda
 
   return service;
 
-}).controller('NewMediaUrlDialogCtrl', function(api, busy, $modalInstance, scrapers, $scope) {
+}).controller('NewMediaUrlDialogCtrl', function(api, busy, $uibModalInstance, scrapers, $scope) {
 
   $scope.mediaUrl = {};
 
@@ -51,7 +51,7 @@ angular.module('lair.mediaUrls.new').factory('newMediaUrlDialog', function($moda
       url: '/media/urls',
       data: $scope.resolvedMediaUrl
     }).then(function(res) {
-      $modalInstance.close(res.data);
+      $uibModalInstance.close(res.data);
     }).finally(_.partial(busy, $scope, false));
   };
 });

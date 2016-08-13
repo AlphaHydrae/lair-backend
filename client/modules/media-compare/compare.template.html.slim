@@ -22,7 +22,7 @@
               ui-select-choices repeat='user.id as user in users | filter: $select.search'
                 span ng-bind-html='user.name'
 
-          progressbar.progress-striped.active ng-if='fetchingMissingWorksUser1' value='missingWorksPercentage.user1'
+          uib-progressbar.progress-striped.active ng-if='fetchingMissingWorksUser1' value='missingWorksPercentage.user1'
 
           ul.list-group ng-if='missingWorks.user1.length'
             li.list-group-item ng-repeat='work in missingWorks.user1'
@@ -37,7 +37,7 @@
               ui-select-choices repeat='user.id as user in users2 | filter: $select.search'
                 span ng-bind-html='user.name'
 
-          progressbar.progress-striped.active ng-if='fetchingMissingWorksUser2' value='missingWorksPercentage.user2'
+          uib-progressbar.progress-striped.active ng-if='fetchingMissingWorksUser2' value='missingWorksPercentage.user2'
 
           ul.list-group ng-if='missingWorks.user2.length'
             li.list-group-item ng-repeat='work in missingWorks.user2'
@@ -64,7 +64,7 @@
 
         .col-xs-12 ng-if='filters.source1 && filters.source2'
 
-          progressbar.progress-striped.active ng-if='fetchingFingerprints' value='fetchingFingerprintsPercentage'
+          uib-progressbar.progress-striped.active ng-if='fetchingFingerprints' value='fetchingFingerprintsPercentage'
 
           table.table.table-striped.table-hover ng-if='comparisons.length'
             thead

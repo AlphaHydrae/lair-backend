@@ -1,4 +1,4 @@
-angular.module('lair.ownerships.list').controller('EditOwnershipCtrl', function(api, $log, $modalInstance, $scope) {
+angular.module('lair.ownerships.list').controller('EditOwnershipCtrl', function(api, $log, $uibModalInstance, $scope) {
 
   $scope.dateOptions = {
     dateFormat: 'yy-mm-dd'
@@ -90,7 +90,7 @@ angular.module('lair.ownerships.list').controller('EditOwnershipCtrl', function(
         withUser: 1
       }
     }).then(function(res) {
-      $modalInstance.close(res.data);
+      $uibModalInstance.close(res.data);
     }, function(err) {
       $log.warn('Could not update ownership "' + $scope.ownership.id + '"');
       $log.debug(err);
@@ -106,7 +106,7 @@ angular.module('lair.ownerships.list').controller('EditOwnershipCtrl', function(
       method: 'DELETE',
       url: '/ownerships/' + $scope.ownership.id
     }).then(function() {
-      $modalInstance.close('delete');
+      $uibModalInstance.close('delete');
     }, function(err) {
       $log.warn('Could not delete ownership "' + $scope.ownership.id + '"');
       $log.debug(err);

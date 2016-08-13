@@ -3,7 +3,7 @@ ng-form name='relationshipForm'
     .col-xs-12.col-sm-4.col-md-3
       .form-group ng-class='{"has-error": relationshipForm.relation.$invalid}'
         label.sr-only Relationship
-        input.form-control type='text' name='relation' ng-model='relationship.relation' required=true maxlength=50 typeahead='relation.relation for relation in relations | filter: $viewValue'
+        input.form-control type='text' name='relation' ng-model='relationship.relation' required=true maxlength=50 uib-typeahead='relation.relation for relation in relations | filter: $viewValue'
     .col-xs-12.col-sm-7.col-md-8 ng-class='{"has-error": relationshipForm.personId.$invalid || relationshipForm.companyId.$invalid}'
       ui-select ng-if='relationship.personId !== undefined' ng-model='relationship.personId' name='personId' required=true
         ui-select-match placeholder='Find someone...'

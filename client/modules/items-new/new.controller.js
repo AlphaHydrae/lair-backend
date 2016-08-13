@@ -1,4 +1,4 @@
-angular.module('lair.items.new').controller('NewItemCtrl', function(api, $log, $modal, moment, items, $q, $scope, $state, $stateParams) {
+angular.module('lair.items.new').controller('NewItemCtrl', function(api, $log, moment, items, $q, $scope, $state, $stateParams) {
 
   function parseItem(item) {
     return _.extend({}, item, {

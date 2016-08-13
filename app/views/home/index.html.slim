@@ -13,11 +13,11 @@ nav.navbar.navbar-default role='navigation'
           a href='#' ui-sref='collections.list' Collections
         li ng-if='currentUser'
           a href='#' ui-sref='works.list' Works
-        li ng-if='currentUser' dropdown=true
-          a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false'
+        li ng-if='currentUser' uib-dropdown=true
+          a href='#' uib-dropdown-toggle=true role='button' aria-expanded='false'
             | Admin
             span.caret
-          ul.dropdown-menu role='menu'
+          ul.dropdown-menu uib-dropdown-menu=true role='menu'
             li.dropdown-header Add media
             li
               a href='#' ui-sref='works.new' Create work
@@ -49,11 +49,11 @@ nav.navbar.navbar-default role='navigation'
       ul#auth.nav.navbar-nav.navbar-right ng-controller='AuthCtrl'
         li ng-if='!isAuthenticated()'
           a href='#' ng-click='showLoginDialog()' Sign in
-        li ng-if='isAuthenticated()' dropdown=true
-          a.dropdown-toggle href='#' dropdown-toggle=true role='button' aria-expanded='false' tooltip='Profile and more' tooltip-append-to-body='true' tooltip-placement='left'
+        li ng-if='isAuthenticated()' uib-dropdown=true
+          a href='#' uib-dropdown-toggle=true role='button' aria-expanded='false' uib-tooltip='Profile and more' tooltip-append-to-body='true' tooltip-placement='left'
             img.avatar gravatar-src='currentUser.emailMd5' gravatar-size=24
             span.caret
-          ul.dropdown-menu role='menu'
+          ul.dropdown-menu uib-dropdown-menu=true role='menu'
             li
               a href='#' ui-sref='profile' Profile
             li

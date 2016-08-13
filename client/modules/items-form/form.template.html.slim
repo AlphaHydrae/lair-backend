@@ -68,11 +68,11 @@ form#editItem role='form' novalidate=true name='itemForm' ng-controller='ItemFor
     .col-xs-4
       .format.form-group
         label for='itemFormat' Format
-        input#itemFormat.form-control type='text' placeholder='e.g. Hardcover, Paperback, Tankōbon' typeahead='format.name for format in formats | filter: $viewValue' ng-model='modifiedItem.format'
+        input#itemFormat.form-control type='text' placeholder='e.g. Hardcover, Paperback, Tankōbon' uib-typeahead='format.name for format in formats | filter: $viewValue' ng-model='modifiedItem.format'
     .col-xs-4
       .edition.form-group
         label for='itemEdition' Edition
-        input#itemEdition.form-control type='text' placeholder='e.g. Collector, Extended' typeahead='edition.name for edition in editions | filter: $viewValue' ng-model='modifiedItem.edition'
+        input#itemEdition.form-control type='text' placeholder='e.g. Collector, Extended' uib-typeahead='edition.name for edition in editions | filter: $viewValue' ng-model='modifiedItem.edition'
     .col-xs-4
       .length.form-group
         label for='itemLength' ng-switch=true on='modifiedItem.type'
@@ -82,7 +82,7 @@ form#editItem role='form' novalidate=true name='itemForm' ng-controller='ItemFor
     .col-xs-4 ng-if='modifiedItem.type == "issue" || modifiedItem.type == "volume"'
       .publisher.form-group
         label for='itemPublisher' Publisher
-        input#itemPublisher.form-control ng-model='modifiedItem.publisher' type='text' typeahead='publisher.name for publisher in publishers | filter: $viewValue'
+        input#itemPublisher.form-control ng-model='modifiedItem.publisher' type='text' uib-typeahead='publisher.name for publisher in publishers | filter: $viewValue'
     .col-xs-4 ng-if='modifiedItem.type == "volume"'
       .isbn.form-group form-error='itemForm.isbn'
         label for='itemIsbn' ISBN

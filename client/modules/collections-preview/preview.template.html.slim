@@ -4,14 +4,14 @@
 
     .pull-right
       .btn-group.btn-group-sm
-        button.btn.btn-info href='#' ng-if='!updatingElements && moreElements && autoUpdate' ng-click='random()' ng-disabled='fetchingElements' tooltip='Randomly cycle through elements'
+        button.btn.btn-info href='#' ng-if='!updatingElements && moreElements && autoUpdate' ng-click='random()' ng-disabled='fetchingElements' uib-tooltip='Randomly cycle through elements'
           span.glyphicon.glyphicon-refresh
-        a.btn.btn-warning href='#' ng-if='currentUser.id == collection.userId || currentUserIs("admin")' ui-sref='collections.edit({ id: collection.id })' tooltip='Edit collection' tooltip-append-to-body='true'
+        a.btn.btn-warning href='#' ng-if='currentUser.id == collection.userId || currentUserIs("admin")' ui-sref='collections.edit({ id: collection.id })' uib-tooltip='Edit collection' tooltip-append-to-body='true'
           span.glyphicon.glyphicon-edit
-        a.btn.btn-primary href='#' ui-sref='collection({ userName: collection.user.name, collectionName: collection.name })' tooltip='See entire collection' tooltip-append-to-body='true'
+        a.btn.btn-primary href='#' ui-sref='collection({ userName: collection.user.name, collectionName: collection.name })' uib-tooltip='See entire collection' tooltip-append-to-body='true'
           span.glyphicon.glyphicon-th-large
 
-    img.avatar gravatar-src='collection.user.emailMd5' gravatar-size=30 tooltip='{{ collection.user.name }}'
+    img.avatar gravatar-src='collection.user.emailMd5' gravatar-size=30 uib-tooltip='{{ collection.user.name }}'
 
     h3.panel-title
       a href='#' ui-sref='collection({ userName: collection.user.name, collectionName: collection.name })'

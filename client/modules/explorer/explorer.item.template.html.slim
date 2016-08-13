@@ -1,12 +1,12 @@
 .modal-header.clearfix
   .btn-group.btn-group-sm.pull-right
-    button.btn.btn-default type='button' ng-click='showWork()' tooltip='Parent work' tooltip-append-to-body='true'
+    button.btn.btn-default type='button' ng-click='showWork()' uib-tooltip='Parent work' tooltip-append-to-body='true'
       span.glyphicon.glyphicon-arrow-left
     button.btn.btn-info type='button' own-dialog=true ng-if='currentUser && !item.ownedByMe'
       span.glyphicon.glyphicon-hand-up
-    button.btn.btn-info type='button' ng-if='currentUser && item.ownedByMe' popover-template='"/templates/modules/explorer/explorer.yieldDialog.template.html"' popover-placement='bottom' popover-append-to-body='true' tooltip="I don't own it any more" tooltip-append-to-body='true'
+    button.btn.btn-info type='button' ng-if='currentUser && item.ownedByMe' uib-popover-template='"/templates/modules/explorer/explorer.yieldDialog.template.html"' popover-placement='bottom' popover-append-to-body='true' uib-tooltip="I don't own it any more" tooltip-append-to-body='true'
       span.glyphicon.glyphicon-remove-circle
-    button.btn.btn-warning type='button' ng-if='currentUser' ng-click='edit(item)' tooltip='Edit' tooltip-append-to-body='true'
+    button.btn.btn-warning type='button' ng-if='currentUser' ng-click='edit(item)' uib-tooltip='Edit' tooltip-append-to-body='true'
       span.glyphicon.glyphicon-edit
   h3.modal-title
     span>

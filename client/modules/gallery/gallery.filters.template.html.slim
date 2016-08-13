@@ -6,7 +6,7 @@ form.gallery-filters.clearfix role='form'
         .input-group
           input#gallery-filters-query.form-control ng-model='filtersData.search' ng-model-options='{ debounce: 1000 }' type='text' placeholder='Search...'
           span.input-group-btn
-            button.advanced-search-toggle.btn.btn-default type='button' ng-if='!filtersAdvanced' ng-click='toggleAdvancedSearch()' tooltip='Toggle advanced search'
+            button.advanced-search-toggle.btn.btn-default type='button' ng-if='!filtersAdvanced' ng-click='toggleAdvancedSearch()' uib-tooltip='Toggle advanced search'
               span.glyphicon.glyphicon-cog
   .row.advanced-search.clearfix ng-show='advancedSearchEnabled || filtersAdvanced'
     .col-md-4.col-sm-6.col-xs-12 ng-if='categoryChoices.length >= 2'

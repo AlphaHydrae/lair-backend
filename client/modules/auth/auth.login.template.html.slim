@@ -11,7 +11,7 @@
         input.form-control type='text' name='authCredentials' ng-model='$parent.authCredentials'
         .input-group-btn
           button.btn.btn-default type='button' ng-click='signInWith("token", authCredentials)' Test
-  progressbar.progress-striped.active max=100 value=100 type='primary' ng-show='signingIn' Signing in
-  alert type='danger' ng-show='error' ng-bind='error'
+  uib-progressbar.progress-striped.active max=100 value=100 type='primary' ng-show='signingIn' Signing in
+  uib-alert.alert-danger ng-show='error' ng-bind='error'
 .modal-footer
   button.btn.btn-default ng-click='$close()' Close

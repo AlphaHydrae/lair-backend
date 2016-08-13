@@ -1,4 +1,4 @@
-angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', function(api, busy, $modalInstance, $scope) {
+angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', function(api, busy, $uibModalInstance, $scope) {
 
   busy($scope, true);
 
@@ -18,7 +18,7 @@ angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', func
   };
 
   $scope.goToNextSearch = function() {
-    $modalInstance.close({
+    $uibModalInstance.close({
       mediaDirectory: $scope.mediaDirectory,
       next: true
     });
@@ -35,7 +35,7 @@ angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', func
 
       $scope.search.selectedUrl = settings.selectedUrl;
 
-      $modalInstance.close(_.extend({
+      $uibModalInstance.close(_.extend({
         mediaDirectory: $scope.mediaDirectory,
         mediaSearch: res.data
       }, _.pick(settings, 'next')));
@@ -72,7 +72,7 @@ angular.module('lair.mediaIdent.dialog').controller('MediaIdentDialogCtrl', func
       settings.similarSearch = false;
 
       if ($scope.search.selectedUrl) {
-        $modalInstance.close(_.extend({
+        $uibModalInstance.close(_.extend({
           mediaDirectory: $scope.mediaDirectory,
           mediaSearch: $scope.search
         }, _.pick(settings, 'next')));

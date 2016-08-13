@@ -1,4 +1,4 @@
-angular.module('lair.scrapers').factory('scrapers', function($modal) {
+angular.module('lair.scrapers').factory('scrapers', function($uibModal) {
 
   var service = {
     openErrorModal: function($scope, scrapId) {
@@ -6,7 +6,7 @@ angular.module('lair.scrapers').factory('scrapers', function($modal) {
       var scope = $scope.$new();
       scope.scrapId = scrapId;
 
-      var modal = $modal.open({
+      var modal = $uibModal.open({
         size: 'lg',
         scope: scope,
         controller: 'ScraperErrorModalCtrl',
@@ -18,7 +18,7 @@ angular.module('lair.scrapers').factory('scrapers', function($modal) {
 
     openSupportModal: function($scope) {
 
-      var modal = $modal.open({
+      var modal = $uibModal.open({
         size: 'lg',
         scope: $scope,
         templateUrl: '/templates/modules/scrapers/scrapers.supported.template.html'

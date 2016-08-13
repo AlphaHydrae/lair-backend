@@ -1,10 +1,10 @@
-angular.module('lair.status').controller('StatusCtrl', function(api, $modal, $q, $scope, $timeout) {
+angular.module('lair.status').controller('StatusCtrl', function(api, $uibModal, $q, $scope, $timeout) {
 
   updateImageStats();
 
   $scope.showUploadError = function(image) {
     $scope.selectedImage = image;
-    $modal.open({
+    $uibModal.open({
       scope: $scope,
       size: 'lg',
       controller: 'ImageUploadErrorDialogCtrl',

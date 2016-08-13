@@ -6,9 +6,7 @@ angular.module('lair.collections.edit').controller('EditCollectionCtrl', functio
   $scope.reset = resetModifiedCollection;
 
   $scope.tabs = {
-    restrictions: true,
-    defaultFilters: false,
-    manualSelection: false
+    currentIndex: 0
   };
 
   $scope.$watch('collection', resetModifiedCollection);

@@ -1,4 +1,4 @@
-angular.module('lair.mediaScans.showDialog').factory('showMediaScanDialog', function($modal) {
+angular.module('lair.mediaScans.showDialog').factory('showMediaScanDialog', function($uibModal) {
 
   var service = {
     open: function($scope, options) {
@@ -7,7 +7,7 @@ angular.module('lair.mediaScans.showDialog').factory('showMediaScanDialog', func
       var scope = $scope.$new();
       _.extend(scope, _.pick(options, 'mediaScan', 'mediaScanId'));
 
-      var modal = $modal.open({
+      var modal = $uibModal.open({
         size: 'lg',
         scope: scope,
         controller: 'ShowMediaScanDialogCtrl',
@@ -19,7 +19,7 @@ angular.module('lair.mediaScans.showDialog').factory('showMediaScanDialog', func
   };
 
   return service;
-}).controller('ShowMediaScanDialogCtrl', function(api, mediaScans, $modalInstance, $scope) {
+}).controller('ShowMediaScanDialogCtrl', function(api, mediaScans, $uibModalInstance, $scope) {
 
   if (!$scope.mediaScan && $scope.mediaScanId) {
     fetchMediaScan($scope.mediaScanId);
@@ -32,7 +32,7 @@ angular.module('lair.mediaScans.showDialog').factory('showMediaScanDialog', func
       method: 'POST',
       url: '/media/scans/' + $scope.mediaScan.id + '/retry'
     }).then(function() {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     });
   };
 

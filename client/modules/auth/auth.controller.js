@@ -1,10 +1,10 @@
-angular.module('lair.auth').controller('AuthCtrl', function(auth, $log, $modal, $scope) {
+angular.module('lair.auth').controller('AuthCtrl', function(auth, $log, $uibModal, $scope) {
 
   $scope.isAuthenticated = auth.isAuthenticated;
 
   $scope.showLoginDialog = function() {
 
-    var modal = $modal.open({
+    var modal = $uibModal.open({
       size: 'sm',
       templateUrl: '/templates/modules/auth/auth.login.template.html',
       controller: 'LoginCtrl',

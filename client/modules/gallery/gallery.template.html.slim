@@ -10,7 +10,7 @@ gallery-filters collection='collection' filters-data='dataFilters'
             .icon-overlay ng-class='{transitive: selectedProxy(record) == "transitive"}'
               span.glyphicon.glyphicon-ok
           .ownership-overlay ng-if='dataList.type == "ownerships"'
-            img.avatar gravatar-src='record.user.emailMd5' gravatar-size=30 tooltip='{{ record.user.name }}' tooltip-append-to-body='true'
+            img.avatar gravatar-src='record.user.emailMd5' gravatar-size=30 uib-tooltip='{{ record.user.name }}' tooltip-append-to-body='true'
             p Since {{ record.gottenAt | amDateFormat: 'll' }}
             p ng-if='record.yieldedAt' Until {{ record.yieldedAt | amDateFormat: 'll' }}
           img ng-if='dataList.type != "ownerships" && record.image' ng-src='{{ record.image.thumbnail.url }}' alt='Thumbnail'

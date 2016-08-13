@@ -1,4 +1,4 @@
-angular.module('lair.works.form').controller('NewPersonCtrl', function(api, $log, $modalInstance, $scope) {
+angular.module('lair.works.form').controller('NewPersonCtrl', function(api, $log, $uibModalInstance, $scope) {
 
   $scope.newPerson = {};
   $scope.personAlreadyExists = true;
@@ -41,11 +41,11 @@ angular.module('lair.works.form').controller('NewPersonCtrl', function(api, $log
   };
 
   $scope.selectExistingPerson = function() {
-    $modalInstance.close($scope.alreadyExistingPerson);
+    $uibModalInstance.close($scope.alreadyExistingPerson);
   };
 
   function onSuccess(res) {
-    $modalInstance.close(res.data);
+    $uibModalInstance.close(res.data);
   }
 
   function onError(res) {

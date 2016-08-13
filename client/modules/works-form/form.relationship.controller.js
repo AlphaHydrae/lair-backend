@@ -1,4 +1,4 @@
-angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(api, $log, $modal, $scope, works) {
+angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(api, $log, $uibModal, $scope, works) {
 
   $scope.matchingPeople = [];
   $scope.matchingCompanies = [];
@@ -58,7 +58,7 @@ angular.module('lair.works.form').controller('WorkRelationshipCtrl', function(ap
         matchingVar = 'matching' + inflection.capitalize(resource),
         idVar = singularName + 'Id';
 
-    var modal = $modal.open({
+    var modal = $uibModal.open({
       controller: controller,
       templateUrl: templateUrl,
       scope: $scope

@@ -1,4 +1,4 @@
-angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms, $log, $modal, $q, items, languages, $scope, $state, $stateParams) {
+angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms, $log, $uibModal, $q, items, languages, $scope, $state, $stateParams) {
 
   $scope.itemTypes = items.types;
 
@@ -132,7 +132,7 @@ angular.module('lair.items.form').controller('ItemFormCtrl', function(api, forms
   });
 
   $scope.selectImage = function() {
-    modal = $modal.open({
+    modal = $uibModal.open({
       controller: 'SelectImageCtrl',
       templateUrl: '/templates/modules/images-select/select.template.html',
       scope: $scope,

@@ -1,4 +1,4 @@
-angular.module('lair.works.form').controller('NewCompanyCtrl', function(api, $log, $modalInstance, $scope) {
+angular.module('lair.works.form').controller('NewCompanyCtrl', function(api, $log, $uibModalInstance, $scope) {
 
   $scope.company = {};
 
@@ -9,11 +9,11 @@ angular.module('lair.works.form').controller('NewCompanyCtrl', function(api, $lo
       url: '/companies',
       data: $scope.company
     }).then(function(res) {
-      $modalInstance.close(res.data);
+      $uibModalInstance.close(res.data);
     });
   };
 
   $scope.selectExisting = function() {
-    $modalInstance.close($scope.existingCompany);
+    $uibModalInstance.close($scope.existingCompany);
   };
 });

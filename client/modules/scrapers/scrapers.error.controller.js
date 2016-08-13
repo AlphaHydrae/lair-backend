@@ -1,4 +1,4 @@
-angular.module('lair.scrapers').controller('ScraperErrorModalCtrl', function(api, $modalInstance, $scope) {
+angular.module('lair.scrapers').controller('ScraperErrorModalCtrl', function(api, $uibModalInstance, $scope) {
 
   api({
     url: '/media/scraps/' + $scope.scrapId,
@@ -32,7 +32,7 @@ angular.module('lair.scrapers').controller('ScraperErrorModalCtrl', function(api
       method: 'POST',
       url: '/media/scraps/' + $scope.scrapId + '/retry'
     }).then(function() {
-      $modalInstance.dismiss();
+      $uibModalInstance.dismiss();
     });
   };
 });

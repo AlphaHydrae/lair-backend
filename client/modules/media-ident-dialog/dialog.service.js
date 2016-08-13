@@ -1,4 +1,4 @@
-angular.module('lair.mediaIdent.dialog').factory('mediaIdentDialog', function($modal) {
+angular.module('lair.mediaIdent.dialog').factory('mediaIdentDialog', function($uibModal) {
 
   var service = {
     open: function($scope, options) {
@@ -7,7 +7,7 @@ angular.module('lair.mediaIdent.dialog').factory('mediaIdentDialog', function($m
       var scope = $scope.$new();
       _.extend(scope, _.pick(options, 'mediaDirectory'));
 
-      var modal = $modal.open({
+      var modal = $uibModal.open({
         size: 'lg',
         scope: scope,
         controller: 'MediaIdentDialogCtrl',

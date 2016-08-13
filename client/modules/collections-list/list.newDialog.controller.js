@@ -1,4 +1,4 @@
-angular.module('lair.collections.list').controller('NewCollectionDialogCtrl', function(api, auth, $modalInstance, $scope) {
+angular.module('lair.collections.list').controller('NewCollectionDialogCtrl', function(api, auth, $uibModalInstance, $scope) {
 
   $scope.collection = {
     restrictions: {
@@ -58,7 +58,7 @@ angular.module('lair.collections.list').controller('NewCollectionDialogCtrl', fu
       url: '/collections',
       data: data
     }).then(function(res) {
-      $modalInstance.close(res.data);
+      $uibModalInstance.close(res.data);
     });
   }
 });

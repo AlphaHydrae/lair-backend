@@ -1,4 +1,4 @@
-angular.module('lair.collections.list').controller('CollectionsListCtrl', function(api, explorer, $modal, $q, $scope, $state, tables) {
+angular.module('lair.collections.list').controller('CollectionsListCtrl', function(api, explorer, $uibModal, $q, $scope, $state, tables) {
 
   explorer.openFromLocation($scope);
 
@@ -23,7 +23,7 @@ angular.module('lair.collections.list').controller('CollectionsListCtrl', functi
 
   function openNewCollectionDialog() {
 
-    var modal = $modal.open({
+    var modal = $uibModal.open({
       templateUrl: '/templates/modules/collections-list/list.newDialog.template.html',
       controller: 'NewCollectionDialogCtrl',
       scope: $scope

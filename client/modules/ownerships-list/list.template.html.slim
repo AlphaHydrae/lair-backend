@@ -4,7 +4,7 @@
       .form-group
         label.sr-only for='ownershipSearch' Search
         input.form-control st-search=true placeholder='Search...'
-      button.btn.btn-success ng-click='addOwnership()' tooltip='Create Ownership'
+      button.btn.btn-success ng-click='addOwnership()' uib-tooltip='Create Ownership'
         span.glyphicon.glyphicon-plus
     table#ownerships.table.table-striped.table-hover
       thead
@@ -19,7 +19,7 @@
           td {{ ownership.user.name }}
           td {{ ownership.gottenAt | amDateFormat:'LL' }}
           td.actions
-            button.btn.btn-default.btn-sm ng-if='currentUserIs("admin") || currentUser.id == ownership.user.id' ng-click='edit(ownership)' tooltip='Edit'
+            button.btn.btn-default.btn-sm ng-if='currentUserIs("admin") || currentUser.id == ownership.user.id' ng-click='edit(ownership)' uib-tooltip='Edit'
               span.glyphicon.glyphicon-edit
       tfoot
         tr

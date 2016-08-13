@@ -1,4 +1,4 @@
-angular.module('lair.items.edit').controller('EditItemCtrl', function(api, $log, $modal, $q, $scope, $state, $stateParams) {
+angular.module('lair.items.edit').controller('EditItemCtrl', function(api, $log, $q, $scope, $state, $stateParams) {
 
   function parseItem(item) {
     return _.extend({}, item, {

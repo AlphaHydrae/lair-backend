@@ -1,4 +1,4 @@
-angular.module('lair.explorer').factory('explorer', function(api, $location, $log, $modal, $rootScope) {
+angular.module('lair.explorer').factory('explorer', function(api, $location, $log, $uibModal, $rootScope) {
 
   var modal,
       scope;
@@ -30,7 +30,7 @@ angular.module('lair.explorer').factory('explorer', function(api, $location, $lo
       }
 
       if (!modal) {
-        modal = $modal.open({
+        modal = $uibModal.open({
           templateUrl: '/templates/modules/explorer/explorer.template.html',
           scope: scope,
           size: 'lg'

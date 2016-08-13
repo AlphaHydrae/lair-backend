@@ -1,4 +1,4 @@
-angular.module('lair.images.missing').controller('MissingImagesCtrl', function(api, $log, $modal, $q, $scope) {
+angular.module('lair.images.missing').controller('MissingImagesCtrl', function(api, $log, $uibModal, $q, $scope) {
 
   $scope.showAllItems = false;
   $scope.useSameImageForMainItemAndWork = true;
@@ -84,7 +84,7 @@ angular.module('lair.images.missing').controller('MissingImagesCtrl', function(a
     $scope.imageSearchResource = resource;
     $scope.imageSearchResourceId = subject.id;
 
-    modal = $modal.open({
+    modal = $uibModal.open({
       controller: 'SelectImageCtrl',
       templateUrl: '/templates/modules/images-select/select.template.html',
       scope: $scope,

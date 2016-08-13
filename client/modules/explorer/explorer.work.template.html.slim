@@ -1,8 +1,8 @@
 .modal-header.clearfix
   .btn-group.btn-group-sm.pull-right ng-if='currentUser'
-    button.btn.btn-warning type='button' ng-click='edit(work)' tooltip='Edit'
+    button.btn.btn-warning type='button' ng-click='edit(work)' uib-tooltip='Edit'
       span.glyphicon.glyphicon-edit
-    button.btn.btn-success type='button' ng-click='createItem(work)' tooltip='Add Item'
+    button.btn.btn-success type='button' ng-click='createItem(work)' uib-tooltip='Add Item'
       span.glyphicon.glyphicon-plus
   h3.modal-title
     span> {{ work.titles[0].text }}
@@ -77,7 +77,7 @@
       .panel-heading
         .pull-right ng-if='currentUser && currentUserOwnsAny(group.items)'
           .btn-group.btn-group-xs
-            button.btn.btn-info type='button' ng-click='yield()' popover-template='"/templates/modules/explorer/explorer.yieldGroupDialog.template.html"' popover-placement='left' popover-append-to-body='true' tooltip="I don't own any of these any more" tooltip-append-to-body='true'
+            button.btn.btn-info type='button' ng-click='yield()' uib-popover-template='"/templates/modules/explorer/explorer.yieldGroupDialog.template.html"' popover-placement='left' popover-append-to-body='true' uib-tooltip="I don't own any of these any more" tooltip-append-to-body='true'
               span.glyphicon.glyphicon-remove-circle
         | {{ group.name }}
       .panel-body

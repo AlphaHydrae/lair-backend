@@ -1,4 +1,4 @@
-angular.module('lair.home').controller('HomeCtrl', function(api, explorer, $modal, $scope, $state) {
+angular.module('lair.home').controller('HomeCtrl', function(api, explorer, $scope, $state) {
 
   explorer.openFromLocation($scope);
 

@@ -1,4 +1,4 @@
-angular.module('lair.images.select').controller('SelectImageCtrl', function(api, $log, $modalInstance, $scope, $timeout) {
+angular.module('lair.images.select').controller('SelectImageCtrl', function(api, $log, $uibModalInstance, $scope, $timeout) {
 
   $scope.manualImage = {};
   $scope.manualImageNotFound = false;
@@ -57,7 +57,7 @@ angular.module('lair.images.select').controller('SelectImageCtrl', function(api,
   }
 
   $scope.select = function(image) {
-    $modalInstance.close(image);
+    $uibModalInstance.close(image);
   };
 
   $scope.searchImages = function() {

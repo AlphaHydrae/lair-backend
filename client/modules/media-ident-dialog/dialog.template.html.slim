@@ -33,7 +33,7 @@
         .search-results ng-if='search'
 
           .btn-group.btn-group-xs.pull-right
-            button.btn.btn-warning type='button' ng-if='!settings.similarSearch && !search.new' ng-click='refresh()' tooltip='Refresh search results' tooltip-append-to-body='true'
+            button.btn.btn-warning type='button' ng-if='!settings.similarSearch && !search.new' ng-click='refresh()' uib-tooltip='Refresh search results' tooltip-append-to-body='true'
               span.glyphicon.glyphicon-refresh
             button.btn.btn-warning type='button' ng-if='settings.similarSearch' ng-click='runNewSearch()' Run a new search
             button.btn.btn-info type='button' ng-click='goToNextSearch()' Next search

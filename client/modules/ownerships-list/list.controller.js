@@ -1,4 +1,4 @@
-angular.module('lair.ownerships.list').controller('OwnershipsListCtrl', function(api, auth, $log, $modal, $scope) {
+angular.module('lair.ownerships.list').controller('OwnershipsListCtrl', function(api, auth, $log, $uibModal, $scope) {
 
   $scope.fetchOwnerships = function(table) {
 
@@ -38,7 +38,7 @@ angular.module('lair.ownerships.list').controller('OwnershipsListCtrl', function
 
     $scope.reset();
 
-    var modal = $modal.open({
+    var modal = $uibModal.open({
       controller: 'EditOwnershipCtrl',
       templateUrl: '/templates/modules/ownerships-list/list.editDialog.template.html',
       scope: $scope,
@@ -56,7 +56,7 @@ angular.module('lair.ownerships.list').controller('OwnershipsListCtrl', function
     $scope.ownership = ownership;
     $scope.reset();
 
-    var modal = $modal.open({
+    var modal = $uibModal.open({
       controller: 'EditOwnershipCtrl',
       templateUrl: '/templates/modules/ownerships-list/list.editDialog.template.html',
       scope: $scope,

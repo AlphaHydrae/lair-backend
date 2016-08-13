@@ -1,9 +1,9 @@
-angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works, languages, $log, $modal, $q, $scope, $state, $stateParams) {
+angular.module('lair.works.form').controller('WorkFormCtrl', function(api, works, languages, $log, $uibModal, $q, $scope, $state, $stateParams) {
 
   $scope.workCategories = works.categories.slice();
 
   $scope.selectImage = function() {
-    var modal = $modal.open({
+    var modal = $uibModal.open({
       controller: 'SelectImageCtrl',
       templateUrl: '/templates/modules/images-select/select.template.html',
       scope: $scope,

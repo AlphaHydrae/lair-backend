@@ -1,4 +1,4 @@
-angular.module('lair.auth').controller('LoginCtrl', function(auth, $modalInstance, $scope) {
+angular.module('lair.auth').controller('LoginCtrl', function(auth, $uibModalInstance, $scope) {
 
   function onError(response) {
     $scope.signingIn = false;
@@ -8,6 +8,6 @@ angular.module('lair.auth').controller('LoginCtrl', function(auth, $modalInstanc
   $scope.signInWith = function(provider, authCredentials) {
     delete $scope.error;
     $scope.signingIn = true;
-    return auth.authenticate(provider, authCredentials).then($modalInstance.close, onError);
+    return auth.authenticate(provider, authCredentials).then($uibModalInstance.close, onError);
   };
 });

@@ -44,10 +44,10 @@ form#workForm role='form' novalidate=true ng-controller='WorkFormCtrl' name='wor
   .row
     .col-xs-12.relationships
       .form-group
-        .pull-right dropdown=true
-          button.btn.btn-default.btn-xs type='button' dropdown-toggle=true tooltip='Add a relationship to a person or company' tooltip-append-to-body='true'
+        .pull-right uib-dropdown=true
+          button.btn.btn-default.btn-xs type='button' uib-dropdown-toggle=true uib-tooltip='Add a relationship to a person or company' tooltip-append-to-body='true'
             span.glyphicon.glyphicon-plus
-          ul.dropdown-menu role='menu'
+          ul.dropdown-menu uib-dropdown-menu=true role='menu'
             li role='menuitem'
               a href='#' ng-click='addRelationship("person")' Person
             li role='menuitem'
@@ -62,7 +62,7 @@ form#workForm role='form' novalidate=true ng-controller='WorkFormCtrl' name='wor
   .row
     .col-xs-12
       .form-group
-        button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addLink()' tooltip='Add a link to a web page' tooltip-append-to-body='true'
+        button.btn.btn-default.btn-xs.pull-right type='button' ng-click='addLink()' uib-tooltip='Add a link to a web page' tooltip-append-to-body='true'
           span.glyphicon.glyphicon-plus
         label for='workLink-0' Links
         p.text-muted ng-hide='modifiedWork.links.length' No links.

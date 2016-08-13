@@ -1,7 +1,7 @@
 .container
   .page-header
     .pull-right
-      a.btn.btn-success href='#' ui-sref='users.new' tooltip='Register a new user' tooltip-append-to-body='true'
+      a.btn.btn-success href='#' ui-sref='users.new' uib-tooltip='Register a new user' tooltip-append-to-body='true'
         span.glyphicon.glyphicon-plus
     h1 Users
   table#users-list.table.table-striped.table-hover st-pipe='usersList.refresh' st-table='usersList.records'
@@ -20,12 +20,12 @@
         td {{ user.email }}
         td {{ user.createdAt | amDateFormat: 'lll' }}
         td
-          span ng-if='user.activeAt' tooltip='{{ user.activeAt | amDateFormat: "lll" }}' {{ user.activeAt | amTimeAgo }}
+          span ng-if='user.activeAt' uib-tooltip='{{ user.activeAt | amDateFormat: "lll" }}' {{ user.activeAt | amTimeAgo }}
           span.empty ng-if='!user.activeAt' Not available
         td.actions
           .pull-right
             .btn-group.btn-group-sm
-              a.btn.btn-warning href='#' ui-sref='users.edit({ id: user.id })' tooltip='Edit user' tooltip-append-to-body='true'
+              a.btn.btn-warning href='#' ui-sref='users.edit({ id: user.id })' uib-tooltip='Edit user' tooltip-append-to-body='true'
                 span.glyphicon.glyphicon-edit
     tfoot
       tr
