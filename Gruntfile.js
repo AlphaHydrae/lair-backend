@@ -40,6 +40,19 @@ module.exports = function(grunt) {
           { nonull: true, cwd: 'bower_components/bootstrap/dist/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true },
           // Images
           { nonull: true, cwd: 'bower_components/jquery-ui/themes/smoothness/images/', src: '**', dest: 'vendor/assets/images/', flatten: true, expand: true }
+        ],
+        options: {
+          process: removeSourceMaps
+        }
+      },
+
+      binary: {
+        files: [
+          // Fonts
+          { nonull: true, cwd: 'bower_components/font-awesome/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true },
+          { nonull: true, cwd: 'bower_components/bootstrap/dist/fonts/', src: '**', dest: 'vendor/assets/fonts/', flatten: true, expand: true },
+          // Images
+          { nonull: true, cwd: 'bower_components/jquery-ui/themes/smoothness/images/', src: '**', dest: 'vendor/assets/images/', flatten: true, expand: true }
         ]
       },
 
@@ -127,7 +140,17 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-karma');
   grunt.loadNpmTasks('grunt-contrib-watch');
 
-  grunt.registerTask('default', ['jshint', 'karma:unitSingleRun']);
-  grunt.registerTask('test', ['watch:test']);
-  grunt.registerTask('vendor', ['copy:assets', 'copy:testAssets', 'copy:bootstrap', 'copy:bootstrapTheme', 'copy:fontawesome', 'copy:jqueryUi']);
+  grunt.registerTask('default', [ 'jshint', 'karma:unitSingleRun' ]);
+  grunt.registerTask('test', [ 'watch:test' ]);
+  grunt.registerTask('vendor', [ 'copy:assets', 'copy:binary', 'copy:testAssets', 'copy:bootstrap', 'copy:bootstrapTheme', 'copy:fontawesome', 'copy:jqueryUi' ]);
 };
+
+function removeSourceMaps(content, path) {
+  if (path.match(/\.(?:css|js)$/)) {
+    return content
+      .replace(/\/\/\#\s*sourceMappingURL=.*/, '')
+      .replace(/\/\*\#\s*sourceMappingURL=.*\s*\*\//, '');
+  } else {
+    return content;
+  }
+}
