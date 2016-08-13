@@ -199,7 +199,7 @@ GEM
       sprockets (> 2, < 4)
       tilt
     library_stdnums (1.4.1)
-    libv8 (3.16.14.7)
+    libv8 (3.16.14.15)
     listen (2.10.0)
       celluloid (~> 0.16.0)
       rb-fsevent (>= 0.9.3)
@@ -291,7 +291,7 @@ GEM
     redis (3.2.1)
     redis-namespace (1.5.2)
       redis (~> 3.0, >= 3.0.4)
-    ref (1.0.5)
+    ref (2.0.0)
     resque (1.25.2)
       mono_logger (~> 1.0)
       multi_json (~> 1.0)
@@ -515,4 +515,4 @@ DEPENDENCIES
   wisper
 
 BUNDLED WITH
-   1.12.1
+   1.12.5
