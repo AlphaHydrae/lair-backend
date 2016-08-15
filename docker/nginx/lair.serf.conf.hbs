@@ -17,8 +17,8 @@ server {
   server_name {{ LAIR_NGINX_SERVER_NAME }};
 
   # certs sent to the client in SERVER HELLO are concatenated in ssl_certificate
-  ssl_certificate /etc/ssl/private/{{ LAIR_NGINX_SSL_DOMAIN }}/server.crt;
-  ssl_certificate_key /etc/ssl/private/{{ LAIR_NGINX_SSL_DOMAIN }}/server.key;
+  ssl_certificate {{ LAIR_NGINX_SSL_CERTIFICATE }};
+  ssl_certificate_key {{ LAIR_NGINX_SSL_CERTIFICATE_KEY }};
   ssl_session_timeout 1d;
   ssl_session_cache shared:SSL:50m;
 
