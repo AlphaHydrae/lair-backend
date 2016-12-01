@@ -2,7 +2,7 @@ set -e
 
 # FIXME: only wait on the database for a limited time
 export PGPASSWORD="$LAIR_DATABASE_PASSWORD"
-until psql -h lair_db -U "$LAIR_DATABASE_NAME" -c '\l'; do
+until psql -h lair_db -U "$LAIR_DATABASE_USERNAME" -c '\l'; do
   >&2 echo "Postgres is unavailable - waiting"
   sleep 1
 done
