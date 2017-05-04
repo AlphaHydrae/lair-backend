@@ -1,6 +1,6 @@
-FROM ruby:2.2
+FROM ruby:2.3
 
-MAINTAINER Simon Oulevay (Alpha Hydrae) <docker@alphahydrae.com>
+LABEL maintainer="docker@alphahydrae.com"
 
 # Install GnuPG & the PostgreSQL client.
 RUN apt-get update -q -y \
@@ -12,7 +12,7 @@ RUN apt-get update -q -y \
 
 # Install the backup gem.
 WORKDIR /usr/src/app
-COPY Gemfile Gemfile.lock /usr/src/app/
+ADD Gemfile Gemfile.lock /usr/src/app/
 RUN bundle install
 
 # Initialize GnuPG.
@@ -23,8 +23,8 @@ RUN apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Add backup configuration.
-COPY config.rb /backup/
-COPY models /backup/models
+ADD config.rb /backup/
+ADD models /backup/models
 
 # Set backup as the entrypoint.
 ENTRYPOINT [ "/usr/local/bundle/bin/backup" ]

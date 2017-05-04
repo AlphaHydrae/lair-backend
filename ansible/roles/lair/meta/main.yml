@@ -1,6 +1,5 @@
 ---
 dependencies:
-  - role: docker-compose
   - role: bitbucket
     user_name: root
     user_home: /root

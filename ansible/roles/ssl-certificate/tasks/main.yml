@@ -1,3 +1,0 @@
-- file: path=/web/certificates/{{ ssl_domain }} owner=root group=root mode=0700 state=directory
-- template: src=server.key.j2 dest=/web/certificates/{{ ssl_domain }}/server.key owner=root group=root mode=0400
-- template: src=server.crt.j2 dest=/web/certificates/{{ ssl_domain }}/server.crt owner=root group=root mode=0400

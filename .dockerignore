@@ -1,6 +1,15 @@
-.git
+.*
+*.md
+*.rdoc
+ansible
 bower_components
+Capfile
+docker
+Dockerfile
+Guardfile
 local
 log
 node_modules
+spec
 tmp
+Vagrantfile
