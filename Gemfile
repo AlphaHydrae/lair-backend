@@ -25,16 +25,6 @@ gem 'resque-scheduler'
 gem 'resque-workers-lock'
 gem 'resque-waiting-room'
 
-# Templates & Assets
-gem 'slim-rails'
-gem 'less-rails'
-gem 'stylus'
-gem 'therubyracer'
-gem 'uglifier', '>= 1.3.0'
-gem 'ngannotate-rails'
-gem 'autoprefixer-rails'
-gem 'redcarpet'
-
 # Standards
 gem 'iso'
 gem 'library_stdnums'
@@ -53,12 +43,7 @@ gem 'pundit'
 gem 'aws-sdk', '~> 2'
 gem 'dragonfly'
 
-# bundle exec rake doc:rails generates the API under doc/api.
-gem 'sdoc', '~> 0.4.0', group: :doc
-
-# Use Rails Html Sanitizer for HTML sanitization
-gem 'rails-html-sanitizer', '~> 1.0'
-
+# Utilities
 gem 'paint'
 
 group :production do
@@ -91,8 +76,6 @@ group :development, :test do
   gem 'shoulda-matchers'
   gem 'factory_girl_rails'
   gem 'deep_merge', require: 'deep_merge/rails_compat'
-
-  gem 'quiet_assets'
 
   gem 'capybara'
   gem 'selenium-webdriver'

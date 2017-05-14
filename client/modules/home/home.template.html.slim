@@ -1,9 +1,0 @@
-.container
-  #home
-    p.empty ng-if='collections !== undefined && !collections.length' No featured collections.
-    .collections ng-if='collections.length'
-      h2
-        | Featured collection
-        a ui-sref='collections.list'
-          small see all collections
-      collection-preview ng-repeat='collection in collections' collection='collection' auto-update='true'

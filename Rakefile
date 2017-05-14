@@ -8,8 +8,6 @@ Rails.application.load_tasks
 if Rails.env != 'production'
   require 'rake-version'
   RakeVersion::Tasks.new do |v|
-    v.copy 'bower.json'
-    v.copy 'package.json'
     v.copy 'spec/angular/unit/version.spec.js'
   end
 end

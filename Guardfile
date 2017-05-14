@@ -1,6 +1,6 @@
 # Guardfile
 # More info at https://github.com/guard/guard#readme
-ignore /bower_components/, /node_modules/
+ignore /node_modules/
 
 group 'resque' do
   resque_worker_command = 'bundle exec rake resque:work'

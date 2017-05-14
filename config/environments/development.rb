@@ -38,7 +38,4 @@ Rails.application.configure do
 
   # Raises error for missing translations
   # config.action_view.raise_on_missing_translations = true
-
-  # Process assets with ng-annotate.
-  config.ng_annotate.process = true
 end

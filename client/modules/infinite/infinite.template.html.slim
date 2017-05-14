@@ -1,9 +1,0 @@
-div infinite-scroll='fetchMore()' infinite-scroll-distance=1 infinite-scroll-disabled='infiniteState.loading || infiniteState.noMore || !infiniteOptions.enabled || !infiniteState.enabled || infiniteState.error'
-  .col-xs-12 ng-if='infiniteState.initialized && !infiniteState.loading && !records.length && !infiniteState.error'
-    p.empty This list is empty.
-  ng-transclude
-  .col-xs-12 ng-if='infiniteState.total > records.length && !infiniteState.enabled && !infiniteState.loading'
-    .text-center
-      button.btn.btn-primary type='button' ng-click='showMore()'
-        span.glyphicon.glyphicon-plus
-        |  Show {{ infiniteState.total - records.length | number }} more items

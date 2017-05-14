@@ -1,8 +1,0 @@
-form.ownership-yield-dialog ng-controller='YieldGroupDialogCtrl' ng-submit='yield()'
-  .form-group
-    label for='ownership-yielded-at' When did you part with them?
-    input#ownership-yielded-at.form-control ng-model='yieldData.yieldedAt' ui-date='dateOptions'
-  button.btn.btn-primary.btn-block type='submit' Save
-  / TODO: replace this message with a toast message and close the popup
-  p.text-success.text-center ng-if='saved'
-    strong Operation successful
