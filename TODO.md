@@ -1,10 +1,18 @@
+# Features
+
+* ratings
+* viewed
+* data comparison
+
 # High Priority
 
 * add footer with version
 * test authorization for collections and ownerships
 * remove image from s3 when deleted
 * fix save and add part
+* fix custom title
 * set missing images page should not find serial items (shows, anime)
+* show files for work/item (define some scan paths as "main" and others as "copies")
 
 # Medium Priority
 
