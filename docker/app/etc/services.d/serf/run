@@ -7,6 +7,10 @@ sigterm() {
 
 trap sigterm SIGTERM
 
-/usr/local/bin/serf agent --config-file /etc/serf.conf --join "$SERF_JOIN" &
+if [[ -z "$SERF_ARGS" ]]; then
+  SERF_ARGS="--bind $(hostname -i) --config-file /etc/serf.conf"
+fi
+
+/usr/local/bin/serf agent $SERF_ARGS --join "$SERF_JOIN" &
 pid=$!
 wait
