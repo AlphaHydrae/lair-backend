@@ -47,7 +47,7 @@ server {
     proxy_set_header X-Forwarded-Proto https;
     proxy_set_header Host $http_host;
     proxy_redirect off;
-    proxy_pass lair_cluster;
+    proxy_pass http://lair_cluster;
     break;
     \{{else}}
     return 502;
