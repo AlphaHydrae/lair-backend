@@ -2,7 +2,7 @@ FROM alphahydrae/lair:latest
 
 LABEL maintainer="docker@alphahydrae.com"
 
-COPY wait.sh /wait
+COPY wait /wait
 
 ENTRYPOINT [ "/wait", "rake" ]
 CMD [ "-T" ]
