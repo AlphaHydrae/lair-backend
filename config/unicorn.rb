@@ -4,7 +4,7 @@ APP_PATH = File.expand_path File.join(File.dirname(__FILE__), '..')
 
 # Use at least one worker per core if you're on a dedicated server,
 # more will usually help for _short_ waits on databases/caches.
-worker_processes ENV['LAIR_UNICORN_WORKERS'] ? ENV['LAIR_UNICORN_WORKERS'].to_i : 3
+worker_processes ENV['LAIR_UNICORN_WORKERS'] ? ENV['LAIR_UNICORN_WORKERS'].to_i : 1
 user ENV['LAIR_UNICORN_USER'] || 'root'
 
 # Help ensure your application will always spawn in the symlinked

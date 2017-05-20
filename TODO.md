@@ -6,6 +6,8 @@
 
 # High Priority
 
+* replace unicorn
+* deploy resque web
 * add footer with version
 * test authorization for collections and ownerships
 * remove image from s3 when deleted

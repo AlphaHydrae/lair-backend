@@ -64,3 +64,22 @@ def generate_handlebars_template path:, template_options: {}
   File.open(tmp_file, 'w'){ |f| f.write compiled }
   tmp_file
 end
+
+def vagrant_ssh_config
+  FileUtils.mkdir_p 'tmp'
+
+  config_file = File.join 'tmp', "vagrant-ssh-config-#{Time.now.strftime('%Y-%m-%d')}"
+  unless File.exist? config_file
+    File.open(config_file, 'w'){ |f| f.write `vagrant ssh-config`.strip }
+  end
+
+  Dir.glob(File.join('tmp', 'vagrant-ssh-config-*')).reject{ |f| f == config_file }.each do |file|
+    FileUtils.remove_entry_secure file
+  end
+
+  File.read(config_file).split(/\n+/).reject(&:empty?).inject({}) do |memo,line|
+    key, value = line.strip.split(/\s+/, 2)
+    memo[key] = value
+    memo
+  end
+end

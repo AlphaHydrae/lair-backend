@@ -1,8 +1,4 @@
 development:
-  bingSearch:
-    url: <%= ENV['LAIR_BING_SEARCH_URL'] %>
-    rate_limit_value: <%= ENV['LAIR_BING_SEARCH_RATE_LIMIT_VALUE'].to_i %>
-    rate_limit_duration: <%= ENV['LAIR_BING_SEARCH_RATE_LIMIT_DURATION'].to_i %>
   googleCustomSearch:
     search_engine_id: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID'] %>
     rate_limit_value: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_VALUE'].to_i %>
@@ -16,10 +12,6 @@ development:
   imageUpload:
     enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^true$/i) %>
 test:
-  bingSearch:
-    url: http://localhost/bingSearch
-    rate_limit_value: 5000
-    rate_limit_duration: 86400 # 1 day (in seconds)
   googleCustomSearch:
     search_engine_id: foo
     rate_limit_value: 100
@@ -33,10 +25,6 @@ test:
   imageUpload:
     enabled: false
 production:
-  bingSearch:
-    url: <%= ENV['LAIR_BING_SEARCH_URL'] %>
-    rate_limit_value: <%= ENV['LAIR_BING_SEARCH_RATE_LIMIT_VALUE'].to_i %>
-    rate_limit_duration: <%= ENV['LAIR_BING_SEARCH_RATE_LIMIT_DURATION'].to_i %>
   googleCustomSearch:
     search_engine_id: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID'] %>
     rate_limit_value: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_VALUE'].to_i %>

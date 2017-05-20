@@ -32,7 +32,8 @@ set :host do
     host = "#{host}:#{ENV['LAIR_DEPLOY_SSH_PORT']}" if ENV['LAIR_DEPLOY_SSH_PORT']
     host
   else
-    'root@127.0.0.1:2222'
+    ssh_config = vagrant_ssh_config
+    "root@#{ssh_config['HostName']}:#{ssh_config['Port']}"
   end
 end
 
@@ -237,7 +238,7 @@ namespace :deploy do
 
   deploy_task config: %i(deploy:setup) do
 
-    docker_compose_file = generate_handlebars_template path: local_docker_file('docker-compose.yml.hbs'), template_options: fetch(:env_vars)
+    docker_compose_file = generate_handlebars_template path: local_docker_file('docker-compose.yml'), template_options: fetch(:env_vars)
     env_file = generate_handlebars_template path: local_docker_file('env.hbs'), template_options: fetch(:env_vars)
     nginx_conf_file = generate_handlebars_template path: local_docker_file('nginx', 'lair.serf.conf.hbs'), template_options: fetch(:env_vars)
 

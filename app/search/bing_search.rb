@@ -42,12 +42,12 @@ module BingSearch
   end
 
   def self.authorization
-    key = Rails.application.secrets.azure_account_key
+    key = 'changeme'
     encoded = Base64.strict_encode64 "#{key}:#{key}"
     "Basic #{encoded}"
   end
 
   def self.config
-    Rails.application.service_config :bingSearch
+    { url: 'http://localhost' }
   end
 end
