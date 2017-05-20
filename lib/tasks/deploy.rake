@@ -19,27 +19,22 @@ set :build, ->{ ENV['LAIR_DEPLOY_BUILD'] || fetch(:checkout) }
 set :tmp, ->{ File.join fetch(:root), 'tmp' }
 set :network, ->{ ENV['LAIR_DEPLOY_NETWORK'] }
 
-set :app_containers, ->{ ENV['LAIR_DOCKER_APP_CONTAINERS'].try(:to_i) || 3 }
-set :job_containers, ->{ ENV['LAIR_DOCKER_JOB_CONTAINERS'].try(:to_i) || 2 }
+set :app_containers, ->{ ENV['LAIR_DOCKER_APP_CONTAINERS'].try(:to_i) || 1 }
+set :job_containers, ->{ ENV['LAIR_DOCKER_JOB_CONTAINERS'].try(:to_i) || 1 }
 
 set :repo_url, ->{ ENV['LAIR_REPO_URL'] }
 set :branch, ->{ ENV['LAIR_REPO_BRANCH'] || 'master' }
 
 set :host do
-  if ENV['LAIR_DEPLOY_SSH_HOST']
-    host = ENV['LAIR_DEPLOY_SSH_HOST']
-    host = "#{ENV['LAIR_DEPLOY_SSH_USER']}@#{host}" if ENV['LAIR_DEPLOY_SSH_USER']
-    host = "#{host}:#{ENV['LAIR_DEPLOY_SSH_PORT']}" if ENV['LAIR_DEPLOY_SSH_PORT']
-    host
-  else
-    ssh_config = vagrant_ssh_config
-    "root@#{ssh_config['HostName']}:#{ssh_config['Port']}"
-  end
+  host = ENV['LAIR_DEPLOY_SSH_HOST']
+  host = "#{ENV['LAIR_DEPLOY_SSH_USER']}@#{host}" if ENV['LAIR_DEPLOY_SSH_USER']
+  host = "#{host}:#{ENV['LAIR_DEPLOY_SSH_PORT']}" if ENV['LAIR_DEPLOY_SSH_PORT']
+  host
 end
 
 # TASKS
 
-task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:app:stop deploy:job:stop deploy:db:migrate deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+task deploy: %i(deploy:log:deploy_start deploy:app:build deploy:app:stop deploy:job:stop deploy:db:migrate deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
 fetch(:envs).each do |env|
   task env do
@@ -49,9 +44,11 @@ end
 
 namespace :deploy do
 
-  task hot: %i(deploy:app:ensure_running deploy:log:deploy_start deploy:app:build deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+  task hot: %i(deploy:app:ensure_running deploy:log:deploy_start deploy:app:build deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
-  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:serf:run deploy:db:load_schema deploy:assets:compile deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+  task cold: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:db:load_schema deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
+
+  task dump: %i(deploy:cold:ensure_not_run deploy:log:deploy_start deploy:app:build deploy:db:load_dump deploy:app:run deploy:job:run deploy:scale deploy:log:deploy_end)
 
   namespace :cold do
     deploy_task ensure_not_run: %i(deploy:env) do
@@ -67,8 +64,8 @@ namespace :deploy do
   end
 
   namespace :app do
-    deploy_task run: %i(deploy:app:ensure_build deploy:network:create deploy:config) do
-      docker_compose_up :app, recreate: true
+    deploy_task run: %i(deploy:app:ensure_build deploy:config) do
+      docker_compose_up :app, build: true, recreate: true
     end
 
     deploy_task stop: %i(deploy:config) do
@@ -93,8 +90,8 @@ namespace :deploy do
   end
 
   namespace :job do
-    deploy_task run: %i(deploy:app:ensure_build deploy:network:create deploy:config) do
-      docker_compose_up :job, recreate: true
+    deploy_task run: %i(deploy:app:ensure_build deploy:config) do
+      docker_compose_up :job, build: true, recreate: true
     end
 
     deploy_task stop: %i(deploy:config) do
@@ -107,58 +104,33 @@ namespace :deploy do
   end
 
   namespace :db do
-    deploy_task run: %i(deploy:config deploy:network:create deploy:cache:run) do
+    deploy_task run: %i(deploy:config deploy:cache:run) do
 
       env = ENV.select{ |k,v| !!k.match(/^LAIR_(?:DATABASE|POSTGRES)_/) }
       env['POSTGRES_PASSWORD'] = env.delete 'LAIR_POSTGRES_PASSWORD'
 
       with env do
-        docker_compose_up :db
+        docker_compose_up :db, build: true
       end
     end
 
-    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run deploy:wait) do
+    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run) do
       docker_compose_run :task, 'db:migrate'
     end
 
-    deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run deploy:wait) do
+    deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run) do
       docker_compose_run :task, 'db:schema:load', 'db:seed'
     end
 
-    deploy_task load_dump: %i(deploy:app:build deploy:db:run deploy:wait) do
-      docker_run '--entrypoint', '/tmp/load-dump.sh', '--volume', '/var/lib/lair/checkout/docker/db/load-dump.sh:/tmp/load-dump.sh', '--volume /var/lib/lair/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
+    deploy_task load_dump: %i(deploy:repo:checkout deploy:db:run) do
+      docker_run '--entrypoint', '/usr/local/bin/load-dump', '--volume', "#{fetch(:checkout)}/docker/db/load-dump:/usr/local/bin/load-dump", '--volume /var/lib/lair/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
     end
   end
 
   namespace :cache do
-    deploy_task run: %i(deploy:config deploy:network:create) do
+    deploy_task run: %i(deploy:config) do
       docker_compose_up :cache
     end
-  end
-
-  namespace :serf do
-    deploy_task run: %i(deploy:app:ensure_build deploy:network:create deploy:config) do
-      docker_compose_up :serf
-    end
-
-    deploy_task stop: %i(deploy:config) do
-      docker_compose_stop :serf
-    end
-
-    deploy_task rm: %i(deploy:serf:stop) do
-      docker_compose_rm :serf
-    end
-  end
-
-  namespace :assets do
-    deploy_task compile: %i(deploy:app:ensure_build deploy:config deploy:network:create) do
-      docker_compose_run :task, 'assets:precompile', 'assets:clean'
-      docker_compose_run :task, 'templates:precompile'
-    end
-  end
-
-  deploy_task wait: %i(deploy:app:ensure_build deploy:config deploy:network:create) do
-    docker_compose_run :wait
   end
 
   deploy_task backup: %i(deploy:backup:ensure_build deploy:config) do
@@ -173,14 +145,6 @@ namespace :deploy do
 
     deploy_task ensure_build: %i(deploy:env) do
       ensure_docker_image_built 'alphahydrae/lair-backup'
-    end
-  end
-
-  namespace :network do
-    deploy_task create: %i(deploy:env) do
-      unless test "docker network inspect #{fetch(:network)} &>/dev/null"
-        docker_network_create fetch(:network)
-      end
     end
   end
 
@@ -211,6 +175,7 @@ namespace :deploy do
       else
         within repo_dir do
           execute :git, 'fetch', '--all'
+          execute :git, 'fetch', 'origin', "'+refs/heads/*:refs/heads/*'"
         end
       end
     end
@@ -242,14 +207,9 @@ namespace :deploy do
     env_file = generate_handlebars_template path: local_docker_file('env.hbs'), template_options: fetch(:env_vars)
     nginx_conf_file = generate_handlebars_template path: local_docker_file('nginx', 'lair.serf.conf.hbs'), template_options: fetch(:env_vars)
 
-    db_init_script_file = File.join fetch(:local_docker), 'db', 'init.sh'
-    nginx_serf_conf_file = File.join fetch(:local_docker), 'nginx', 'config.yml'
-
     upload! docker_compose_file, remote_file('docker-compose.yml')
     upload! env_file, remote_file('.env')
-    upload! db_init_script_file, remote_file('postgresql/init-scripts/00_lair.sh')
     upload! nginx_conf_file, '/etc/nginx-serf/sites/lair.conf.hbs'
-    upload! nginx_serf_conf_file, '/etc/nginx-serf/config.yml' # TODO: move to ansible
   end
 
   deploy_task implode: %i(deploy:env) do
@@ -272,7 +232,16 @@ namespace :deploy do
       puts container
     end
 
-    files_to_delete = %w(checkout docker-compose.yml .env postgresql public redis repo tmp).collect{ |dir| File.join fetch(:root), dir }
+    volume_names = docker_volume_ls
+
+    puts
+    puts "The following volumes will be removed permanently:"
+
+    volume_names.each do |name|
+      puts "- #{name}"
+    end
+
+    files_to_delete = %w(checkout docker-compose.yml .env repo tmp).collect{ |dir| File.join fetch(:root), dir }
     files_to_delete << '/etc/nginx-serf/sites/lair.conf.hbs'
 
     puts
@@ -296,15 +265,15 @@ namespace :deploy do
       execute :docker, 'rm', id
     end
 
+    volume_names.each do |name|
+      docker_volume_rm name
+    end
+
     execute :rm, '-fr', *files_to_delete
   end
 
   deploy_task setup: %i(deploy:env) do
-
-    dirs = %w(postgresql/init-scripts redis public tmp).collect{ |dir| File.join fetch(:root), dir }
-    dirs << '/etc/nginx-serf/sites'
-
-    execute :mkdir, '-p', dirs
+    execute :mkdir, '-p', File.join(fetch(:root), 'tmp')
   end
 
   deploy_task versions: %i(deploy:env) do
@@ -372,7 +341,8 @@ def all_versions
   end
 
   db_version = if db_container_id && test("[ -f #{remote_file('docker-compose.yml')} ]")
-    docker_compose_run :task, 'db:version'
+    output = docker_compose_run :task, 'db:version'
+    output.strip.split(/\n+/).last.sub(/^Current version: /, '')
   end
 
   {
@@ -386,9 +356,10 @@ def all_versions
   }
 end
 
-def docker_compose_up service, recreate: false
+def docker_compose_up service, build: false, recreate: false
 
   up_args = []
+  up_args << '--build' if build
   up_args << '--no-recreate' unless recreate
   up_args << '-d' << service.to_s
 
@@ -462,24 +433,19 @@ def docker_inspect id, format: nil
   output.strip
 end
 
-def docker_network_create name, driver: 'bridge'
+def docker_volume_ls compose_project: 'lair'
 
-  create_args = []
-  create_args << '--driver' << driver.to_s if driver
-  create_args << name.to_s
+  ls_args = []
+  ls_args << '--quiet'
+  ls_args << '--filter' << "label=com.docker.compose.project=#{compose_project}" if compose_project
 
-  output = capture :docker, 'network', 'create', *create_args
-  output.strip
+  output = capture :docker, 'volume', 'ls', *ls_args
+  lines = output.strip.split /\n+/
+  lines.slice 1, lines.length - 1
 end
 
-def docker_network_inspect name, format: nil
-
-  inspect_args = []
-  inspect_args << '--format' << Shellwords.shellescape(format.to_s) if format
-  inspect_args << name.to_s
-
-  output = capture :docker, 'network', 'inspect', *inspect_args
-  output.strip
+def docker_volume_rm name
+  execute :docker, 'volume', 'rm', name.to_s
 end
 
 def ensure_docker_image_built name
