@@ -1,4 +1,4 @@
-version: "2"
+version: "3.1"
 
 networks:
   default:
@@ -10,51 +10,35 @@ services:
   # Application in production mode.
   # The application will not serve assets.
   app:
-    image: alphahydrae/lair
-    volumes:
-      - "/var/lib/lair/public:/usr/src/app/public"
+    image: alphahydrae/lair-app
+    build: /var/lib/lair/checkout/docker/app
     env_file:
       - .env
     environment:
-      LAIR_LOG_TO_STDOUT: "1"
-      LAIR_CONTAINER_TYPE: app
+      SERF_JOIN: "{{ LAIR_DEPLOY_SERF }}"
     depends_on:
-      - db
       - cache
-      - serf
+      - db
     restart: always
 
   # Background job processing task.
   job:
-    image: alphahydrae/lair
+    image: alphahydrae/lair-job
+    build: /var/lib/lair/checkout/docker/job
     env_file:
       - .env
-    environment:
-      QUEUE: "*"
-      INTERVAL: "2"
-      TERM_CHILD: "1"
-      LAIR_LOG_TO_STDOUT: "1"
-      LAIR_CONTAINER_TYPE: job
     depends_on:
       - db
       - cache
     restart: always
 
-  # Serf master.
-  serf:
-    image: alphahydrae/lair
-    container_name: lair_serf
-    environment:
-      LAIR_CONTAINER_TYPE: serf
-    restart: always
-
   # PostgreSQL database.
   db:
-    image: postgres:9.5
+    image: alphahydrae/lair-db
+    build: /var/lib/lair/checkout/docker/db
     container_name: lair_db
     volumes:
-      - "/var/lib/lair/postgresql/init-scripts:/docker-entrypoint-initdb.d"
-      - "/var/lib/lair/postgresql/data:/var/lib/postgresql/data"
+      - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD:
       LAIR_DATABASE_NAME:
@@ -68,18 +52,17 @@ services:
     command: redis-server --appendonly yes
     container_name: lair_cache
     volumes:
-      - "/var/lib/lair/redis/data:/data"
+      - cache_data:/data
     restart: always
 
   # Rake task.
   # This is meant to be run as a one-off task (with "run" instead of "up").
   task:
-    image: alphahydrae/lair
-    entrypoint: rake
+    image: alphahydrae/lair-app
+    entrypoint:
+      - /init
+      - rake
     command: -T
-    volumes:
-      - "/var/lib/lair/public:/usr/src/app/public"
-      - "/var/lib/lair/tmp:/usr/src/app/tmp"
     env_file:
       - .env
     restart: "no"
@@ -94,11 +77,6 @@ services:
       - .env
     restart: "no"
 
-  # Wait for cache and database to be available.
-  # This is meant to be run as a one-off task (with "run" instead of "up").
-  wait:
-    image: alphahydrae/lair
-    entrypoint: /usr/src/app/docker/wait.sh
-    env_file:
-      - .env
-    restart: "no"
+volumes:
+  cache_data:
+  db_data:
