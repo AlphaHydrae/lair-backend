@@ -58,11 +58,8 @@ services:
   # Rake task.
   # This is meant to be run as a one-off task (with "run" instead of "up").
   task:
-    image: alphahydrae/lair-app
-    entrypoint:
-      - /init
-      - rake
-    command: -T
+    image: alphahydrae/lair-task
+    build: /var/lib/lair/checkout/docker/task
     env_file:
       - .env
     restart: "no"
