@@ -45,7 +45,7 @@ ADD models /backup/models
 ADD backup cron /usr/local/bin/
 
 # Add backup script to crontab
-RUN printf "PATH=/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n* * * * * /usr/local/bin/backup\n" | crontab -
+RUN printf "PATH=/usr/local/bundle/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\nGEM_HOME=/usr/local/bundle\n* * * * * /usr/local/bin/backup\n" | crontab -
 
 # Run cron
 ENTRYPOINT [ "/usr/local/bin/dumb-init" ]
