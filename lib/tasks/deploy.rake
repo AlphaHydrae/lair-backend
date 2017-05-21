@@ -10,9 +10,8 @@ set :env_vars do
 end
 
 set :local_root, ->{ File.join File.dirname(__FILE__), '..', '..' }
-set :local_docker, ->{ File.join fetch(:local_root), 'docker' }
 
-set :root, ->{ ENV['LAIR_DEPLOY_ROOT'] || '/var/lib/lair' }
+set :root, ->{ ENV['LAIR_DEPLOY_ROOT'] || '/var/lib/lair/backend' }
 set :repo, ->{ File.join fetch(:root), 'repo' }
 set :checkout, ->{ File.join fetch(:root), 'checkout' }
 set :build, ->{ ENV['LAIR_DEPLOY_BUILD'] || fetch(:checkout) }
@@ -115,15 +114,21 @@ namespace :deploy do
     end
 
     deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run) do
-      docker_compose_run :task, 'db:migrate'
+      docker_compose_run service: :task, command: 'db:migrate'
     end
 
     deploy_task load_schema: %i(deploy:app:ensure_build deploy:db:run) do
-      docker_compose_run :task, 'db:schema:load', 'db:seed'
+      docker_compose_run service: :task, command: [ 'db:schema:load', 'db:seed' ]
     end
 
     deploy_task load_dump: %i(deploy:repo:checkout deploy:db:run) do
-      docker_run '--entrypoint', '/usr/local/bin/load-dump', '--volume', "#{fetch(:checkout)}/docker/db/load-dump:/usr/local/bin/load-dump", '--volume /var/lib/lair/backup/dump.sql:/tmp/dump.sql', 'postgres:9.5', '/tmp/dump.sql'
+
+      volumes = {
+        "#{fetch(:checkout)}/docker/db/load-dump" => '/usr/local/bin/load-dump',
+        "#{fetch(:root)}/backup/dump.sql" => '/tmp/dump.sql'
+      }
+
+      docker_run image: 'postgres:9.5', entrypoint: '/usr/local/bin/load-dump', command: '/tmp/dump.sql', volumes: volumes
     end
   end
 
@@ -133,14 +138,22 @@ namespace :deploy do
     end
   end
 
-  deploy_task backup: %i(deploy:backup:ensure_build deploy:config) do
-    execute :mkdir, '-p', File.join(fetch(:root), 'backup')
-    docker_compose_run :backup
+  deploy_task backup: %i(deploy:backup:build deploy:config) do
+    docker_compose_run service: 'backup', entrypoint: '/usr/local/bin/backup', env: { LOG_TO_STDOUT: '1' }
   end
 
   namespace :backup do
-    deploy_task build: %i(deploy:repo:checkout) do
-      docker_build name: 'alphahydrae/lair-backup', path: File.join(fetch(:checkout), 'docker', 'backup')
+    deploy_task build: %i(deploy:config deploy:repo:checkout) do
+      docker_compose_build service: :backup
+    end
+
+    deploy_task start: %i(deploy:config deploy:repo:checkout) do
+      docker_compose_up :backup, build: true, recreate: true
+    end
+
+    deploy_task stop: %i(deploy:config) do
+      docker_compose_stop :backup
+      docker_compose_rm :backup
     end
 
     deploy_task ensure_build: %i(deploy:env) do
@@ -203,10 +216,12 @@ namespace :deploy do
 
   deploy_task config: %i(deploy:setup) do
 
-    docker_compose_file = generate_handlebars_template path: local_docker_file('docker-compose.yml'), template_options: fetch(:env_vars)
-    env_file = generate_handlebars_template path: local_docker_file('env.hbs'), template_options: fetch(:env_vars)
-    nginx_conf_file = generate_handlebars_template path: local_docker_file('nginx', 'lair.serf.conf.hbs'), template_options: fetch(:env_vars)
+    backup_key_file = local_file('backup.key')
+    docker_compose_file = generate_handlebars_template path: local_file('docker', 'docker-compose.yml'), template_options: fetch(:env_vars)
+    env_file = generate_handlebars_template path: local_file('docker', 'env.hbs'), template_options: fetch(:env_vars)
+    nginx_conf_file = generate_handlebars_template path: local_file('docker', 'nginx', 'lair.serf.conf.hbs'), template_options: fetch(:env_vars)
 
+    upload! backup_key_file, remote_file('backup', 'backup.key')
     upload! docker_compose_file, remote_file('docker-compose.yml')
     upload! env_file, remote_file('.env')
     upload! nginx_conf_file, '/etc/nginx-serf/sites/lair.conf.hbs'
@@ -261,8 +276,7 @@ namespace :deploy do
 
     container_ids = containers.split(/\n+/).drop(1).collect{ |c| c.strip.sub(/ .*/, '') }
     container_ids.each do |id|
-      execute :docker, 'stop', id
-      execute :docker, 'rm', id
+      execute :docker, 'rm', '-f', id
     end
 
     volume_names.each do |name|
@@ -310,8 +324,10 @@ namespace :deploy do
   end
 end
 
-def local_docker_file *args
-  File.join *args.unshift(fetch(:local_docker))
+def local_file *args
+  file = File.join *args.unshift(fetch(:local_root))
+  raise "File #{file} is required" unless File.exist? file
+  file
 end
 
 def remote_file *args
@@ -341,7 +357,7 @@ def all_versions
   end
 
   db_version = if db_container_id && test("[ -f #{remote_file('docker-compose.yml')} ]")
-    output = docker_compose_run :task, 'db:version'
+    output = docker_compose_run service: :task, command: 'db:version'
     output.strip.split(/\n+/).last.sub(/^Current version: /, '')
   end
 
@@ -354,6 +370,18 @@ def all_versions
     docker: docker_version.strip,
     dockerCompose: docker_compose_version.strip
   }
+end
+
+def docker_compose_build service:, build_args: {}
+
+  args = []
+  args << service.to_s
+
+  build_args.each do |key,value|
+    args << '--build-arg' << "#{key}=#{value}"
+  end
+
+  docker_compose :build, *args
 end
 
 def docker_compose_up service, build: false, recreate: false
@@ -371,11 +399,26 @@ def docker_compose_stop service
 end
 
 def docker_compose_rm service
-  docker_compose :rm, '-f', '--all', service.to_s
+  docker_compose :rm, '-f', service.to_s
 end
 
-def docker_compose_run *service_and_args
-  docker_compose :run, '--no-deps', '--rm', *service_and_args.collect(&:to_s)
+def docker_compose_run service:, entrypoint: nil, command: [], env: {}, no_deps: true, rm: true
+
+  args = []
+  args << '--no-deps' if no_deps
+  args << '--rm' if rm
+  args << '--entrypoint' << entrypoint if entrypoint
+
+  env.each do |key,value|
+    args << '-e' << "#{key}=#{value}"
+  end
+
+  args << service.to_s
+
+  command = [ command ] if command && !command.kind_of?(Array)
+  args += command
+
+  docker_compose :run, *args
 end
 
 def docker_compose_scale services:
@@ -399,9 +442,34 @@ def docker_build path:, name:
   end
 end
 
-def docker_run *run_args
+def docker_run image:, entrypoint: nil, command: [], env: {}, env_file: true, network: true, rm: true, volumes: {}
+
+  args = []
+  args << '--rm' if rm
+  args << '--env-file' << '.env' if env_file
+  args << '--entrypoint' << entrypoint if entrypoint
+
+  env.each do |key,value|
+    args << '--env' << "#{key}=#{value}"
+  end
+
+  if network == true
+    args << '--net' << fetch(:network)
+  elsif network
+    args << '--net' << network.to_s
+  end
+
+  volumes.each do |key,value|
+    args << '--volume' << "#{key}:#{value}"
+  end
+
+  args << image.to_s
+
+  command = [ command ] if command && !command.kind_of?(Array)
+  args += command
+
   within fetch(:root) do
-    capture :docker, 'run', '--rm', '--env-file', '.env', '--net', fetch(:network), *run_args
+    capture :docker, 'run', *args
   end
 end
 
@@ -441,7 +509,7 @@ def docker_volume_ls compose_project: 'lair'
 
   output = capture :docker, 'volume', 'ls', *ls_args
   lines = output.strip.split /\n+/
-  lines.slice 1, lines.length - 1
+  lines.empty? ? lines : lines.slice(1, lines.length - 1)
 end
 
 def docker_volume_rm name
