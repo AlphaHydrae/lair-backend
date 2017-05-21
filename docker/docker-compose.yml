@@ -67,7 +67,7 @@ services:
     restart: always
     volumes:
       - backup_data:/var/lib/backup
-      - /var/lib/lair/backend/backup/backup.key:/backup/backup.key
+      - /var/lib/lair/backend/backup.key:/backup/backup.key
 
   # Rake task
   # This is meant to be run as a one-off task (with "run" instead of "up").

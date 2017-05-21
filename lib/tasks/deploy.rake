@@ -125,7 +125,7 @@ namespace :deploy do
 
       volumes = {
         "#{fetch(:checkout)}/docker/db/load-dump" => '/usr/local/bin/load-dump',
-        "#{fetch(:root)}/backup/dump.sql" => '/tmp/dump.sql'
+        "#{fetch(:root)}/dump.sql" => '/tmp/dump.sql'
       }
 
       docker_run image: 'postgres:9.5', entrypoint: '/usr/local/bin/load-dump', command: '/tmp/dump.sql', volumes: volumes
@@ -221,7 +221,7 @@ namespace :deploy do
     env_file = generate_handlebars_template path: local_file('docker', 'env.hbs'), template_options: fetch(:env_vars)
     nginx_conf_file = generate_handlebars_template path: local_file('docker', 'nginx', 'lair.serf.conf.hbs'), template_options: fetch(:env_vars)
 
-    upload! backup_key_file, remote_file('backup', 'backup.key')
+    upload! backup_key_file, remote_file('backup.key')
     upload! docker_compose_file, remote_file('docker-compose.yml')
     upload! env_file, remote_file('.env')
     upload! nginx_conf_file, '/etc/nginx-serf/sites/lair.conf.hbs'
