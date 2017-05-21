@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+mkfifo /var/log/backup.log
+tail -f /var/log/backup.log &
+exec /usr/sbin/cron -f 2>&1

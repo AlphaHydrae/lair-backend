@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+ROOT_DIR="/backup"
+DATA_DIR="/var/lib/backup"
+BACKUP_BIN="/usr/local/bundle/bin/backup"
+
+# Redirect all output
+test -z "$LOG_TO_STDOUT" && exec &> /var/log/backup.log
+
+$BACKUP_BIN perform --trigger lair --root-path "$ROOT_DIR" --config-file config.rb --data-path "$DATA_DIR/data" --log-path "$DATA_DIR/log" --tmp-path tmp

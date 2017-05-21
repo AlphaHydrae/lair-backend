@@ -7,24 +7,23 @@ networks:
 
 services:
 
-  # Application in production mode.
-  # The application will not serve assets.
+  # API
   app:
     image: alphahydrae/lair-app
-    build: /var/lib/lair/checkout/docker/app
+    build: /var/lib/lair/backend/checkout/docker/app
+    depends_on:
+      - cache
+      - db
     env_file:
       - .env
     environment:
       SERF_JOIN: "{{ LAIR_DEPLOY_SERF }}"
-    depends_on:
-      - cache
-      - db
     restart: always
 
-  # Background job processing task.
+  # Background job processing task
   job:
     image: alphahydrae/lair-job
-    build: /var/lib/lair/checkout/docker/job
+    build: /var/lib/lair/backend/checkout/docker/job
     env_file:
       - .env
     depends_on:
@@ -32,21 +31,21 @@ services:
       - cache
     restart: always
 
-  # PostgreSQL database.
+  # PostgreSQL database
   db:
     image: alphahydrae/lair-db
-    build: /var/lib/lair/checkout/docker/db
+    build: /var/lib/lair/backend/checkout/docker/db
     container_name: lair_db
-    volumes:
-      - db_data:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD:
       LAIR_DATABASE_NAME:
       LAIR_DATABASE_USERNAME:
       LAIR_DATABASE_PASSWORD:
     restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
-  # Redis in-memory database.
+  # Redis in-memory database
   cache:
     image: redis:3.2
     command: redis-server --appendonly yes
@@ -55,21 +54,24 @@ services:
       - cache_data:/data
     restart: always
 
-  # Rake task.
+  # Periodic backups
+  backup:
+    image: alphahydrae/lair-backup
+    build: /var/lib/lair/backend/checkout/docker/backup
+    env_file:
+      - .env
+    depends_on:
+      - cache
+      - db
+    restart: always
+    volumes:
+      - "/var/lib/lair/backend/backup:/var/lib/backup"
+
+  # Rake task
   # This is meant to be run as a one-off task (with "run" instead of "up").
   task:
     image: alphahydrae/lair-task
-    build: /var/lib/lair/checkout/docker/task
-    env_file:
-      - .env
-    restart: "no"
-
-  # Backup script.
-  # This is meant to be run as a one-off task (with "run" instead of "up").
-  backup:
-    image: alphahydrae/lair-backup
-    volumes:
-      - "/var/lib/lair/backup:/var/lib/lair/backup"
+    build: /var/lib/lair/backend/checkout/docker/task
     env_file:
       - .env
     restart: "no"
