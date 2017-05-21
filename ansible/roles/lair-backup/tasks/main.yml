@@ -1,4 +1,0 @@
-- file: path=/var/lib/lair/backup owner=root group=root mode=0700 state=directory
-- copy: src=backup.key dest=/var/lib/lair/backup/backup.key owner=root group=root mode=0444
-- copy: src=run.sh dest=/var/lib/lair/backup/run.sh owner=root group=root mode=0750
-- cron: name="lair backup" hour=2 minute=0 job="/var/lib/lair/backup/run.sh >/dev/null"
