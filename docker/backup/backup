@@ -6,6 +6,6 @@ BACKUP_BIN="/usr/local/bundle/bin/backup"
 # Redirect all output
 test -z "$LOG_TO_STDOUT" && exec &> /var/log/backup.log
 
-. /var/run/lair_environment
+[ -f /var/run/lair_environment ] && . /var/run/lair_environment
 
 $BACKUP_BIN perform --trigger lair --root-path "$ROOT_DIR" --config-file config.rb --data-path "$DATA_DIR/data" --log-path "$DATA_DIR/log" --tmp-path tmp
