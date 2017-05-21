@@ -1,16 +1,9 @@
-# See https://help.github.com/articles/ignoring-files for more about ignoring files.
 /.bundle
 /.env*
 /.vagrant
-/ansible/backup.key
-/ansible/deploy*
-/ansible/certificates
-/ansible/production*
-/ansible/*.retry
-/bower_components
+/backup.key
 /dragonfly*
 /lib/tasks/local*
 /local
 /log/*.log
-/node_modules
 /tmp
