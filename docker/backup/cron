@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Dump environment
-env | grep '^LAIR_' | sed 's/^/export /' > /var/run/lair_environment
+env | grep '^LAIR_' | sed 's/^\([^=]*\)=\(.*\)/export \1="\2"/' > /var/run/lair_environment
 
 # Create a docker log file
 mkfifo /var/log/backup.log
