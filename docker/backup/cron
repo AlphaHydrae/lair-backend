@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+
+# Dump environment
+env | grep '^LAIR_' | sed 's/^/export /' > /var/run/lair_environment
+
+# Create a docker log file
 mkfifo /var/log/backup.log
-tail -f /var/log/backup.log &
+tail -n 100 -f /var/log/backup.log &
+
+# Run cron
 exec /usr/sbin/cron -f 2>&1
