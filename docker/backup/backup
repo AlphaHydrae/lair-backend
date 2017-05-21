@@ -3,7 +3,7 @@ ROOT_DIR="/backup"
 DATA_DIR="/var/lib/backup"
 BACKUP_BIN="/usr/local/bundle/bin/backup"
 
-for n in {1..5}; do echo 'wait'; done
+for n in {1..5}; do echo 'wait'; sleep 1; done
 
 # Redirect all output
 test -z "$LOG_TO_STDOUT" && exec &> /var/log/backup.log
