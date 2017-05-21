@@ -58,6 +58,7 @@ services:
   backup:
     image: alphahydrae/lair-backup
     build: /var/lib/lair/backend/checkout/docker/backup
+    container_name: lair_backup
     env_file:
       - .env
     depends_on:
