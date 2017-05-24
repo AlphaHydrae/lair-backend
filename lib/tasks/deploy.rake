@@ -128,7 +128,7 @@ namespace :deploy do
         "#{fetch(:root)}/dump.sql" => '/tmp/dump.sql'
       }
 
-      docker_run image: 'postgres:9.5', entrypoint: '/usr/local/bin/load-dump', command: '/tmp/dump.sql', volumes: volumes
+      docker_run image: 'postgres:9.6', entrypoint: '/usr/local/bin/load-dump', command: '/tmp/dump.sql', volumes: volumes
     end
   end
 
