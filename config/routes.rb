@@ -2,15 +2,16 @@ require 'resque/server'
 
 Rails.application.routes.draw do
 
-  resque_web_constraint = lambda do |request|
+  # FIXME: deploy resque web separately
+  #resque_web_constraint = lambda do |request|
     #current_user = request.env['warden'].user
     #current_user.present? && current_user.respond_to?(:is_admin?) && current_user.is_admin?
-    true
-  end
+  #  true
+  #end
 
-  constraints resque_web_constraint do
-    mount ResqueWeb::Engine => '/resque'
-  end
+  #constraints resque_web_constraint do
+  #  mount ResqueWeb::Engine => '/resque'
+  #end
 
   namespace :auth, module: nil do
     post '/google', to: 'security#google'
