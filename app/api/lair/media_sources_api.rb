@@ -40,7 +40,7 @@ module Lair
 
         rel = paginated rel do |rel|
 
-          if current_user.admin? && params.key?(:userId)
+          if (current_user.admin? || current_user.media_manager?) && params.key?(:userId)
             rel = rel.where 'users.api_id = ?', params[:userId].to_s
           end
 

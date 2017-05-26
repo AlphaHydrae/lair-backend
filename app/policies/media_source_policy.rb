@@ -21,7 +21,7 @@ class MediaSourcePolicy < ApplicationPolicy
 
   class Scope < Scope
     def resolve
-      if user.admin?
+      if user.admin? || user.media_manager?
         scope
       else
         scope.where 'media_sources.user_id = ?', user.id

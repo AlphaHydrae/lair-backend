@@ -11,7 +11,7 @@ class UserSerializer < ApplicationSerializer
       json.activeAt record.active_at if record.active_at
     end
 
-    json.roles record.roles.collect(&:to_s)
+    json.roles record.roles.collect(&:to_s).collect{ |role| role.camelize :lower }
     json.createdAt record.created_at.iso8601(3)
   end
 end

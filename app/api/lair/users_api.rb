@@ -7,7 +7,7 @@ module Lair
         record = User.new name: params[:name].to_s, email: params[:email].to_s, active: !!params[:active]
 
         if params.key?(:roles) && params[:roles].kind_of?(Array)
-          record.roles = params[:roles].collect(&:to_s).uniq.sort
+          record.roles = params[:roles].collect(&:to_s).collect(&:underscore).uniq.sort
         end
 
         record.save!

@@ -6,7 +6,7 @@ class User < ActiveRecord::Base
   before_save :normalize_name
   # TODO: add tracking information about logins
 
-  roles :admin
+  roles :admin, :media_manager
 
   has_many :media_sources
 
