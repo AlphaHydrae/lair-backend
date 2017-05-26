@@ -64,7 +64,7 @@ module Lair
             end
 
             if params.key?(:roles) && params[:roles].kind_of?(Array)
-              roles = params[:roles].collect(&:to_s).uniq.sort
+              roles = params[:roles].collect(&:to_s).collect(&:underscore).uniq.sort
               if roles != record.roles.to_a.collect(&:to_s).sort
                 authorize! User, :update_roles
                 record.roles = roles
