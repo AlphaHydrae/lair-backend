@@ -120,6 +120,10 @@ module Lair
             end
           end
 
+          if params[:state].present?
+            rel = rel.where 'media_files.state = ?', params[:state].to_s
+          end
+
           rel
         end
 
@@ -134,6 +138,19 @@ module Lair
         end
 
         serialize files, options
+      end
+
+      namespace '/:id' do
+        helpers do
+          def record
+            @record ||= load_resource!(MediaFile.where(api_id: params[:id].to_s))
+          end
+        end
+
+        get do
+          authorize! MediaAbstractFile, :show
+          serialize record
+        end
       end
     end
   end

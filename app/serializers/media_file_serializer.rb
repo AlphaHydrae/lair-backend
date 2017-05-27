@@ -3,6 +3,7 @@ class MediaFileSerializer < MediaAbstractFileSerializer
     super json, options
 
     json.type 'file'
+    json.mediaType record.file_type.to_s.camelize(:lower)
     json.extension record.extension if record.extension.present?
     json.size record.bytesize
     json.fileCreatedAt record.file_created_at.iso8601(3) if record.file_created_at.present?

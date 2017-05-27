@@ -1,14 +1,19 @@
 class MediaAbstractFilePolicy < ApplicationPolicy
   def index?
-    authenticated?
+    admin? || media_manager?
+  end
+
+  def show?
+    admin? || user == record.source.user
   end
 
   class Scope < Scope
     def resolve
-      if user.try :admin?
-        scope.joins source: :user
-      elsif user
-        scope.joins(source: :user).where 'media_sources.user_id = ?', user.id
+      new_scope = scope.joins source: :user
+      if user.admin?
+        new_scope
+      else
+        new_scope.where 'media_sources.user_id = ?', user.id
       end
     end
   end
