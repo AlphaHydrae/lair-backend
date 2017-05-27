@@ -50,7 +50,7 @@ module Lair
 
         rel = policy_scope MediaScan.order('media_scans.created_at DESC')
 
-        paginated rel do |rel|
+        rel = paginated rel do |rel|
           rel
         end
 
