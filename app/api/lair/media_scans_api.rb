@@ -106,8 +106,26 @@ module Lair
         end
 
         namespace :files do
+          helpers do
+            def serialization_options *args
+              {
+                include_data: include_in_response?(:data)
+              }
+            end
+
+            def with_serialization_includes rel
+              if rel.model == MediaScan
+                rel = rel.includes :source
+              elsif rel.model == MediaScanFile
+                rel = rel.includes :scan
+              else
+                raise "Unsupported model #{rel.model}"
+              end
+            end
+          end
+
           post do
-            authorize! MediaScan, :update
+            authorize! MediaScanFile, :create
 
             raise 'Scan completed' if record.state.to_s != 'scanning'
 
@@ -160,6 +178,18 @@ module Lair
                 files
               end
             end
+          end
+
+          get do
+            authorize! MediaScanFile, :index
+
+            rel = policy_scope MediaScanFile.where(scan: record).order('media_scan_files.path ASC')
+
+            rel = paginated rel do |rel|
+              rel
+            end
+
+            serialize load_resources(rel)
           end
         end
       end
