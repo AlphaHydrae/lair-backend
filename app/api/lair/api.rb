@@ -14,20 +14,25 @@ module Lair
       end
 
       code = 500
-      errors = [ { message: e.message } ]
+      error = {
+        message: Rails.env == 'development' ? e.message : 'An unexpected error occurred'
+      }
+
+      errors = [ error ]
 
       if e.kind_of? LairError
         code = e.http_status_code
-        errors.first[:message] = e.reason if e.reason.present?
+        error[:message] = e.reason if e.reason.present?
       end
 
       if e.kind_of? Pundit::NotAuthorizedError
         code = 403
+        error[:message] = 'You are not authorized to access this resource' unless Rails.env == 'development'
       elsif e.kind_of? ActiveRecord::RecordNotFound
         code = 404
+        error[:message] = 'Resource not found' unless Rails.env == 'development'
       elsif e.kind_of? ValidationError
-        errors.clear
-        errors += e.errors
+        errors = e.errors
       elsif e.kind_of? ActiveRecord::RecordInvalid
         code = 422
         errors.clear
