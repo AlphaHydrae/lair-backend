@@ -42,6 +42,10 @@ class ApplicationPolicy
     role? :admin
   end
 
+  def media_manager?
+    role? :media_manager
+  end
+
   def app?
     user == :app
   end

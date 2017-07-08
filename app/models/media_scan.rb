@@ -8,7 +8,7 @@ class MediaScan < ActiveRecord::Base
 
   auto_queueable_jobs :process, :analyze
 
-  states :created, :canceled, :scanning, :scanned, :processing, :processing_failed, :retrying_processing, :processed, :analyzing, :analysis_failed, :retrying_analysis, :analyzed
+  states :created, :canceled, :scanning, :scanned, :processing, :processing_failed, :retrying_processing, :processed
   event :start_scanning, to: :scanning
   event :cancel_scanning, to: :canceled
   event :finish_scanning, to: :scanned, after: %i(create_scan_event set_process_job_required)
@@ -16,10 +16,6 @@ class MediaScan < ActiveRecord::Base
   event :fail_processing, to: :processing_failed
   event :retry_processing, to: :retrying_processing, after: %i(set_process_job_required)
   event :finish_processing, to: :processed, after: %i(update_source_last_scan set_analyze_job_required)
-  event :start_analysis, to: :analyzing
-  event :fail_analysis, to: :analysis_failed
-  event :retry_analysis, to: :retrying_analysis, after: %i(set_analyze_job_required)
-  event :finish_analysis, to: :analyzed
 
   belongs_to :scanner, class_name: 'MediaScanner'
   belongs_to :source, class_name: 'MediaSource', counter_cache: :scans_count
@@ -29,7 +25,7 @@ class MediaScan < ActiveRecord::Base
   strip_attributes
   validates :source, presence: true
   validates :scanner, presence: true
-  validates :files_count, presence: { if: ->(scan){ %w(scanned processed analysis_failed analyzed).include? scan.state.to_s } }
+  validates :files_count, presence: { if: ->(scan){ %w(scanned processed).include? scan.state.to_s } }
   validate :files_count_should_be_correct
   validate :scanned_files_should_be_processed
 
@@ -40,7 +36,9 @@ class MediaScan < ActiveRecord::Base
   end
 
   def analysis_progress
-
+    0
+    # TODO analysis: compute analysis progress of media scan jobs
+=begin
     total = changed_nfo_files_count + new_media_files_count
     current = analyzed_nfo_files_count + analyzed_media_files_count
     progress = current.to_f * 100.0 / total.to_f
@@ -52,6 +50,7 @@ class MediaScan < ActiveRecord::Base
     else
       100
     end
+=end
   end
 
   def scanning_finished?
@@ -59,11 +58,11 @@ class MediaScan < ActiveRecord::Base
   end
 
   def processing_started?
-    %w(processing processing_failed retrying_processing processed analyzing analysis_failed retrying_analysis analyzed).include? state
+    %w(processing processing_failed retrying_processing processed).include? state
   end
 
   def analysis_started?
-    %w(analyzing analysis_failed retrying_analysis analyzed).include? state
+    state == 'processed'
   end
 
   private
@@ -73,7 +72,7 @@ class MediaScan < ActiveRecord::Base
   end
 
   def queue_analyze_job
-    AnalyzeMediaFilesJob.enqueue scan: self
+    AnalyzeMediaFilesJob.enqueue_scan self
   end
 
   def create_scan_event

@@ -1,2 +1,2 @@
-class MediaDirectoryPolicy < ApplicationPolicy
+class MediaDirectoryPolicy < MediaAbstractFilePolicy
 end

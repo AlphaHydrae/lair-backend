@@ -148,8 +148,15 @@ module Lair
         end
 
         get do
-          authorize! MediaAbstractFile, :show
+          authorize! record, :show
           serialize record
+        end
+
+        namespace '/analysis' do
+          post do
+            AnalyzeMediaFilesJob.enqueue_file record
+            status 204
+          end
         end
       end
     end
