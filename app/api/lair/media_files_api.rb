@@ -154,7 +154,8 @@ module Lair
 
         namespace '/analysis' do
           post do
-            AnalyzeMediaFilesJob.enqueue_file record
+            record.update_column :analyzed, false
+            AnalyzeMediaFileJob.enqueue record
             status 204
           end
         end

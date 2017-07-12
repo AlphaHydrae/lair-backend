@@ -20,7 +20,7 @@ class ApplicationJob
   def self.delete_job_errors cause:
     cause.class.transaction do
       JobError.where(cause: cause).delete_all
-      cause.update_columns job_errors_count: 0
+      cause.update_columns job_errors_count: 0 if cause.class.column_names.include? 'job_errors_count'
     end
   end
 

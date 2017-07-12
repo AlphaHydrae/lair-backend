@@ -7,6 +7,7 @@ class MediaFile < MediaAbstractFile
   before_create :set_extension
   before_update :remove_searches
 
+  # TODO analysis: get rid of media file state
   states :created, :unlinked, :changed, :deleted, :invalid, :duplicated, :linked
   event :mark_as_created, to: :created
   event :mark_as_unlinked, to: :unlinked

@@ -28,7 +28,7 @@ class MediaDirectory < MediaAbstractFile
     if changed_relation
       new_updates_rel = changed_relation
         .select('media_files.directory_id, NULL as state, count(media_files.id) as media_files_count')
-        .where("media_files.state #{linked ? '!=' : '='} ?", 'linked')
+        .where("media_files.media_url_id #{linked ? 'IS NULL' : 'IS NOT NULL'}")
         .group('media_files.directory_id')
         .includes(:directory)
 
