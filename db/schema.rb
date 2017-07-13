@@ -265,11 +265,11 @@ ActiveRecord::Schema.define(version: 20170708153002) do
     t.datetime "created_at",                                    null: false
     t.datetime "updated_at",                                    null: false
     t.json     "properties"
-    t.string   "state",              limit: 20
     t.string   "extension",          limit: 20
     t.integer  "media_url_id"
     t.integer  "nfo_files_count",               default: 0,     null: false
     t.integer  "linked_files_count",            default: 0,     null: false
+    t.string   "nfo_error",          limit: 12
     t.boolean  "analyzed",                      default: false, null: false
   end
 
@@ -321,22 +321,20 @@ ActiveRecord::Schema.define(version: 20170708153002) do
   add_index "media_scanners", ["api_id"], name: "index_media_scanners_on_api_id", unique: true, using: :btree
 
   create_table "media_scans", force: :cascade do |t|
-    t.string   "api_id",                  limit: 12,             null: false
-    t.integer  "scanner_id",                                     null: false
-    t.integer  "files_count",                        default: 0, null: false
-    t.integer  "processed_files_count",              default: 0, null: false
+    t.string   "api_id",                 limit: 12,             null: false
+    t.integer  "scanner_id",                                    null: false
+    t.integer  "files_count",                       default: 0, null: false
+    t.integer  "processed_files_count",             default: 0, null: false
     t.json     "properties"
     t.datetime "created_at"
     t.datetime "processed_at"
-    t.integer  "source_id",                                      null: false
-    t.string   "state",                   limit: 20,             null: false
+    t.integer  "source_id",                                     null: false
+    t.string   "state",                  limit: 20,             null: false
     t.datetime "canceled_at"
     t.datetime "scanned_at"
     t.datetime "processing_failed_at"
-    t.integer  "changed_files_count",                default: 0, null: false
-    t.integer  "job_errors_count",                   default: 0, null: false
-    t.integer  "changed_nfo_files_count",            default: 0, null: false
-    t.integer  "new_media_files_count",              default: 0, null: false
+    t.integer  "changed_files_count",               default: 0, null: false
+    t.integer  "job_errors_count",                  default: 0, null: false
     t.datetime "analyzed_at"
     t.datetime "scanning_at"
     t.datetime "processing_at"

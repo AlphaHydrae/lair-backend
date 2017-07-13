@@ -5,12 +5,13 @@ class MediaFileSerializer < MediaAbstractFileSerializer
     json.type 'file'
     json.mediaType record.file_type.to_s.camelize(:lower)
     json.extension record.extension if record.extension.present?
+    json.nfoError record.nfo_error
+
     json.size record.bytesize
     json.fileCreatedAt record.file_created_at.iso8601(3) if record.file_created_at.present?
     json.fileModifiedAt record.file_modified_at.iso8601(3) if record.file_modified_at.present?
     json.properties record.properties
 
-    json.state record.state
     json.sourceId record.source.api_id
 
     media_url = if options[:media_urls]

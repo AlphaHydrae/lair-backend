@@ -72,7 +72,7 @@ class MediaScan < ActiveRecord::Base
   end
 
   def queue_analyze_job
-    AnalyzeMediaFilesJob.enqueue_scan self
+    AnalyzeMediaScanJob.enqueue self
   end
 
   def create_scan_event

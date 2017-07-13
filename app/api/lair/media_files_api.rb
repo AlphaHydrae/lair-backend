@@ -48,9 +48,9 @@ module Lair
           end
 
           if true_flag? :linked
-            rel = rel.where '(media_files.type = ? AND media_files.state = ?) OR (media_files.type = ? AND media_files.linked_files_count = media_files.files_count)', MediaFile.name, 'linked', MediaDirectory.name
+            rel = rel.where '(media_files.type = ? AND media_files.media_url_id IS NOT NULL) OR (media_files.type = ? AND media_files.linked_files_count = media_files.files_count)', MediaFile.name, MediaDirectory.name
           elsif false_flag? :linked
-            rel = rel.where '(media_files.type = ? AND media_files.state != ?) OR (media_files.type = ? AND media_files.linked_files_count < media_files.files_count)', MediaFile.name, 'linked', MediaDirectory.name
+            rel = rel.where '(media_files.type = ? AND media_files.media_url_id IS NULL) OR (media_files.type = ? AND media_files.linked_files_count < media_files.files_count)', MediaFile.name, MediaDirectory.name
           end
 
           if params.key? :sourceId
@@ -118,10 +118,6 @@ module Lair
                 .joins('LEFT OUTER JOIN media_searches ON media_directories_searches.media_search_id = media_searches.id')
                 .where 'media_searches.id IS NULL'
             end
-          end
-
-          if params[:state].present?
-            rel = rel.where 'media_files.state = ?', params[:state].to_s
           end
 
           rel

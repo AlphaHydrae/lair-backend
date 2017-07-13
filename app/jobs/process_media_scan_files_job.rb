@@ -42,8 +42,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
               MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :deleted
 
               file.deleted = true
-              file.mark_as_deleted if file.nfo?
-
+              file.analyzed = false
               file.last_scan = scan
               file.scanned_at = scanned_at
               file.save!
@@ -72,10 +71,10 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
           directory = directories_by_path[File.dirname(scanned_file.path)]
           file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path, directory_id: directory, depth: directory.depth + 1).first
-          previous_state = file.try(:state).try(:to_s)
 
           if file.blank?
             file = MediaFile.new
+            file.analyzed = false
             file.source = scan.source
             file.directory = directory
             file.depth = directory.depth + 1
@@ -83,11 +82,10 @@ class ProcessMediaScanFilesJob < ApplicationJob
             MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :created
           elsif file.deleted?
             file.media_url = nil
-            file.mark_as_created
+            file.analyzed = false
             MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :created
           elsif file.nfo?
-            file.mark_as_changed
-            MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :unlinked if previous_state == 'linked'
+            file.analyzed = false
           end
 
           FILE_PROPERTIES.each do |key|

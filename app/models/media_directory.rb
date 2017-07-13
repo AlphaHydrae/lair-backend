@@ -17,6 +17,7 @@ class MediaDirectory < MediaAbstractFile
     with_parent_directories.update_all statements.join(', ') if statements.present?
   end
 
+  # TODO analysis: create file counts tracker utility class
   def self.track_linked_files_counts updates:, linked:, changed_relation: nil, changed_file: nil
 
     if changed_file
@@ -27,7 +28,7 @@ class MediaDirectory < MediaAbstractFile
 
     if changed_relation
       new_updates_rel = changed_relation
-        .select('media_files.directory_id, NULL as state, count(media_files.id) as media_files_count')
+        .select('media_files.directory_id, count(media_files.id) as media_files_count')
         .where("media_files.media_url_id #{linked ? 'IS NULL' : 'IS NOT NULL'}")
         .group('media_files.directory_id')
         .includes(:directory)
@@ -47,13 +48,9 @@ class MediaDirectory < MediaAbstractFile
     if change == :created
       updates[file.directory][:files_count] += 1
       updates[file.directory][:nfo_files_count] += 1 if file.nfo?
-      updates[file.directory][:linked_files_count] += 1 if file.state.to_s == 'linked'
     elsif change == :deleted
       updates[file.directory][:files_count] -= 1
       updates[file.directory][:nfo_files_count] -= 1 if file.nfo?
-      updates[file.directory][:linked_files_count] -= 1 if file.state.to_s == 'linked'
-    elsif change == :unlinked
-      updates[file.directory][:linked_files_count] -= 1
     else
       raise "Unsupported files count change type #{change.inspect}"
     end

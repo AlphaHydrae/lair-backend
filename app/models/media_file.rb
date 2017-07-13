@@ -1,21 +1,10 @@
 class MediaFile < MediaAbstractFile
   FILE_TYPES = %i(image meta nfo subtitle unknown video)
 
-  include SimpleStates
   include ResourceWithProperties
 
   before_create :set_extension
   before_update :remove_searches
-
-  # TODO analysis: get rid of media file state
-  states :created, :unlinked, :changed, :deleted, :invalid, :duplicated, :linked
-  event :mark_as_created, to: :created
-  event :mark_as_unlinked, to: :unlinked
-  event :mark_as_changed, to: :changed
-  event :mark_as_deleted, to: :deleted
-  event :mark_as_invalid, to: :invalid
-  event :mark_as_duplicated, to: :duplicated
-  event :mark_as_linked, to: :linked
 
   belongs_to :media_url
   belongs_to :source, class_name: 'MediaSource'
@@ -101,7 +90,7 @@ class MediaFile < MediaAbstractFile
   end
 
   def remove_searches
-    return unless state_changed? && state.to_s == 'linked'
+    return unless media_url_id_changed? && media_url_id
 
     affected_directories = directory.with_child_files do |rel|
       rel = rel.where 'media_files.type = ?', MediaDirectory.name

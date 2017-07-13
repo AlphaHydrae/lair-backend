@@ -3,6 +3,7 @@ require 'resque/plugins/workers/lock'
 class AbstractAnalyzeMediaFilesJob < ApplicationJob
   BATCH_SIZE = 100
 
+  # TODO analysis: save event
   def self.perform_analysis relation:, subject_id:, &block
     relation = relation.includes :directory, :media_url, source: :user
 
@@ -59,10 +60,9 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
   def self.analyze_nfo_file nfo_file
 
-    nfo_file = MediaFile.includes(:directory, :media_url).find nfo_file_id
     files_counts_updates = {}
-
-    affected_media_url = nfo_file.media_url
+    affected_media_urls = Set.new
+    affected_media_urls << nfo_file.media_url if nfo_file.media_url
 
     # Handle deleted NFO files.
     if nfo_file.deleted == true && nfo_file.state == 'deleted'
@@ -103,10 +103,12 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
       raise "Unexpected changed NFO file state: #{nfo_file.inspect}"
     end
 
-    affected_media_url ||= nfo_file.media_url
-    UpdateMediaOwnershipsJob.enqueue media_url: affected_media_url, user: scan.source.user, event: scan.last_scan_event if affected_media_url.present?
-
     MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
+
+    #affected_media_urls << nfo_file.media_url if nfo_file.media_url
+    #affected_media_urls.each do |media_url|
+    #  UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: scan.source.user, event: scan.last_scan_event if affected_media_url.present?
+    #end
   end
 
   def self.analyze_media_files media_files
