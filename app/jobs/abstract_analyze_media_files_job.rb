@@ -50,7 +50,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
   private
 
   def self.finish_analysis &block
-    block.call
+    block.call if block
   end
 
   def self.enqueue_next subject_id
@@ -208,6 +208,6 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
   def self.link_or_unlink_files relation:, media_url: nil, files_counts_updates:
     MediaDirectory.track_linked_files_counts updates: files_counts_updates, changed_relation: relation, linked: media_url.present?
-    relation.update_all media_url_id: media_url.try(:id)
+    relation.update_all analyzed: true, media_url_id: media_url.try(:id)
   end
 end
