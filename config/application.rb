@@ -33,11 +33,12 @@ module Lair
     end
 
     def with_current_event event
+      previous_current_event = @current_event
       @current_event = event
       begin
         yield if block_given?
       ensure
-        @current_event = nil
+        @current_event = previous_current_event
       end
     end
 
