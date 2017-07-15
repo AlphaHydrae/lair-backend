@@ -1,11 +1,12 @@
 class MediaScanFile < ActiveRecord::Base
+  # TODO analysis: rename changed to modified
   CHANGE_TYPES = %i(added changed deleted)
 
   belongs_to :scan, class_name: 'MediaFile'
 
   strip_attributes
   validates :data, presence: { unless: :deleted? }
-  validates :path, presence: true
+  validates :path, presence: true, format: { with: /\A(?:\/[^\/]+)+\z/ }
   validates :processed, inclusion: { in: [ true, false ] }
   validates :change_type, presence: true, inclusion: { in: CHANGE_TYPES + CHANGE_TYPES.collect(&:to_s), allow_blank: true }
 

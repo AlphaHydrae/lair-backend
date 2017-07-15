@@ -1,3 +1,4 @@
+# TODO analysis: make media scan path a model
 class MediaScanPath
   include Comparable
   include ActiveModel::Validations
@@ -6,7 +7,7 @@ class MediaScanPath
 
   validates :source, presence: true
   validates :category, presence: true, inclusion: { in: Work::CATEGORIES, allow_blank: true }
-  validates :path, presence: true, length: { maximum: 255 }
+  validates :path, presence: true, length: { maximum: 255 }, format: { with: /\A(?:\/[^\/]+)+\z/ }
   validate :path_must_be_unique
   validate :path_must_not_be_relative_to_an_existing_path
   validate :path_must_not_include_an_existing_path
