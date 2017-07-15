@@ -15,7 +15,7 @@ class MediaScanSerializer < ApplicationSerializer
       json.errors serialize(record.job_errors.to_a)
     end
 
-    %i(canceled_at scanning_at scanned_at processing_at processing_failed_at retrying_processing_at processed_at analyzing_at analysis_failed_at retrying_analysis_at analyzed_at created_at).each do |ts|
+    %i(canceled_at scanning_at scanned_at processing_at processing_failed_at retrying_processing_at processed_at analyzed_at created_at).each do |ts|
       json.set! ts.to_s.camelize(:lower), record.send(ts).iso8601(3) if record.send(ts).present?
     end
   end

@@ -17,6 +17,15 @@ class MediaDirectory < MediaAbstractFile
     with_parent_directories.update_all statements.join(', ') if statements.present?
   end
 
+  def update_immediate_files_counts counts = {}
+    statements = %i(nfo_files_count).inject [] do |memo,column|
+      memo << update_files_count_statement(column: "immediate_#{column}", by: counts[column]) if counts.key?(column) && counts[column] != 0
+      memo
+    end
+
+    MediaDirectory.where(id: id).update_all statements.join(', ') if statements.present?
+  end
+
   # TODO analysis: create file counts tracker utility class
   def self.track_linked_files_counts updates:, linked:, changed_relation: nil, changed_file: nil
 
@@ -42,7 +51,6 @@ class MediaDirectory < MediaAbstractFile
   end
 
   def self.track_files_counts updates:, file:, change:
-
     initialize_tracked_files_counts updates: updates, file: file
 
     if change == :created
@@ -59,11 +67,12 @@ class MediaDirectory < MediaAbstractFile
   def self.apply_tracked_files_counts updates:
     updates.each do |directory,counts_updates|
       directory.update_files_counts counts_updates
+      directory.update_immediate_files_counts counts_updates
     end
   end
 
-  def with_parent_directories
-    MediaDirectory.where "media_files.id = #{id} OR media_files.id IN (#{parent_directories_sql})"
+  def with_parent_directories &block
+    MediaDirectory.where "media_files.id = #{id} OR media_files.id IN (#{parent_directories_sql(&block)})"
   end
 
   def child_files &block

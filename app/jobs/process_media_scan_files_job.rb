@@ -16,7 +16,6 @@ class ProcessMediaScanFilesJob < ApplicationJob
     "media-#{source_id}"
   end
 
-  # TODO analysis: track or get rid of changed_nfo_files_count and new_media_files_count
   def self.perform scan_id, source_id, first_id, last_id
     scan = MediaScan.includes(:source).find scan_id
 

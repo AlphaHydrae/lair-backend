@@ -1,5 +1,5 @@
 class MediaFile < MediaAbstractFile
-  FILE_TYPES = %i(image meta nfo subtitle unknown video)
+  FILE_TYPES = %i(audio image meta nfo subtitle video)
 
   include ResourceWithProperties
 
@@ -20,8 +20,20 @@ class MediaFile < MediaAbstractFile
     properties['url']
   end
 
+  def analyzed?
+    analyzed
+  end
+
   def nfo?
     file_type.to_s == 'nfo'
+  end
+
+  def nfo_valid?
+    nfo? && nfo_error.blank? && url.present? && media_url.present?
+  end
+
+  def nfo_active?
+    nfo_valid? && !deleted? && analyzed?
   end
 
   def deleted?
@@ -33,30 +45,26 @@ class MediaFile < MediaAbstractFile
   end
 
   def file_type
-    %i(video nfo subtitle meta audio image).find do |type|
-      file_type_extensions(type).include? extension.to_s
+    FILE_TYPES.find do |type|
+      self.class.file_type_extensions(type).include? extension.to_s
     end
   end
 
   def self.file_type_extensions type
-    case type.to_s
-    when 'video'
+    case type
+    when :video
       %w(avi divx m4v mkv mp4 ogm rm wmv)
-    when 'nfo'
+    when :nfo
       %w(nfo)
-    when 'subtitle'
+    when :subtitle
       %w(ass idx srt ssa sub sup)
-    when 'meta'
-      %w(yml)
-    when 'audio'
+    when :meta
+      %w(json yml)
+    when :audio
       %w(flac mka mp3)
-    when 'image'
+    when :image
       %w(gif jpg png)
     end
-  end
-
-  def file_type_extensions type
-    self.class.file_type_extensions type
   end
 
   def range

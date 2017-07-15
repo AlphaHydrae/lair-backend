@@ -17,7 +17,9 @@ class AnalyzeMediaScanJob < AbstractAnalyzeMediaFilesJob
   def self.perform media_scan_id
     media_scan = MediaScan.find media_scan_id
     job_transaction cause: media_scan, clear_errors: true do
-      perform_analysis relation: MediaFile.where(last_scan_id: media_scan_id, analyzed: false), subject_id: media_scan_id
+      perform_analysis relation: MediaFile.where(last_scan_id: media_scan_id, analyzed: false), subject_id: media_scan_id do
+        media_scan.finish_analysis!
+      end
     end
   end
 end

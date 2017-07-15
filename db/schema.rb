@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170708153002) do
+ActiveRecord::Schema.define(version: 20170715084625) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -248,29 +248,30 @@ ActiveRecord::Schema.define(version: 20170708153002) do
   end
 
   create_table "media_files", force: :cascade do |t|
-    t.string   "type",               limit: 14,                 null: false
-    t.string   "api_id",             limit: 12,                 null: false
-    t.text     "path",                                          null: false
-    t.boolean  "deleted",                       default: false, null: false
-    t.integer  "source_id",                                     null: false
+    t.string   "type",                      limit: 14,                 null: false
+    t.string   "api_id",                    limit: 12,                 null: false
+    t.text     "path",                                                 null: false
+    t.boolean  "deleted",                              default: false, null: false
+    t.integer  "source_id",                                            null: false
     t.integer  "directory_id"
-    t.integer  "depth",                         default: 0,     null: false
-    t.integer  "bytesize",           limit: 8
-    t.integer  "files_count",                   default: 0,     null: false
+    t.integer  "depth",                                default: 0,     null: false
+    t.integer  "bytesize",                  limit: 8
+    t.integer  "files_count",                          default: 0,     null: false
     t.datetime "scanned_at"
     t.integer  "last_scan_id"
     t.datetime "file_created_at"
     t.datetime "file_modified_at"
     t.datetime "deleted_at"
-    t.datetime "created_at",                                    null: false
-    t.datetime "updated_at",                                    null: false
+    t.datetime "created_at",                                           null: false
+    t.datetime "updated_at",                                           null: false
     t.json     "properties"
-    t.string   "extension",          limit: 20
+    t.string   "extension",                 limit: 20
     t.integer  "media_url_id"
-    t.integer  "nfo_files_count",               default: 0,     null: false
-    t.integer  "linked_files_count",            default: 0,     null: false
-    t.string   "nfo_error",          limit: 12
-    t.boolean  "analyzed",                      default: false, null: false
+    t.integer  "nfo_files_count",                      default: 0,     null: false
+    t.integer  "linked_files_count",                   default: 0,     null: false
+    t.string   "nfo_error",                 limit: 12
+    t.boolean  "analyzed",                             default: false, null: false
+    t.integer  "immediate_nfo_files_count",            default: 0,     null: false
   end
 
   add_index "media_files", ["api_id"], name: "index_media_files_on_api_id", unique: true, using: :btree

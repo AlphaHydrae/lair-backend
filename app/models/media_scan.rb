@@ -8,7 +8,7 @@ class MediaScan < ActiveRecord::Base
 
   auto_queueable_jobs :process, :analyze
 
-  states :created, :canceled, :scanning, :scanned, :processing, :processing_failed, :retrying_processing, :processed
+  states :created, :canceled, :scanning, :scanned, :processing, :processing_failed, :retrying_processing, :processed, :analyzed
   event :start_scanning, to: :scanning
   event :cancel_scanning, to: :canceled
   event :finish_scanning, to: :scanned, after: %i(create_scan_event set_process_job_required)
@@ -16,6 +16,7 @@ class MediaScan < ActiveRecord::Base
   event :fail_processing, to: :processing_failed
   event :retry_processing, to: :retrying_processing, after: %i(set_process_job_required)
   event :finish_processing, to: :processed, after: %i(update_source_last_scan set_analyze_job_required)
+  event :finish_analysis, to: :analyzed
 
   belongs_to :scanner, class_name: 'MediaScanner'
   belongs_to :source, class_name: 'MediaSource', counter_cache: :scans_count
@@ -58,7 +59,7 @@ class MediaScan < ActiveRecord::Base
   end
 
   def processing_started?
-    %w(processing processing_failed retrying_processing processed).include? state
+    %w(processing processing_failed retrying_processing processed analyzed).include? state
   end
 
   def analysis_started?

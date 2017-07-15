@@ -27,12 +27,12 @@ class MediaAbstractFile < ActiveRecord::Base
     kind_of? MediaFile
   end
 
-  def parent_directories
-    MediaDirectory.where "media_files.id IN (#{parent_directories_sql})"
+  def parent_directories &block
+    MediaDirectory.where "media_files.id IN (#{parent_directories_sql(&block)})"
   end
 
-  def parent_directory_files
-    MediaFile.where "media_files.directory_id IN (#{parent_directories_sql})"
+  def parent_directory_files &block
+    MediaFile.where "media_files.directory_id IN (#{parent_directories_sql(&block)})"
   end
 
   def parent_directories_sql
@@ -41,6 +41,8 @@ class MediaAbstractFile < ActiveRecord::Base
       .select('media_files.directory_id')
       .joins('INNER JOIN r ON media_files.id = r.current_id')
       .where('media_files.directory_id IS NOT NULL')
+
+    rel = yield rel if block_given?
 
     sql = <<-SQL
       WITH RECURSIVE r(current_id) AS (
