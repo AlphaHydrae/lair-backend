@@ -17,24 +17,8 @@ module ResourceWithProperties
   end
 
   def set_properties_from_params params
-    return if params.nil?
-
-    props = self.properties
-
-    params.each_pair do |k,v|
-      if v.nil?
-        props.delete k.to_s
-      elsif v.kind_of?(String) || v.kind_of?(Numeric) || v == !!v
-        props[k.to_s] = v
-      elsif v.kind_of? Array
-        props[k.to_s] = v.collect &:to_s
-      end
-    end
-
-    props.delete_if{ |k,v| !params.key?(k) }
-
-    self.properties = props
-    self.properties
+    return unless params.kind_of? Hash
+    self.properties = merge_properties self.properties, params
   end
 
   def clean_properties
@@ -42,5 +26,23 @@ module ResourceWithProperties
     self.properties.delete_if{ |k,v| v.nil? }
     write_attribute :properties, nil if read_attribute(:properties).blank?
     true
+  end
+
+  private
+
+  def merge_properties props1, props2
+    if props1.kind_of?(Hash) && props2.kind_of?(Hash)
+      props2.each do |k,v|
+        if v.nil?
+          props1.delete k
+        else
+          props1[k] = merge_properties props1[k], props2[k]
+        end
+      end
+
+      props1
+    else
+      props2
+    end
   end
 end
