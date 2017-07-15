@@ -94,7 +94,14 @@ module Lair
         namespace :scanPaths do
           get do
             authorize! record, :show
-            record.scan_paths.sort.collect(&:to_h)
+
+            scan_paths = record.scan_paths.sort
+
+            if params.key? :path
+              scan_paths = scan_paths.select{ |sp| sp.path == params[:path].to_s }
+            end
+
+            scan_paths.collect(&:to_h)
           end
 
           post do
