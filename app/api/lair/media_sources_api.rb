@@ -122,11 +122,12 @@ module Lair
             end
           end
 
-          namespace '/:id' do
+          namespace '/:pid' do
             helpers do
               def scan_path_resource
-                @scan_path_resource ||= record.scan_paths.find{ |sp| sp.id == params[:id].to_s }
+                @scan_path_resource ||= record.scan_paths.find{ |sp| sp.id == params[:pid].to_s }
                 raise ActiveRecord::RecordNotFound, 'Scan path not found' unless @scan_path_resource
+                @scan_path_resource
               end
             end
 
