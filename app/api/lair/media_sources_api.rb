@@ -49,7 +49,11 @@ module Lair
           end
 
           if params.key? :name
-            rel = rel.where normalized_name: params[:name].to_s.downcase
+            if params[:name].kind_of? Array
+              rel = rel.where normalized_name: params[:name].collect(&:to_s).collect(&:downcase)
+            else
+              rel = rel.where normalized_name: params[:name].to_s.downcase
+            end
           end
 
           rel
