@@ -12,6 +12,7 @@ class MediaAbstractFile < ActiveRecord::Base
   # TODO: validate max depth
   # TODO analysis: validate depth consistent with path segments
   validates :source, presence: true
+  # TODO analysis: validate path differently for files/directories (only root directory can have path "/")
   validates :path, presence: true, length: { maximum: 1000 }, uniqueness: { scope: :source_id }, format: { with: /\A(\/|(?:\/[^\/]+)+)\z/ }
   validates :depth, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
   validate :path_must_be_absolute

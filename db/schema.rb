@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170715084625) do
+ActiveRecord::Schema.define(version: 20170716154054) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -275,6 +275,7 @@ ActiveRecord::Schema.define(version: 20170715084625) do
   end
 
   add_index "media_files", ["api_id"], name: "index_media_files_on_api_id", unique: true, using: :btree
+  add_index "media_files", ["depth"], name: "tmp", using: :btree
   add_index "media_files", ["path", "source_id"], name: "index_media_files_on_path_and_source_id", unique: true, using: :btree
 
   create_table "media_files_ownerships", id: false, force: :cascade do |t|

@@ -143,7 +143,7 @@ module Lair
                   end
                 end
 
-                file_changes = files.select{ |f| %w(added changed deleted).include?(f.change_type) && f.path }
+                file_changes = files.select{ |f| %w(added modified deleted).include?(f.change_type) && f.path }
                 existing_paths = record.scanned_files.where(path: file_changes.collect(&:path)).to_a.collect &:path
                 existing_paths_in_source = record.source.files.where(path: file_changes.collect(&:path), deleted: false).to_a.collect &:path
 
@@ -162,7 +162,7 @@ module Lair
                     validation_error.add message: "File #{file.path} cannot be added because it is already present in the media source", path: "/#{i}/change"
                   end
 
-                  if %w(changed deleted).include?(file.change_type) && !existing_paths_in_source.include?(file.path)
+                  if %w(modified deleted).include?(file.change_type) && !existing_paths_in_source.include?(file.path)
                     validation_error.add message: "File #{file.path} cannot be #{file.change_type} because it does not exist in the media source", path: "/#{i}/change"
                   end
                 end
