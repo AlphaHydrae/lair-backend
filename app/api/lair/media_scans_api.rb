@@ -30,7 +30,7 @@ module Lair
           record = MediaScan.new
           update_record_from_params record
 
-          processing_scan = MediaScan.where('media_scans.source_id = ? AND media_scans.state IN (?)', record.source_id, %w(scanned processing retrying_processing processed analyzing retrying_analysis)).first
+          processing_scan = MediaScan.where('media_scans.source_id = ? AND media_scans.state IN (?)', record.source_id, %w(scanned processing retrying_processing processed)).first
           raise 'Scan already in progress' if processing_scan.present?
 
           record.save!
