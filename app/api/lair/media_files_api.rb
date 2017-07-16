@@ -93,7 +93,8 @@ module Lair
           end
 
           if params.key? :path
-            rel = rel.where 'media_files.path = ?', params[:path].to_s
+            paths = params[:path].kind_of?(Array) ? params[:path].collect(&:to_s) : params[:path].to_s
+            rel = rel.where path: paths
           end
 
           if true_flag? :deleted
