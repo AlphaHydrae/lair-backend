@@ -174,7 +174,7 @@ module Lair
                 record.changed_files_count += files.length
                 record.save!
 
-                status 200
+                status 201
                 files
               end
             end
