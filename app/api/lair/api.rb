@@ -93,6 +93,7 @@ module Lair
       mount MediaScansApi
       mount MediaScrapsApi
       mount MediaSearchesApi
+      mount MediaSettingsApi
       mount MediaSourcesApi
       mount MediaUrlsApi
     end

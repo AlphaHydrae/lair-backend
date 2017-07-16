@@ -1,3 +1,4 @@
+# TODO analysis: add ignores (not as property)
 class MediaSource < ActiveRecord::Base
   include ResourceWithIdentifier
   include ResourceWithProperties

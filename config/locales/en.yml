@@ -52,6 +52,10 @@ en:
           attributes:
             selected:
               out_of_bounds: "is larger than the available number of results"
+        media_settings:
+          attributes:
+            ignores:
+              ignore_too_long: "contains patterns longer than 50 characters"
         scrap:
           attributes:
             state:

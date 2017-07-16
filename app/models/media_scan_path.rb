@@ -1,4 +1,5 @@
 # TODO analysis: make media scan path a model
+# TODO analysis: add ignores to scan paths
 class MediaScanPath
   include Comparable
   include ActiveModel::Validations

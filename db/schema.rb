@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170716154054) do
+ActiveRecord::Schema.define(version: 20170716163553) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -383,6 +383,15 @@ ActiveRecord::Schema.define(version: 20170716154054) do
     t.datetime "updated_at",               null: false
   end
 
+  create_table "media_settings", force: :cascade do |t|
+    t.string   "ignores",    default: ["**/.*"],              array: true
+    t.integer  "user_id",                        null: false
+    t.datetime "created_at",                     null: false
+    t.datetime "updated_at",                     null: false
+  end
+
+  add_index "media_settings", ["user_id"], name: "index_media_settings_on_user_id", unique: true, using: :btree
+
   create_table "media_sources", force: :cascade do |t|
     t.string   "api_id",          limit: 12,             null: false
     t.string   "name",            limit: 50,             null: false
@@ -590,6 +599,7 @@ ActiveRecord::Schema.define(version: 20170716154054) do
   add_foreign_key "media_scans", "media_sources", column: "source_id", on_delete: :cascade
   add_foreign_key "media_scraps", "media_urls", on_delete: :cascade
   add_foreign_key "media_scraps", "users", column: "creator_id", on_delete: :restrict
+  add_foreign_key "media_settings", "users", on_delete: :cascade
   add_foreign_key "media_sources", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_sources", "users", on_delete: :cascade
   add_foreign_key "media_urls", "users", column: "creator_id", on_delete: :restrict
