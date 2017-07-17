@@ -1,3 +1,4 @@
+# TODO analysis: tokens with longer lifetime and special media permissions
 module Lair
   class TokensApi < Grape::API
     namespace :tokens do
