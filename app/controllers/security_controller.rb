@@ -58,7 +58,7 @@ class SecurityController < ApplicationController
 
     User.increment_counter :sign_in_count, user.id
 
-    render json: { token: AccessToken.new(user).encode, user: serialize(user) }
+    render json: { token: AccessToken.new(user, :all).encode, user: serialize(user) }
   end
 
   private

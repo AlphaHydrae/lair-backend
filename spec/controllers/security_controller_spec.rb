@@ -7,7 +7,7 @@ RSpec.describe SecurityController, type: :controller do
 
     it "should return an authentication token and user data" do
 
-      token = AccessToken.new(user).encode
+      token = AccessToken.new(user, :all).encode
       request.env['HTTP_AUTHORIZATION'] = "Bearer #{token}"
       post :token
 

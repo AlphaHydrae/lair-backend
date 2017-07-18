@@ -11,7 +11,7 @@ RSpec.describe "login", broken: true do
     click_link 'Sign in'
     expect(page).to have_content('Sign in with Google')
 
-    token = AccessToken.new(user).encode
+    token = AccessToken.new(user, :all).encode
 
     within '.loginDialog' do
       fill_in 'authCredentials', with: token

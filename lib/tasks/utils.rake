@@ -5,7 +5,7 @@ namespace :users do
   desc "Generates an authentication token for the user with the given name"
   task :token, %i(name) => :environment do |t,args|
     user = User.where(normalized_name: args[:name].downcase).first!
-    puts AccessToken.new(user).encode
+    puts AccessToken.new(user, :all).encode
   end
 
   desc "Makes the user with the given name an administrator"

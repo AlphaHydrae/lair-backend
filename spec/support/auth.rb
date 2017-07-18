@@ -2,7 +2,7 @@ module SpecAuthHelper
   def generate_auth_token token_user = nil
     token_user ||= user if respond_to?(:user)
     token_user ||= create :user
-    AccessToken.new(token_user).encode
+    AccessToken.new(token_user, :all).encode
   end
 
   def generate_auth_headers user = nil
@@ -36,7 +36,7 @@ RSpec.shared_examples "a protected resource" do
   end
 
   it "should respond with HTTP 401 if the wrong type of credentials are sent" do
-    expect_no_changes{ protected_call.call({ 'Authorization' => "Basic #{AccessToken.new(user).encode}" }) }
+    expect_no_changes{ protected_call.call({ 'Authorization' => "Basic #{AccessToken.new(user, :all).encode}" }) }
     expect_unauthorized
   end
 
