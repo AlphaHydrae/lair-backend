@@ -1,4 +1,3 @@
-# TODO analysis: tokens with longer lifetime and special media permissions
 module Lair
   class TokensApi < Grape::API
     namespace :tokens do
@@ -15,7 +14,6 @@ module Lair
         # TODO analysis: validate access token
         token = AccessToken.new current_user
         update_record_from_params token
-        puts token.inspect
 
         {
           token: token.encode

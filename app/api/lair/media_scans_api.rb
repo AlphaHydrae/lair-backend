@@ -171,7 +171,11 @@ module Lair
 
                 MediaScanFile.import files, validate: true
 
-                record.changed_files_count += files.length
+                files.each do |scan_file|
+                  column = "#{scan_file.change_type}_files_count"
+                  record.send "#{column}=", record.send(column) + 1
+                end
+
                 record.save!
 
                 status 201

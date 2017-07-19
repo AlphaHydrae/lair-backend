@@ -66,6 +66,10 @@ class MediaScan < ActiveRecord::Base
     state == 'processed'
   end
 
+  def changed_files_count
+    added_files_count + modified_files_count + deleted_files_count
+  end
+
   private
 
   def queue_process_job

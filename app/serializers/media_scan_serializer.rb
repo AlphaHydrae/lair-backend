@@ -6,7 +6,10 @@ class MediaScanSerializer < ApplicationSerializer
     json.sourceId record.source.api_id
     json.source serialize(record.source, options[:source_options] || {}) if options[:include_source]
 
-    json.changedFilesCount record.changed_files_count
+    %i(added modified deleted changed).each do |type|
+      json.set! "#{type}FilesCount", record.send("#{type}_files_count")
+    end
+
     json.filesCount record.files_count if record.scanning_finished?
     json.processedFilesCount record.processed_files_count if record.processing_started?
     json.analysisProgress record.analysis_progress if record.analysis_started?

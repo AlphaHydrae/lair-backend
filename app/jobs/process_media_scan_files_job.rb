@@ -23,7 +23,6 @@ class ProcessMediaScanFilesJob < ApplicationJob
       Rails.application.with_current_event scan.last_scan_event do
 
         scanned_at = Time.now
-        processed_files_count = scan.processed_files_count
 
         scanned_files_rel = scan.scanned_files.where('media_scan_files.id >= ? AND media_scan_files.id <= ?', first_id, last_id).order(:id)
         scanned_files = scanned_files_rel.to_a
@@ -114,6 +113,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
         scanned_files_rel.update_all processed: true
 
+        processed_files_count = scan.processed_files_count
         if processed_files_count + scanned_files.length > scan.changed_files_count
           raise "Unexpectedly processed #{processed_files_count + scanned_files.length} files when there are only #{scan.changed_files_count} files to process"
         elsif processed_files_count + scanned_files.length == scan.changed_files_count
