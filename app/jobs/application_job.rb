@@ -26,7 +26,7 @@ class ApplicationJob
 
   def self.job_transaction cause:, rescue_event: nil, clear_errors: false
 
-    delete_job_errors cause: cause if clear_errors
+    delete_job_errors cause: cause if clear_errors && cause
 
     JobError.transaction do
       yield if block_given?
@@ -34,7 +34,7 @@ class ApplicationJob
 
   rescue
 
-    if rescue_event
+    if rescue_event && cause
       cause.reload
       cause.send rescue_event
     end

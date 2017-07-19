@@ -1,3 +1,5 @@
+# TODO analysis: add properties to events
+# TODO. rename create/update/delete events to record:create/update/delete
 class Event < ActiveRecord::Base
   EVENT_TYPES = %i(create update delete scan scrap)
   TRACKED_MODELS = [ Company, Work, Item, Ownership, Person ]
@@ -19,6 +21,12 @@ class Event < ActiveRecord::Base
   validates :event_subject, presence: { unless: :trackable }, length: { maximum: 50 }
   validates :trackable, presence: { unless: :event_subject }
   validates :previous_version, presence: { if: ->(e){ e.trackable.present? && %w(update delete).include?(e.event_type.to_s) } }
+
+  def initialize *args
+    super *args
+    # TODO analysis: make sure this works
+    @cause ||= Rails.application.current_event
+  end
 
   def subject
     event_subject || trackable_type

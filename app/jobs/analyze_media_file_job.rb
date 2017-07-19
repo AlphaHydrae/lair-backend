@@ -13,9 +13,8 @@ class AnalyzeMediaFileJob < AbstractAnalyzeMediaFilesJob
   end
 
   def self.perform media_file_id
+    # TODO analysis: create media:analysis:file event (in controller)
     relation = MediaFile.where id: media_file_id, analyzed: false
-    job_transaction cause: relation.first, clear_errors: true do
-      perform_analysis relation: relation, subject_id: media_file_id
-    end
+    perform_analysis relation: relation, job_args: [ media_file_id ], event: nil, cause: relation.first
   end
 end

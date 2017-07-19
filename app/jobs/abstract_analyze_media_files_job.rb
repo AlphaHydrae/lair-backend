@@ -1,10 +1,24 @@
 require 'resque/plugins/workers/lock'
 
 class AbstractAnalyzeMediaFilesJob < ApplicationJob
-  BATCH_SIZE = 100
+  BATCH_SIZE = 1
 
   # TODO analysis: save event
-  def self.perform_analysis relation:, subject_id:, &block
+  def self.perform_analysis relation:, job_args:, event:, cause:, clear_errors: true, &block
+    @continue_job_later = false
+
+    job_transaction cause: cause, clear_errors: clear_errors do
+      Rails.application.with_current_event event do
+        analyze_files relation: relation, &block
+      end
+    end
+
+    enqueue_next *job_args if @continue_job_later
+  end
+
+  private
+
+  def self.analyze_files relation:, &block
     relation = relation.includes :directory, :media_url, source: :user
 
     # Analyze NFO files first
@@ -20,7 +34,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
     if nfo_files_count > BATCH_SIZE
       Rails.logger.debug "#{nfo_files_count - BATCH_SIZE} NFO files left to analyze"
-      return enqueue_next subject_id
+      return continue_job_later
     end
 
     remaining_batch_size = BATCH_SIZE - nfo_files_count
@@ -33,7 +47,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
       return finish_analysis &block
     elsif remaining_batch_size <= 0
       Rails.logger.debug "#{media_files_count} media files left to analyze"
-      return enqueue_next subject_id
+      return continue_job_later
     elsif media_files_count >= 1
       media_files = media_files_rel.limit(remaining_batch_size).to_a
       Rails.logger.debug "Analyzing #{media_files.length} media files"
@@ -42,20 +56,22 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
     if media_files_count > BATCH_SIZE
       Rails.logger.debug "#{media_files_count - remaining_batch_size} media files left to analyze"
-      return enqueue_next subject_id
+      return continue_job_later
     end
 
     finish_analysis &block
   end
 
-  private
-
   def self.finish_analysis &block
     block.call if block
   end
 
-  def self.enqueue_next subject_id
-    enqueue_after_transaction self, subject_id
+  def self.continue_job_later
+    @continue_job_later = true
+  end
+
+  def self.enqueue_next *job_args
+    enqueue_after_transaction self, *job_args
   end
 
   def self.analyze_nfo_files nfo_files

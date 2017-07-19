@@ -5,7 +5,7 @@ class AddAnalyzedToMediaFiles < ActiveRecord::Migration
   def up
     add_column :media_files, :nfo_error, :string, limit: 12
     MediaFile.where(state: 'invalid').update_all nfo_error: 'invalid'
-    MediaFile.where(state: 'duplicated').update_all nfo_error: 'duplicate' # TODO analysis: ensure no occurrences of "duplicated"
+    MediaFile.where(state: 'duplicated').update_all nfo_error: 'duplicate'
     remove_column :media_files, :state
 
     add_column :media_files, :analyzed, :boolean, null: false, default: false

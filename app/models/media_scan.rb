@@ -37,21 +37,14 @@ class MediaScan < ActiveRecord::Base
   end
 
   def analysis_progress
-    0
-    # TODO analysis: compute analysis progress of media scan jobs
-=begin
-    total = changed_nfo_files_count + new_media_files_count
-    current = analyzed_nfo_files_count + analyzed_media_files_count
-    progress = current.to_f * 100.0 / total.to_f
-
-    if progress >= 0 && progress <= 100
-      progress.round 2
-    elsif progress < 0
+    if state == 'analyzed'
+      1
+    elsif state != 'processed' || changed_files_count <= 0
       0
     else
-      100
+      not_analyzed_count = MediaFile.where(last_scan: self, analyzed: false).count
+      1 - (not_analyzed_count.to_f / changed_files_count.to_f)
     end
-=end
   end
 
   def scanning_finished?
@@ -63,7 +56,7 @@ class MediaScan < ActiveRecord::Base
   end
 
   def analysis_started?
-    state == 'processed'
+    state == 'processed' || state == 'analyzed'
   end
 
   def changed_files_count
