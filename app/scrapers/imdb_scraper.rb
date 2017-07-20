@@ -1,3 +1,4 @@
+# TODO analysis: switch to http://www.theimdbapi.org/
 class ImdbScraper < ApplicationScraper
 
   def self.provider

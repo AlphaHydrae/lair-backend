@@ -149,10 +149,14 @@ module Lair
           serialize record
         end
 
-        namespace '/analysis' do
+        namespace :analysis do
           post do
-            record.update_column :analyzed, false
-            AnalyzeMediaFileJob.enqueue record
+            MediaFile.transaction do
+              record.update_column :analyzed, false
+              event = ::Event.new(event_type: 'media:reanalysis:file', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
+              AnalyzeMediaFileJob.enqueue record, event
+            end
+
             status 204
           end
         end

@@ -40,7 +40,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
               MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :deleted
 
               file.deleted = true
-              file.analyzed = false
+              file.analyzed = !file.nfo?
               file.last_scan = scan
               file.scanned_at = scanned_at
               file.save!
@@ -133,15 +133,15 @@ class ProcessMediaScanFilesJob < ApplicationJob
     paths_to_check_for_deletion = Set.new
 
     directories = MediaDirectory
-      .select('media_files.*, count(sub_media_files.id) AS deleted_files_count')
+      .select('media_files.*, count(sub_media_files.id) AS not_deleted_files_count')
       .joins('INNER JOIN media_files AS sub_media_files ON media_files.id = sub_media_files.directory_id')
-      .where('media_files.source_id = ? AND media_files.path IN (?) AND sub_media_files.deleted = ?', scan.source_id, paths, true)
+      .where('media_files.source_id = ? AND media_files.path IN (?) AND sub_media_files.deleted = ?', scan.source_id, paths, false)
       .group('media_files.id')
       .to_a
 
     directories.each do |directory|
-      if directory.deleted_files_count == directory.files_count
-        paths_to_check_for_deletion = File.dirname directory.path unless directory.depth <= 0
+      if directory.not_deleted_files_count <= 0
+        paths_to_check_for_deletion << File.dirname(directory.path) unless directory.depth <= 0
         directory.deleted = true
         directory.save!
       end

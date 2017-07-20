@@ -3,14 +3,13 @@ require 'resque/plugins/workers/lock'
 class AbstractAnalyzeMediaFilesJob < ApplicationJob
   BATCH_SIZE = 100
 
-  # TODO analysis: save event
   def self.perform_analysis relation:, job_args:, event:, analysis_event_type:, analysis_user:, cause:, clear_errors: true, &block
     @continue_job_later = false
 
     job_transaction cause: cause, clear_errors: clear_errors do
       analysis_event = ::Event.new(cause: event, event_type: analysis_event_type, user: analysis_user, trackable: cause, trackable_api_id: cause.api_id).tap &:save!
       Rails.application.with_current_event analysis_event do
-        analyze_files relation: relation, &block
+        analyze_files relation: relation, user: analysis_user, event: event, &block
       end
     end
 
@@ -19,7 +18,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
   private
 
-  def self.analyze_files relation:, &block
+  def self.analyze_files relation:, user:, event:, &block
     relation = relation.includes :directory, :media_url, source: :user
 
     # Analyze NFO files first
@@ -28,7 +27,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     if nfo_files_count >= 1
       nfo_files = nfo_files_rel.limit(BATCH_SIZE).to_a
       Rails.logger.debug "Analyzing #{nfo_files.length} NFO files"
-      analyze_nfo_files nfo_files
+      analyze_nfo_files nfo_files, user: user, event: event
     else
       Rails.logger.debug 'No more NFO files to analyze'
     end
@@ -52,7 +51,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     elsif media_files_count >= 1
       media_files = media_files_rel.limit(remaining_batch_size).to_a
       Rails.logger.debug "Analyzing #{media_files.length} media files"
-      analyze_media_files media_files
+      analyze_media_files media_files, user: user, event: event
     end
 
     if media_files_count > BATCH_SIZE
@@ -75,7 +74,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     enqueue_after_transaction self, *job_args
   end
 
-  def self.analyze_nfo_files nfo_files
+  def self.analyze_nfo_files nfo_files, user:, event:
 
     files_counts_updates = {}
     affected_media_urls = Set.new
@@ -85,6 +84,8 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     while nfo_files.any?
 
       nfo_file = nfo_files.shift
+      Rails.logger.debug "Analyzing NFO file #{nfo_file.path} (#{nfo_file.id})"
+
       directory = nfo_file.directory
       affected_media_urls << nfo_file.media_url if nfo_file.media_url
       other_nfo_files = other_nfo_files_in_directory directory: directory, nfo_file: nfo_file
@@ -134,13 +135,12 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
     MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
-    # TODO analysis: update media ownerships
-    #affected_media_urls.each do |media_url|
-    #  UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: scan.source.user, event: scan.last_scan_event if affected_media_url.present?
-    #end
+    affected_media_urls.each do |media_url|
+      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event
+    end
   end
 
-  def self.analyze_media_files media_files
+  def self.analyze_media_files media_files, user:, event:
     files_counts_updates = {}
     affected_media_urls = Set.new
 
@@ -167,10 +167,9 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
     MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
-    # TODO analysis: update media ownerships
-    #affected_media_urls.each do |media_url|
-    #  UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: scan.source.user, event: scan.last_scan_event
-    #end
+    affected_media_urls.each do |media_url|
+      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event
+    end
   end
 
   def self.prepare_nfo_files_by_directory nfo_files:
@@ -185,12 +184,12 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
   def self.other_nfo_files_in_directory directory:, nfo_file:
     raise "Expected NFO files for directory #{directory.api_id} to have been prepared" unless @nfo_files_by_directory[directory.id]
-    @nfo_files_by_directory[directory.id] - [ nfo_file ]
+    (@nfo_files_by_directory[directory.id] - [ nfo_file ]).reject &:deleted?
   end
 
   def self.parent_nfo_files_for_directory directory:
-    parent_directory_with_nfo_files = MediaDirectory.parent_directories{ |rel| rel.where 'immediate_nfo_files_count <= 0' }.order('depth').first
-    MediaFile.where('media_files.deleted = ? AND media_files.extension = ? AND media_files.directory_id IN (?)', false, 'nfo', parent_directory_with_nfo_files.collect(&:id)).to_a
+    parent_directory_with_nfo_files = directory.parent_directories{ |rel| rel.where 'immediate_nfo_files_count <= 0' }.order('depth').first
+    MediaFile.where('media_files.deleted = ? AND media_files.extension = ? AND media_files.directory_id = ?', false, 'nfo', parent_directory_with_nfo_files.id).to_a
   end
 
   def self.nfo_file_for_directory directory:

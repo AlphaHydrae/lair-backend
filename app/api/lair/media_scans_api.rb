@@ -92,16 +92,31 @@ module Lair
             MediaScan.transaction do
               if %w(processing_failed).include? record.state
                 record.retry_processing!
-              elsif %w(analysis_failed).include? record.state
-                record.retry_analysis!
               else
                 error = ValidationError.new
-                error.add "Scanning can only be retried from the processingFailed or analysisFailed states"
+                error.add "Scanning can only be retried from the processingFailed state"
                 error.raise_if_any
               end
 
               serialize record
             end
+          end
+        end
+
+        namespace :analysis do
+          post do
+            MediaScan.transaction do
+              if %w(processed analyzed).include? record.state
+                event = ::Event.new(event_type: 'media:reanalysis:scan', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
+                AnalyzeMediaScanJob.enqueue record, event
+              else
+                error = ValidationError.new
+                error.add "Scanning can only be reanalyzed from the processed or analyzed states"
+                error.raise_if_any
+              end
+            end
+
+            status 204
           end
         end
 
