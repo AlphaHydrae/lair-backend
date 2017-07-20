@@ -2,6 +2,8 @@ class RenameMediaEvents < ActiveRecord::Migration
   class Event < ActiveRecord::Base; end
 
   def up
+    change_column :events, :event_type, :string, null: false, limit: 50
+
     scan_events_rel = Event.where event_type: 'scan'
     say_with_time "renaming #{scan_events_rel.count} scan events to media:scan" do
       scan_events_rel.update_all event_type: 'media:scan'
@@ -14,6 +16,8 @@ class RenameMediaEvents < ActiveRecord::Migration
   end
 
   def down
+    change_column :events, :event_type, :string, null: false, limit: 12
+
     scan_events_rel = Event.where event_type: 'media:scan'
     say_with_time "renaming #{scan_events_rel.count} media:scan events to scan" do
       scan_events_rel.update_all event_type: 'scan'

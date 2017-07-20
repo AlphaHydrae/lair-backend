@@ -1,14 +1,15 @@
 require 'resque/plugins/workers/lock'
 
 class AbstractAnalyzeMediaFilesJob < ApplicationJob
-  BATCH_SIZE = 1
+  BATCH_SIZE = 100
 
   # TODO analysis: save event
-  def self.perform_analysis relation:, job_args:, event:, cause:, clear_errors: true, &block
+  def self.perform_analysis relation:, job_args:, event:, analysis_event_type:, analysis_user:, cause:, clear_errors: true, &block
     @continue_job_later = false
 
     job_transaction cause: cause, clear_errors: clear_errors do
-      Rails.application.with_current_event event do
+      analysis_event = ::Event.new(cause: event, event_type: analysis_event_type, user: analysis_user, trackable: cause, trackable_api_id: cause.api_id).tap &:save!
+      Rails.application.with_current_event analysis_event do
         analyze_files relation: relation, &block
       end
     end

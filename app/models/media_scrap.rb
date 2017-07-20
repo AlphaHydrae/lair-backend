@@ -61,7 +61,7 @@ class MediaScrap < ActiveRecord::Base
   end
 
   def create_scrap_event
-    ::Event.new(event_type: 'scrap', user: creator, trackable: self, trackable_api_id: api_id).tap &:save!
+    ::Event.new(event_type: 'media:scrap', user: creator, trackable: self, trackable_api_id: api_id).tap &:save!
   end
 
   private

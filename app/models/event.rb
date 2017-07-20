@@ -1,7 +1,7 @@
 # TODO analysis: add properties to events
 # TODO. rename create/update/delete events to record:create/update/delete
 class Event < ActiveRecord::Base
-  EVENT_TYPES = %i(create update delete scan scrap)
+  EVENT_TYPES = %i(create update delete media:scan media:scrap media:analysis:scan media:analysis:file media:analysis:source)
   TRACKED_MODELS = [ Company, Work, Item, Ownership, Person ]
 
   include ResourceWithIdentifier

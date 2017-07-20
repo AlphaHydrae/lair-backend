@@ -187,7 +187,7 @@ module Lair
           get do
             authorize! MediaScanFile, :index
 
-            rel = policy_scope MediaScanFile.where(scan: record).order('media_scan_files.path ASC')
+            rel = policy_scope MediaScanFile.where(scan: record).order('media_scan_files.path ASC').includes(:scan)
 
             rel = paginated rel do |rel|
               rel

@@ -92,7 +92,7 @@ ActiveRecord::Schema.define(version: 20170719193515) do
   create_table "events", force: :cascade do |t|
     t.string   "api_id",             limit: 36,             null: false
     t.integer  "api_version",                               null: false
-    t.string   "event_type",         limit: 12,             null: false
+    t.string   "event_type",         limit: 50,             null: false
     t.string   "event_subject",      limit: 50
     t.string   "trackable_type",     limit: 50
     t.integer  "trackable_id"

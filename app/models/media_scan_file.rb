@@ -2,7 +2,7 @@
 class MediaScanFile < ActiveRecord::Base
   CHANGE_TYPES = %i(added modified deleted)
 
-  belongs_to :scan, class_name: 'MediaFile'
+  belongs_to :scan, class_name: 'MediaScan'
 
   strip_attributes
   validates :data, presence: { unless: :deleted? }

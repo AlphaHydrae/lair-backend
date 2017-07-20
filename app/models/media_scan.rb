@@ -74,7 +74,7 @@ class MediaScan < ActiveRecord::Base
   end
 
   def create_scan_event
-    ::Event.new(event_type: 'scan', user: source.user, trackable: self, trackable_api_id: api_id).tap &:save!
+    ::Event.new(event_type: 'media:scan', user: source.user, trackable: self, trackable_api_id: api_id).tap &:save!
   end
 
   def files_count_should_be_correct
