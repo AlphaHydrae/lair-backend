@@ -436,9 +436,15 @@ def docker_compose *args
   end
 end
 
-def docker_build path:, name:
+def docker_build path:, name:, no_cache: false
   within path.to_s do
-    execute :docker, 'build', '-t', name.to_s, '.'
+
+    args = [ 'build' ]
+    args << '-t' << name.to_s
+    args << '--no-cache' if no_cache
+    args << '.'
+
+    execute :docker, *args
   end
 end
 
