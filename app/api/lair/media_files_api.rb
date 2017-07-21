@@ -11,6 +11,7 @@ module Lair
 
         def with_serialization_includes rel
           rel = rel.includes :source
+          rel = rel.preload :media_url if params[:type] == 'file'
           rel = rel.preload :searches if params[:type] == 'directory' && include_in_response?(:mediaSearch)
           rel
         end
