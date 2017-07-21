@@ -136,7 +136,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
     affected_media_urls.each do |media_url|
-      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event
+      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event if media_url.present?
     end
   end
 
@@ -168,7 +168,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
     affected_media_urls.each do |media_url|
-      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event
+      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event if media_url.present?
     end
   end
 
