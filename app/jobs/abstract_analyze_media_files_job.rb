@@ -19,7 +19,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
   private
 
   def self.analyze_files relation:, user:, event:, &block
-    relation = relation.includes :directory, :media_url, source: :user
+    relation = relation.preload :directory, :media_url, source: :user
 
     # Analyze NFO files first
     nfo_files_rel = relation.where extension: 'nfo'
@@ -40,7 +40,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     remaining_batch_size = BATCH_SIZE - nfo_files_count
 
     # Then analyze remaining non-NFO files
-    media_files_rel = relation.where 'extension != ?', 'nfo'
+    media_files_rel = relation.where('extension IS DISTINCT FROM ?', 'nfo').order 'path'
     media_files_count = media_files_rel.count
     if media_files_count <= 0
       Rails.logger.debug 'No more media files to analyze'
@@ -54,7 +54,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
       analyze_media_files media_files, user: user, event: event
     end
 
-    if media_files_count > BATCH_SIZE
+    if media_files_count > remaining_batch_size
       Rails.logger.debug "#{media_files_count - remaining_batch_size} media files left to analyze"
       return continue_job_later
     end
@@ -128,7 +128,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
         end
 
         affected_directory_ids = affected_child_directories.collect(&:id).unshift directory.id
-        affected_files_rel = MediaFile.where('media_files.deleted = ? AND media_files.type = ? AND media_files.extension != ? AND media_files.directory_id IN (?)', false, MediaFile.name, 'nfo', affected_directory_ids)
+        affected_files_rel = MediaFile.where('media_files.deleted = ? AND media_files.type = ? AND media_files.extension IS DISTINCT FROM ? AND media_files.directory_id IN (?)', false, MediaFile.name, 'nfo', affected_directory_ids)
         link_or_unlink_files relation: affected_files_rel, media_url: effective_media_url, files_counts_updates: files_counts_updates
       end
     end
@@ -151,7 +151,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
       directory_files = media_files.select{ |f| f.directory == file.directory }
       directory_files_rel = MediaFile.where id: directory_files.collect(&:id).unshift(file.id)
 
-      affected_media_urls += directory_files.collect(&:media_url)
+      affected_media_urls += directory_files.collect(&:media_url).select &:present?
       media_files -= directory_files
 
       nfo_file = nfo_file_for_directory directory: file.directory
@@ -168,7 +168,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
     MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
     affected_media_urls.each do |media_url|
-      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event if media_url.present?
+      UpdateMediaOwnershipsJob.enqueue media_url: media_url, user: user, event: event
     end
   end
 
@@ -204,7 +204,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
   end
 
   def self.nfo_files_in_directory directory:
-    MediaFile.where('media_files.deleted = ? AND media_files.extension = ?', false, 'nfo').to_a
+    MediaFile.where('media_files.deleted = ? AND media_files.extension = ? AND media_files.directory_id = ?', false, 'nfo', directory.id).to_a
   end
 
   def self.process_nfo_file nfo_file:, other_nfo_files:, files_counts_updates:

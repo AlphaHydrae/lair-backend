@@ -17,6 +17,7 @@ class MediaScan < ActiveRecord::Base
   event :retry_processing, to: :retrying_processing, after: %i(set_process_job_required)
   event :finish_processing, to: :processed, after: %i(update_source_last_scan set_analyze_job_required)
   event :finish_analysis, to: :analyzed
+  event :restart_analysis, to: :processed, after: %i(reanalyze_files)
 
   belongs_to :scanner, class_name: 'MediaScanner'
   belongs_to :source, class_name: 'MediaSource', counter_cache: :scans_count
@@ -37,13 +38,11 @@ class MediaScan < ActiveRecord::Base
   end
 
   def analysis_progress
-    if state == 'analyzed'
-      1
-    elsif state != 'processed' || changed_files_count <= 0
+    if !analysis_started? || changed_files_count <= 0
       0
     else
       not_analyzed_count = MediaFile.where(last_scan: self, analyzed: false).count
-      1 - (not_analyzed_count.to_f / changed_files_count.to_f)
+      not_analyzed_count <= 0 ? 1 : 1 - (not_analyzed_count.to_f / changed_files_count.to_f)
     end
   end
 
@@ -64,6 +63,10 @@ class MediaScan < ActiveRecord::Base
   end
 
   private
+
+  def reanalyze_files
+    MediaFile.where(last_scan: self).update_all analyzed: false
+  end
 
   def queue_process_job
     ProcessMediaScanJob.enqueue scan: self

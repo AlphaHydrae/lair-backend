@@ -107,6 +107,7 @@ module Lair
           post do
             MediaScan.transaction do
               if %w(processed analyzed).include? record.state
+                record.restart_analysis!
                 event = ::Event.new(event_type: 'media:reanalysis:scan', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
                 AnalyzeMediaScanJob.enqueue record, event
               else

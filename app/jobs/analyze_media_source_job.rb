@@ -1,7 +1,7 @@
 class AnalyzeRemainingMediaFilesJob < AbstractAnalyzeMediaFilesJob
   extend Resque::Plugins::Workers::Lock
 
-  @queue = :low
+  @queue = :high
 
   def self.enqueue source
     log_queueing "media source #{source.api_id}"

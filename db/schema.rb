@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170719193515) do
+ActiveRecord::Schema.define(version: 20170722115338) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -334,7 +334,6 @@ ActiveRecord::Schema.define(version: 20170719193515) do
     t.datetime "canceled_at"
     t.datetime "scanned_at"
     t.datetime "processing_failed_at"
-    t.integer  "changed_files_count",               default: 0, null: false
     t.integer  "job_errors_count",                  default: 0, null: false
     t.datetime "analyzed_at"
     t.datetime "scanning_at"

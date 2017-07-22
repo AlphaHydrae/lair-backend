@@ -45,7 +45,7 @@ module Lair
           if true_flag? :nfo
             rel = rel.where '(media_files.type = ? AND media_files.extension = ?) OR (media_files.type = ? AND media_files.nfo_files_count >= 1)', MediaFile.name, 'nfo', MediaDirectory.name
           elsif false_flag? :nfo
-            rel = rel.where '(media_files.type = ? AND media_files.extension != ?) OR (media_files.type = ? AND media_files.nfo_files_count <= 0)', MediaFile.name, 'nfo', MediaDirectory.name
+            rel = rel.where '(media_files.type = ? AND media_files.extension IS DISTINCT FROM ?) OR (media_files.type = ? AND media_files.nfo_files_count <= 0)', MediaFile.name, 'nfo', MediaDirectory.name
           end
 
           if true_flag? :linked
