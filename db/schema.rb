@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170722115338) do
+ActiveRecord::Schema.define(version: 20170723084620) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -299,7 +299,7 @@ ActiveRecord::Schema.define(version: 20170722115338) do
   add_index "media_fingerprints", ["api_id"], name: "index_media_fingerprints_on_api_id", unique: true, using: :btree
   add_index "media_fingerprints", ["source_id", "media_url_id"], name: "index_media_fingerprints_on_source_id_and_media_url_id", unique: true, using: :btree
 
-  create_table "media_scan_files", force: :cascade do |t|
+  create_table "media_scan_changes", force: :cascade do |t|
     t.integer "scan_id",                                null: false
     t.text    "path",                                   null: false
     t.json    "data",                                   null: false
@@ -307,7 +307,7 @@ ActiveRecord::Schema.define(version: 20170722115338) do
     t.string  "change_type", limit: 10,                 null: false
   end
 
-  add_index "media_scan_files", ["path", "scan_id"], name: "index_media_scan_files_on_path_and_scan_id", unique: true, using: :btree
+  add_index "media_scan_changes", ["path", "scan_id"], name: "index_media_scan_changes_on_path_and_scan_id", unique: true, using: :btree
 
   create_table "media_scanners", force: :cascade do |t|
     t.string   "api_id",       limit: 36, null: false
@@ -322,26 +322,26 @@ ActiveRecord::Schema.define(version: 20170722115338) do
   add_index "media_scanners", ["api_id"], name: "index_media_scanners_on_api_id", unique: true, using: :btree
 
   create_table "media_scans", force: :cascade do |t|
-    t.string   "api_id",                 limit: 12,             null: false
-    t.integer  "scanner_id",                                    null: false
-    t.integer  "files_count",                       default: 0, null: false
-    t.integer  "processed_files_count",             default: 0, null: false
+    t.string   "api_id",                  limit: 12,             null: false
+    t.integer  "scanner_id",                                     null: false
+    t.integer  "files_count",                        default: 0, null: false
+    t.integer  "processed_changes_count",            default: 0, null: false
     t.json     "properties"
     t.datetime "created_at"
     t.datetime "processed_at"
-    t.integer  "source_id",                                     null: false
-    t.string   "state",                  limit: 20,             null: false
+    t.integer  "source_id",                                      null: false
+    t.string   "state",                   limit: 20,             null: false
     t.datetime "canceled_at"
     t.datetime "scanned_at"
     t.datetime "processing_failed_at"
-    t.integer  "job_errors_count",                  default: 0, null: false
+    t.integer  "job_errors_count",                   default: 0, null: false
     t.datetime "analyzed_at"
     t.datetime "scanning_at"
     t.datetime "processing_at"
     t.datetime "retrying_processing_at"
-    t.integer  "added_files_count",                 default: 0, null: false
-    t.integer  "modified_files_count",              default: 0, null: false
-    t.integer  "deleted_files_count",               default: 0, null: false
+    t.integer  "added_files_count",                  default: 0, null: false
+    t.integer  "modified_files_count",               default: 0, null: false
+    t.integer  "deleted_files_count",                default: 0, null: false
   end
 
   add_index "media_scans", ["api_id"], name: "index_media_scans_on_api_id", unique: true, using: :btree
@@ -593,7 +593,7 @@ ActiveRecord::Schema.define(version: 20170722115338) do
   add_foreign_key "media_files_ownerships", "ownerships", on_delete: :cascade
   add_foreign_key "media_fingerprints", "media_sources", column: "source_id", on_delete: :cascade
   add_foreign_key "media_fingerprints", "media_urls", on_delete: :cascade
-  add_foreign_key "media_scan_files", "media_scans", column: "scan_id", on_delete: :cascade
+  add_foreign_key "media_scan_changes", "media_scans", column: "scan_id", on_delete: :cascade
   add_foreign_key "media_scanners", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_scanners", "users", on_delete: :cascade
   add_foreign_key "media_scans", "media_scanners", column: "scanner_id", on_delete: :cascade

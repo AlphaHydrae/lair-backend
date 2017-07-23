@@ -1,5 +1,5 @@
 # TODO: only save relevant data properties
-class MediaScanFile < ActiveRecord::Base
+class MediaScanChange < ActiveRecord::Base
   CHANGE_TYPES = %i(added modified deleted)
 
   belongs_to :scan, class_name: 'MediaScan'

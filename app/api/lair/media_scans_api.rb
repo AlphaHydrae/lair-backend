@@ -30,6 +30,7 @@ module Lair
           record = MediaScan.new
           update_record_from_params record
 
+          # TODO analysis: allow new scan if previous scan is analyzing
           processing_scan = MediaScan.where('media_scans.source_id = ? AND media_scans.state IN (?)', record.source_id, %w(scanned processing retrying_processing processed)).first
           raise 'Scan already in progress' if processing_scan.present?
 
@@ -121,7 +122,7 @@ module Lair
           end
         end
 
-        namespace :files do
+        namespace :changes do
           helpers do
             def serialization_options *args
               {
@@ -132,7 +133,7 @@ module Lair
             def with_serialization_includes rel
               if rel.model == MediaScan
                 rel = rel.includes :source
-              elsif rel.model == MediaScanFile
+              elsif rel.model == MediaScanChange
                 rel = rel.includes :scan
               else
                 raise "Unsupported model #{rel.model}"
@@ -141,69 +142,69 @@ module Lair
           end
 
           post do
-            authorize! MediaScanFile, :create
+            authorize! MediaScanChange, :create
 
             raise 'Scan completed' if record.state.to_s != 'scanning'
 
-            files = JSON.parse request.body.read
-            raise 'Array required' unless files.kind_of? Array
+            changes = JSON.parse request.body.read
+            raise 'Array required' unless changes.kind_of? Array
 
-            lock_for_update 'media_scans:scanned_files' do
+            lock_for_update "media_scan:#{record.api_id}:changes" do
               MediaScan.transaction do
 
-                files = files.collect do |data|
-                  MediaScanFile.new(scan_id: record.id).tap do |f|
+                changes = changes.collect do |data|
+                  MediaScanChange.new(scan_id: record.id).tap do |f|
                     f.path = data.delete 'path'
                     f.change_type = data.delete 'change'
                     f.data = data
                   end
                 end
 
-                file_changes = files.select{ |f| %w(added modified deleted).include?(f.change_type) && f.path }
-                existing_paths = record.scanned_files.where(path: file_changes.collect(&:path)).to_a.collect &:path
-                existing_paths_in_source = record.source.files.where(path: file_changes.collect(&:path), deleted: false).to_a.collect &:path
+                valid_changes = changes.select{ |f| %w(added modified deleted).include?(f.change_type) && f.path }
+                existing_paths = record.file_changes.where(path: valid_changes.collect(&:path)).to_a.collect &:path
+                existing_paths_in_source = record.source.files.where(path: valid_changes.collect(&:path), deleted: false).to_a.collect &:path
 
-                validation_error = ValidationError.new 'Scanned files are invalid'
+                validation_error = ValidationError.new 'Scanned changes are invalid'
 
-                file_changes.each.with_index do |file,i|
-                  if existing_paths.include? file.path
-                    validation_error.add message: "File #{file.path} was already scanned", path: "/#{i}/path"
+                valid_changes.each.with_index do |change,i|
+                  if existing_paths.include? change.path
+                    validation_error.add message: "File #{change.path} was already scanned", path: "/#{i}/path"
                   end
 
-                  if files.count{ |f| f.path == file.path } >= 2
-                    validation_error.add message: "File #{file.path} is present multiple times in the request", path: "/#{i}/path"
+                  if changes.count{ |f| f.path == change.path } >= 2
+                    validation_error.add message: "File #{change.path} is present multiple times in the request", path: "/#{i}/path"
                   end
 
-                  if file.change_type == 'added' && existing_paths_in_source.include?(file.path)
-                    validation_error.add message: "File #{file.path} cannot be added because it is already present in the media source", path: "/#{i}/change"
+                  if change.change_type == 'added' && existing_paths_in_source.include?(change.path)
+                    validation_error.add message: "File #{change.path} cannot be added because it is already present in the media source", path: "/#{i}/change"
                   end
 
-                  if %w(modified deleted).include?(file.change_type) && !existing_paths_in_source.include?(file.path)
-                    validation_error.add message: "File #{file.path} cannot be #{file.change_type} because it does not exist in the media source", path: "/#{i}/change"
+                  if %w(modified deleted).include?(change.change_type) && !existing_paths_in_source.include?(change.path)
+                    validation_error.add message: "File #{change.path} cannot be #{change.change_type} because it does not exist in the media source", path: "/#{i}/change"
                   end
                 end
 
                 validation_error.raise_if_any
 
-                MediaScanFile.import files, validate: true
+                MediaScanChange.import changes, validate: true
 
-                files.each do |scan_file|
-                  column = "#{scan_file.change_type}_files_count"
+                changes.each do |change|
+                  column = "#{change.change_type}_files_count"
                   record.send "#{column}=", record.send(column) + 1
                 end
 
                 record.save!
 
                 status 201
-                files
+                changes
               end
             end
           end
 
           get do
-            authorize! MediaScanFile, :index
+            authorize! MediaScanChange, :index
 
-            rel = policy_scope MediaScanFile.where(scan: record).order('media_scan_files.path ASC').includes(:scan)
+            rel = policy_scope MediaScanChange.where(scan: record).order('media_scan_changes.path ASC').includes(:scan)
 
             rel = paginated rel do |rel|
               rel

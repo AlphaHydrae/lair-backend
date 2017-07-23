@@ -1,4 +1,4 @@
-class MediaScanFileSerializer < ApplicationSerializer
+class MediaScanChangeSerializer < ApplicationSerializer
   def build json, options = {}
     json.path record.path
     json.scanId record.scan.api_id

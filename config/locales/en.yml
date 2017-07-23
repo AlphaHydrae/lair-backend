@@ -44,10 +44,14 @@ en:
               invalid_directory_depth: "does not match the depth of the parent directory"
         media_scan:
           attributes:
+            added_files_count:
+              invalid_added_files_count: "does not match the actual number of changes stored"
+            deleted_files_count:
+              invalid_deleted_files_count: "does not match the actual number of changes stored"
             files_count:
               invalid_files_count: "does not match the expected number of files after taking additions and deletions into account"
             state:
-              unprocessed_files: "cannot be set to processed because there are scanned files that have not been processed yet"
+              unprocessed_changes: "cannot be set to processed because there are scanned changes that have not been processed yet"
         media_search:
           attributes:
             selected:

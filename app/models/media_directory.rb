@@ -1,3 +1,4 @@
+# TODO analysis: add analyzed_files_count
 class MediaDirectory < MediaAbstractFile
   include SqlHelper
 

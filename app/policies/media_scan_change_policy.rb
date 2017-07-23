@@ -1,4 +1,4 @@
-class MediaScanFilePolicy < ApplicationPolicy
+class MediaScanChangePolicy < ApplicationPolicy
   def create?
     authenticated?
   end

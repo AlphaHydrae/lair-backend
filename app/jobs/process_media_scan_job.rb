@@ -34,23 +34,23 @@ class ProcessMediaScanJob < ApplicationJob
           scan.finish_processing!
         else
 
-          unprocessed_files_rel = scan.scanned_files.where processed: false
-          remaining = unprocessed_files_rel.count
+          unprocessed_changes_rel = scan.file_changes.where processed: false
+          remaining = unprocessed_changes_rel.count
 
-          scan.update_column :processed_files_count, changed_files_count - remaining
+          scan.update_column :processed_changes_count, changed_files_count - remaining
 
           offset = 0
           while offset < remaining
 
-            first_id = unprocessed_files_rel.order('media_scan_files.id').offset(offset).first.id
+            first_id = unprocessed_changes_rel.order('media_scan_changes.id').offset(offset).first.id
 
             last_id = if offset + BATCH_SIZE <= remaining
-              unprocessed_files_rel.order('media_scan_files.id').offset(offset + BATCH_SIZE - 1).first.id
+              unprocessed_changes_rel.order('media_scan_changes.id').offset(offset + BATCH_SIZE - 1).first.id
             else
-              unprocessed_files_rel.order('media_scan_files.id DESC').first.id
+              unprocessed_changes_rel.order('media_scan_changes.id DESC').first.id
             end
 
-            ProcessMediaScanFilesJob.enqueue scan: scan, first_id: first_id, last_id: last_id
+            ProcessMediaScanChangesJob.enqueue scan: scan, first_id: first_id, last_id: last_id
             offset += BATCH_SIZE
           end
         end

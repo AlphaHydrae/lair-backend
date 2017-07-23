@@ -21,15 +21,16 @@ class MediaScan < ActiveRecord::Base
 
   belongs_to :scanner, class_name: 'MediaScanner'
   belongs_to :source, class_name: 'MediaSource', counter_cache: :scans_count
-  has_many :scanned_files, class_name: 'MediaScanFile', foreign_key: :scan_id
+  has_many :file_changes, class_name: 'MediaScanChange', foreign_key: :scan_id
   has_many :job_errors, as: :cause, dependent: :destroy
+  has_many :scanned_files, class_name: 'MediaFile', foreign_key: :last_scan_id
 
   strip_attributes
   validates :source, presence: true
   validates :scanner, presence: true
   validates :files_count, presence: { if: ->(scan){ %w(scanned processed).include? scan.state.to_s } }
-  validate :files_count_should_be_correct
-  validate :scanned_files_should_be_processed
+  validate :changes_and_files_count_should_be_correct
+  validate :changes_should_be_processed
 
   def last_scan_event
     ::Event.where(trackable: self).order('created_at DESC').first.tap do |event|
@@ -41,7 +42,7 @@ class MediaScan < ActiveRecord::Base
     if !analysis_started? || changed_files_count <= 0
       0
     else
-      not_analyzed_count = MediaFile.where(last_scan: self, analyzed: false).count
+      not_analyzed_count = scanned_files.where(analyzed: false).count
       not_analyzed_count <= 0 ? 1 : 1 - (not_analyzed_count.to_f / changed_files_count.to_f)
     end
   end
@@ -65,7 +66,7 @@ class MediaScan < ActiveRecord::Base
   private
 
   def reanalyze_files
-    MediaFile.where(last_scan: self).update_all analyzed: false
+    scanned_files.update_all analyzed: false
   end
 
   def queue_process_job
@@ -80,22 +81,32 @@ class MediaScan < ActiveRecord::Base
     ::Event.new(event_type: 'media:scan', user: source.user, trackable: self, trackable_api_id: api_id).tap &:save!
   end
 
-  def files_count_should_be_correct
-    return unless state_changed? && state == 'scanned' && processed_files_count == 0
+  def changes_and_files_count_should_be_correct
+    return unless state_changed? && state == 'scanned' && processed_changes_count == 0
+
+    actual_added_files_count = count_changes_by_type :added
+    if actual_added_files_count != added_files_count
+      errors.add :added_files_count, :invalid_added_files_count
+    end
+
+    actual_deleted_files_count = count_changes_by_type :deleted
+    if actual_deleted_files_count != deleted_files_count
+      errors.add :deleted_files_count, :invalid_deleted_files_count
+    end
 
     previous_files_count = source.files.where(deleted: false).count
-    if previous_files_count + count_file_changes(:added) - count_file_changes(:deleted) != files_count
+    if previous_files_count + actual_added_files_count - actual_deleted_files_count != files_count
       errors.add :files_count, :invalid_files_count
     end
   end
 
-  def count_file_changes type
-    scanned_files.where(change_type: type.to_s).count
+  def count_changes_by_type type
+    file_changes.where(change_type: type.to_s).count
   end
 
-  def scanned_files_should_be_processed
+  def changes_should_be_processed
     return unless state_changed? && state == 'processed'
-    errors.add :state, :unprocessed_files if scanned_files.where(processed: false).any?
+    errors.add :state, :unprocessed_changes if file_changes.where(processed: false).any?
   end
 
   def update_source_last_scan

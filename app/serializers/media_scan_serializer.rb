@@ -11,7 +11,7 @@ class MediaScanSerializer < ApplicationSerializer
     end
 
     json.filesCount record.files_count if record.scanning_finished?
-    json.processedFilesCount record.processed_files_count if record.processing_started?
+    json.processedChangesCount record.processed_changes_count if record.processing_started?
     json.analysisProgress record.analysis_progress if record.analysis_started?
 
     if options[:include_errors] && policy.admin?

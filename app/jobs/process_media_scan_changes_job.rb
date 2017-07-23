@@ -1,6 +1,6 @@
 require 'resque/plugins/workers/lock'
 
-class ProcessMediaScanFilesJob < ApplicationJob
+class ProcessMediaScanChangesJob < ApplicationJob
   FILE_PROPERTIES = %i(url format languages subtitles)
 
   extend Resque::Plugins::Workers::Lock
@@ -8,7 +8,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
   @queue = :high
 
   def self.enqueue scan:, first_id:, last_id:
-    log_queueing "media scan #{scan.api_id} scanned files with IDs between #{first_id} and #{last_id}"
+    log_queueing "media scan #{scan.api_id} changes with IDs between #{first_id} and #{last_id}"
     enqueue_after_transaction self, scan.id, scan.source_id, first_id, last_id
   end
 
@@ -24,18 +24,18 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
         scanned_at = Time.now
 
-        scanned_files_rel = scan.scanned_files.where('media_scan_files.id >= ? AND media_scan_files.id <= ?', first_id, last_id).order(:id)
-        scanned_files = scanned_files_rel.to_a
+        changes_rel = scan.file_changes.where('media_scan_changes.id >= ? AND media_scan_changes.id <= ?', first_id, last_id).order(:id)
+        changes = changes_rel.to_a
 
         directories_by_path = {}
         files_counts_updates = {}
         paths_to_check_for_deletion = Set.new
 
-        scanned_files.each do |scanned_file|
+        changes.each do |change|
 
-          if scanned_file.deleted?
-            if file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path).includes(:directory).first!
-              paths_to_check_for_deletion << File.dirname(scanned_file.path)
+          if change.deleted?
+            if file = MediaFile.where(source_id: scan.source_id, path: change.path).includes(:directory).first!
+              paths_to_check_for_deletion << File.dirname(change.path)
 
               MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :deleted
 
@@ -50,7 +50,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
           end
 
           directory_paths = []
-          current_path = scanned_file.path
+          current_path = change.path
 
           n = 0
           loop do
@@ -67,8 +67,8 @@ class ProcessMediaScanFilesJob < ApplicationJob
             directories_by_path[path] = MediaDirectory.find_or_create_by!(source_id: scan.source_id, directory_id: parent_directory.try(:id), path: path, depth: i)
           end
 
-          directory = directories_by_path[File.dirname(scanned_file.path)]
-          file = MediaFile.where(source_id: scan.source_id, path: scanned_file.path, directory_id: directory, depth: directory.depth + 1).first
+          directory = directories_by_path[File.dirname(change.path)]
+          file = MediaFile.where(source_id: scan.source_id, path: change.path, directory_id: directory, depth: directory.depth + 1).first
 
           if file.blank?
             file = MediaFile.new
@@ -76,7 +76,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
             file.source = scan.source
             file.directory = directory
             file.depth = directory.depth + 1
-            file.path = scanned_file.path
+            file.path = change.path
             MediaDirectory.track_files_counts updates: files_counts_updates, file: file, change: :created
           elsif file.deleted?
             file.media_url = nil
@@ -87,7 +87,7 @@ class ProcessMediaScanFilesJob < ApplicationJob
           end
 
           FILE_PROPERTIES.each do |key|
-            if scanned_file.properties && value = scanned_file.properties[key.to_s]
+            if change.properties && value = change.properties[key.to_s]
               file.properties[key.to_s] = value
             else
               file.properties.delete key.to_s
@@ -98,9 +98,9 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
           file.last_scan = scan
           file.scanned_at = scanned_at
-          file.bytesize = scanned_file.size
-          file.file_created_at = scanned_file.file_created_at
-          file.file_modified_at = scanned_file.file_modified_at
+          file.bytesize = change.size
+          file.file_created_at = change.file_created_at
+          file.file_modified_at = change.file_modified_at
           file.save!
         end
 
@@ -111,16 +111,16 @@ class ProcessMediaScanFilesJob < ApplicationJob
 
         MediaDirectory.apply_tracked_files_counts updates: files_counts_updates
 
-        scanned_files_rel.update_all processed: true
+        changes_rel.update_all processed: true
 
-        processed_files_count = scan.processed_files_count
-        if processed_files_count + scanned_files.length > scan.changed_files_count
-          raise "Unexpectedly processed #{processed_files_count + scanned_files.length} files when there are only #{scan.changed_files_count} files to process"
-        elsif processed_files_count + scanned_files.length == scan.changed_files_count
-          scan.processed_files_count += scanned_files.length
+        processed_changes_count = scan.processed_changes_count
+        if processed_changes_count + changes.length > scan.changed_files_count
+          raise "Unexpectedly processed #{processed_changes_count + changes.length} files when there are only #{scan.changed_files_count} files to process"
+        elsif processed_changes_count + changes.length == scan.changed_files_count
+          scan.processed_changes_count += changes.length
           scan.finish_processing!
         else
-          MediaScan.update_counters scan.id, processed_files_count: scanned_files.length
+          MediaScan.update_counters scan.id, processed_changes_count: changes.length
         end
       end
     end
