@@ -12,6 +12,7 @@ class ProcessMediaScanChangesJob < ApplicationJob
     enqueue_after_transaction self, scan.id, scan.source_id, first_id, last_id
   end
 
+  # TODO analysis: parallelize by locking directory updates and using first-level directories
   def self.lock_workers scan_id, source_id, first_id, last_id
     "media-#{source_id}"
   end

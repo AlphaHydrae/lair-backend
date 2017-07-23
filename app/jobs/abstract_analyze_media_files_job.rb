@@ -1,5 +1,6 @@
 require 'resque/plugins/workers/lock'
 
+# TODO analysis: parallelize by locking media url creation and using first-level directories
 class AbstractAnalyzeMediaFilesJob < ApplicationJob
   BATCH_SIZE = 100
 
