@@ -113,7 +113,7 @@ namespace :deploy do
       end
     end
 
-    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run) do
+    deploy_task migrate: %i(deploy:app:ensure_build deploy:db:run deploy:task:build) do
       docker_compose_run service: :task, command: 'db:migrate'
     end
 
@@ -135,6 +135,12 @@ namespace :deploy do
   namespace :cache do
     deploy_task run: %i(deploy:config) do
       docker_compose_up :cache
+    end
+  end
+
+  namespace :task do
+    deploy_task build: %i(deploy:app:ensure_build) do
+      docker_compose_build service: :task
     end
   end
 
@@ -372,10 +378,11 @@ def all_versions
   }
 end
 
-def docker_compose_build service:, build_args: {}
+def docker_compose_build service:, build_args: {}, no_cache: false
 
   args = []
   args << service.to_s
+  args << '--no-cache' if no_cache
 
   build_args.each do |key,value|
     args << '--build-arg' << "#{key}=#{value}"
