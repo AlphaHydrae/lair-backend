@@ -1,12 +1,14 @@
-class MediaFileCountsUpdater
+class MediaFileCountsTracker
   CHANGE_TYPES = %i(added deleted)
   COUNT_TYPES = %i(files_count nfo_files_count linked_files_count)
+  IMMEDIATE_COUNT_TYPES = %i(immediate_nfo_files_count)
+  ALL_COUNT_TYPES = COUNT_TYPES + IMMEDIATE_COUNT_TYPES
 
   def initialize
-    @count_deltas_by_directory = {}
+    reset_count_deltas
   end
 
-  def track_file_change file:, change:
+  def track_change file:, change:
     raise "File must be a #{MediaFile.name}, got #{file.inspect}" unless file.kind_of? MediaFile
     raise "File must have a parent directory" unless file.directory
 
@@ -19,10 +21,12 @@ class MediaFileCountsUpdater
     end
 
     update_count_delta file: file, type: :files_count, by: delta
-    update_count_delta file: file, type: :nfo_files_count, by: delta
+    update_count_delta file: file, type: :nfo_files_count, by: delta if file.nfo?
+    update_count_delta file: file, type: :immediate_nfo_files_count, by: delta if file.nfo?
+    update_count_delta file: file, type: :linked_files_count, by: delta if file.media_url_id && change == :deleted
   end
 
-  def track_file_linking linked:, file: nil, relation: nil
+  def track_linking linked:, file: nil, relation: nil
     raise "File must be a #{MediaFile.name}, got #{file.inspect}" unless file.nil? || file.kind_of?(MediaFile)
     raise "File must have a parent directory" unless file.nil? || file.directory
 
@@ -40,40 +44,42 @@ class MediaFileCountsUpdater
 
       new_updates_rel.to_a.each do |file|
         delta = linked ? file.link_or_unlinked_files_count : -file.link_or_unlinked_files_count
-        update_count_delta file: file, type: linked_files_count, by: delta
+        update_count_delta file: file, type: :linked_files_count, by: delta
       end
     end
   end
 
-  def apply
-    @count_deltas_by_directory.each do |directory,counts_updates|
-      directory.update_files_counts counts_updates
-      directory.update_immediate_files_counts counts_updates
+  def apply!
+    @count_deltas_by_directory.each do |directory,count_deltas|
+      update_files_counts directory: directory, count_deltas: count_deltas
+      update_immediate_files_counts directory: directory, count_deltas: count_deltas
     end
+
+    reset_count_deltas
   end
 
   private
 
   def update_files_counts directory:, count_deltas:
     statements = COUNT_TYPES.inject([]) do |memo,column|
-      memo << update_files_count_statement(column: column, by: counts[column]) if counts.key?(column) && counts[column] != 0
+      memo << update_files_count_statement(column: column, by: count_deltas[column]) if count_deltas.key?(column) && count_deltas[column] != 0
       memo
     end
 
-    with_parent_directories.update_all statements.join(', ') if statements.present?
+    directory.with_parent_directories.update_all statements.join(', ') if statements.present?
   end
 
-  def update_immediate_files_counts counts = {}
-    statements = %i(nfo_files_count).inject [] do |memo,column|
-      memo << update_files_count_statement(column: "immediate_#{column}", by: counts[column]) if counts.key?(column) && counts[column] != 0
+  def update_immediate_files_counts directory:, count_deltas:
+    statements = IMMEDIATE_COUNT_TYPES.inject([]) do |memo,column|
+      memo << update_files_count_statement(column: column, by: count_deltas[column]) if count_deltas.key?(column) && count_deltas[column] != 0
       memo
     end
 
-    MediaDirectory.where(id: id).update_all statements.join(', ') if statements.present?
+    MediaDirectory.where(id: directory.id).update_all statements.join(', ') if statements.present?
   end
 
   def update_count_delta file:, type:, by:
-    raise "Unsupported count type #{type}, must be one of #{COUNT_TYPES.collect(&:to_s).join(', ')}" unless COUNT_TYPES.include? type
+    raise "Unsupported count type #{type}, must be one of #{ALL_COUNT_TYPES.collect(&:to_s).join(', ')}" unless ALL_COUNT_TYPES.include? type
     @count_deltas_by_directory[file.directory][type] += by
   end
 
@@ -81,5 +87,11 @@ class MediaFileCountsUpdater
     raise "Must not update #{column} by 0" if by == 0
     operator = by >= 0 ? '+' : '-'
     "#{column} = COALESCE(#{column}, 0) #{operator} #{by.abs}"
+  end
+
+  def reset_count_deltas
+    @count_deltas_by_directory = Hash.new do |hash,key|
+      hash[key] = ALL_COUNT_TYPES.inject({}){ |memo,type| memo[type] = 0; memo }
+    end
   end
 end

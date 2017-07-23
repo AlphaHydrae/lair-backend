@@ -1,4 +1,5 @@
 # TODO analysis: add ignores (not as property)
+# TODO analysis: remove media source files_count and get it from root directory
 class MediaSource < ActiveRecord::Base
   include ResourceWithIdentifier
   include ResourceWithProperties

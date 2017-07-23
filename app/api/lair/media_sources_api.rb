@@ -91,6 +91,19 @@ module Lair
           nil
         end
 
+        namespace :cleanup do
+          post do
+            authorize! record, :cleanup
+
+            MediaSource.transaction do
+              event = ::Event.new(event_type: 'media:cleanup:source', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
+              FixMediaFileCountsJob.enqueue source: record, event: event
+            end
+
+            status 202
+          end
+        end
+
         namespace :scanPaths do
           get do
             authorize! record, :show

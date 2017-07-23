@@ -5,7 +5,7 @@ class UpdateMediaOwnershipsJob < ApplicationJob
 
   @queue = :low
 
-  def self.enqueue media_url:, user: nil, event: nil
+  def self.enqueue media_url:, user: nil, event: Rails.application.current_event
     log_queueing "media URL #{media_url.url} and user #{user.try(:api_id) || 'nil'}"
 
     if user.present?

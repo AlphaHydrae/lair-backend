@@ -7,6 +7,10 @@ class MediaAbstractFilePolicy < ApplicationPolicy
     admin? || user == record.source.user
   end
 
+  def analysis?
+    admin? || media_manager? || user == record.source.user
+  end
+
   class Scope < Scope
     def resolve
       new_scope = scope.joins source: :user

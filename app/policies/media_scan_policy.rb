@@ -15,6 +15,10 @@ class MediaScanPolicy < ApplicationPolicy
     authenticated?
   end
 
+  def analysis?
+    admin? || media_manager? || user == record.source.user
+  end
+
   class Scope < Scope
     def resolve
       if user.admin?

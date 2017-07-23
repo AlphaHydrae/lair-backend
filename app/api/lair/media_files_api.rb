@@ -152,13 +152,15 @@ module Lair
 
         namespace :analysis do
           post do
+            authorize! record, :analysis
+
             MediaFile.transaction do
               record.update_column :analyzed, false
               event = ::Event.new(event_type: 'media:reanalysis:file', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
               AnalyzeMediaFileJob.enqueue record, event
             end
 
-            status 204
+            status 202
           end
         end
       end

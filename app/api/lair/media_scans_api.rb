@@ -106,6 +106,8 @@ module Lair
 
         namespace :analysis do
           post do
+            authorize! record, :analysis
+
             MediaScan.transaction do
               if %w(processed analyzed).include? record.state
                 record.restart_analysis!
@@ -118,7 +120,7 @@ module Lair
               end
             end
 
-            status 204
+            status 202
           end
         end
 
