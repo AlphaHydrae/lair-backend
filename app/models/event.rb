@@ -24,8 +24,7 @@ class Event < ActiveRecord::Base
 
   def initialize *args
     super *args
-    # TODO analysis: make sure this works
-    @cause ||= Rails.application.current_event
+    self.cause ||= Rails.application.current_event if Rails.application.current_event
   end
 
   def subject
