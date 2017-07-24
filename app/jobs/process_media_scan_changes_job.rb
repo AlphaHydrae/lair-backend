@@ -118,7 +118,7 @@ class ProcessMediaScanChangesJob < ApplicationJob
         file.save!
       end
 
-      MediaDirectory.where(source_id: @scan.source_id, path: directories_by_path.keys, deleted: true).update_all deleted: false, files_count: 0, nfo_files_count: 0, linked_files_count: 0, immediate_nfo_files_count: 0
+      MediaDirectory.where(source_id: @scan.source_id, path: directories_by_path.keys, deleted: true).update_all deleted: false, files_count: 0, nfo_files_count: 0, linked_files_count: 0, immediate_nfo_files_count: 0, unanalyzed_files_count: 0
 
       paths_to_check_for_deletion -= directories_by_path.keys
       delete_directories paths: paths_to_check_for_deletion if paths_to_check_for_deletion.present?

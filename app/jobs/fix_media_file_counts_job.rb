@@ -47,7 +47,7 @@ class FixMediaFileCountsJob < ApplicationJob
     def perform
       Rails.logger.debug "Fixing file counts for media source #{@source.name} (#{@source.api_id})"
 
-      source_directories_rel = MediaDirectory.where source: @source
+      source_directories_rel = MediaDirectory.where source: @source, deleted: false
       max_depth = source_directories_rel.maximum :depth
 
       while max_depth >= 0

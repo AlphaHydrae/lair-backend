@@ -142,6 +142,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
       end
     end
 
+    # TODO analysis: automatically mark all non-NFO deleted media files as analyzed
     def analyze_media_files media_files
       affected_media_urls = Set.new
 
