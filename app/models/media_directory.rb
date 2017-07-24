@@ -1,5 +1,3 @@
-# TODO analysis: add analyzed_files_count
-# TODO analysis: add indices on file counts & extension
 class MediaDirectory < MediaAbstractFile
   include SqlHelper
 
@@ -10,69 +8,6 @@ class MediaDirectory < MediaAbstractFile
 
   def media_search
     searches.first
-  end
-
-  def update_files_counts counts = {}
-    statements = %i(files_count nfo_files_count linked_files_count).inject [] do |memo,column|
-      memo << update_files_count_statement(column: column, by: counts[column]) if counts.key?(column) && counts[column] != 0
-      memo
-    end
-
-    with_parent_directories.update_all statements.join(', ') if statements.present?
-  end
-
-  def update_immediate_files_counts counts = {}
-    statements = %i(nfo_files_count).inject [] do |memo,column|
-      memo << update_files_count_statement(column: "immediate_#{column}", by: counts[column]) if counts.key?(column) && counts[column] != 0
-      memo
-    end
-
-    MediaDirectory.where(id: id).update_all statements.join(', ') if statements.present?
-  end
-
-  # TODO analysis: create file counts tracker utility class
-  def self.track_linked_files_counts updates:, linked:, changed_relation: nil, changed_file: nil
-
-    if changed_file
-      initialize_tracked_files_counts updates: updates, file: changed_file
-      change = linked ? 1 : -1
-      updates[changed_file.directory][:linked_files_count] += change
-    end
-
-    if changed_relation
-      new_updates_rel = changed_relation
-        .select('media_files.directory_id, count(media_files.id) as media_files_count')
-        .where("media_files.media_url_id #{linked ? 'IS NULL' : 'IS NOT NULL'}")
-        .group('media_files.directory_id')
-        .includes(:directory)
-
-      new_updates_rel.to_a.each do |file|
-        initialize_tracked_files_counts updates: updates, file: file
-        change = linked ? file.media_files_count : -file.media_files_count
-        updates[file.directory][:linked_files_count] += change
-      end
-    end
-  end
-
-  def self.track_files_counts updates:, file:, change:
-    initialize_tracked_files_counts updates: updates, file: file
-
-    if change == :created
-      updates[file.directory][:files_count] += 1
-      updates[file.directory][:nfo_files_count] += 1 if file.nfo?
-    elsif change == :deleted
-      updates[file.directory][:files_count] -= 1
-      updates[file.directory][:nfo_files_count] -= 1 if file.nfo?
-    else
-      raise "Unsupported files count change type #{change.inspect}"
-    end
-  end
-
-  def self.apply_tracked_files_counts updates:
-    updates.each do |directory,counts_updates|
-      directory.update_files_counts counts_updates
-      directory.update_immediate_files_counts counts_updates
-    end
   end
 
   def with_parent_directories &block
@@ -105,20 +40,5 @@ class MediaDirectory < MediaAbstractFile
     SQL
 
     strip_sql sql
-  end
-
-  private
-
-  def self.initialize_tracked_files_counts updates:, file:
-    updates[file.directory] ||= {
-      files_count: 0,
-      nfo_files_count: 0,
-      linked_files_count: 0
-    }
-  end
-
-  def update_files_count_statement column:, by: 0
-    operator = by >= 0 ? '+' : '-'
-    "#{column} = COALESCE(#{column}, 0) #{operator} #{by.abs}"
   end
 end
