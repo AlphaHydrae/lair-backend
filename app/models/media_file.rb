@@ -14,6 +14,7 @@ class MediaFile < MediaAbstractFile
   strip_attributes
   validates :bytesize, presence: true, numericality: { only_integer: true, allow_blank: true }
   validates :file_created_at, presence: true
+  validates :path, format: { with: /\A(?:\/[^\/]+)+\z/ }
   validates :scanned_at, presence: true
 
   def url

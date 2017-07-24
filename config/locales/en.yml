@@ -38,10 +38,14 @@ en:
           attributes:
             depth:
               invalid_directory_depth: "does not match the depth of the parent directory"
+            path:
+              invalid_path_depth: "does not match the depth"
         media_file:
           attributes:
             depth:
               invalid_directory_depth: "does not match the depth of the parent directory"
+            path:
+              invalid_path_depth: "does not match the depth"
         media_scan:
           attributes:
             added_files_count:

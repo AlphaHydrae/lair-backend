@@ -9,13 +9,10 @@ class MediaAbstractFile < ActiveRecord::Base
   belongs_to :source, class_name: 'MediaSource', counter_cache: :files_count
 
   strip_attributes
-  # TODO: validate max depth
-  # TODO analysis: validate depth consistent with path segments
   validates :source, presence: true
-  # TODO analysis: validate path differently for files/directories (only root directory can have path "/")
-  validates :path, presence: true, length: { maximum: 1000 }, uniqueness: { scope: :source_id }, format: { with: /\A(\/|(?:\/[^\/]+)+)\z/ }
-  validates :depth, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
-  validate :path_must_be_absolute
+  validates :path, presence: true, length: { maximum: 1000 }, uniqueness: { scope: :source_id }
+  validates :depth, presence: true, numericality: { only_integer: true, greater_than_or_equal_to: 0, less_than_or_equal_to: 10 }
+  validate :path_and_depth_must_be_consistent
   validate :parent_directory_must_not_be_self
   validate :parent_directory_must_not_be_a_parent
   validate :depth_must_fit_parent
@@ -58,8 +55,9 @@ class MediaAbstractFile < ActiveRecord::Base
 
   private
 
-  def path_must_be_absolute
-    errors.add :path, :must_be_absolute unless path.present? && path.match(/^\//)
+  def path_and_depth_must_be_consistent
+    return if path.blank? || depth.nil?
+    errors.add :path, :invalid_path_depth if path.sub(/^\//, '').split(/\//).length != depth
   end
 
   def parent_directory_must_not_be_self

@@ -6,6 +6,8 @@ class MediaDirectory < MediaAbstractFile
   has_many :files, class_name: 'MediaAbstractFile', foreign_key: :directory_id
   has_and_belongs_to_many :searches, class_name: 'MediaSearch', join_table: :media_directories_searches, foreign_key: :media_directory_id
 
+  validates :path, format: { with: /\A(\/|(?:\/[^\/]+)+)\z/ }
+
   def media_search
     searches.first
   end
