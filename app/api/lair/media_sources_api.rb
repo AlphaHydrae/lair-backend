@@ -91,6 +91,19 @@ module Lair
           nil
         end
 
+        namespace :analysis do
+          post do
+            authorize! record, :analysis
+
+            MediaSource.transaction do
+              record.files.where(deleted: false).update_all analyzed: false
+              event = ::Event.new(event_type: 'media:reanalysis:source', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
+              AnalyzeMediaSourceJob.enqueue record, event
+              status 202
+            end
+          end
+        end
+
         namespace :cleanup do
           post do
             authorize! record, :cleanup
@@ -98,9 +111,8 @@ module Lair
             MediaSource.transaction do
               event = ::Event.new(event_type: 'media:cleanup:source', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
               FixMediaFileCountsJob.enqueue source: record, event: event
+              status 202
             end
-
-            status 202
           end
         end
 

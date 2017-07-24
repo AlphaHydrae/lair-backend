@@ -158,9 +158,8 @@ module Lair
               record.update_column :analyzed, false
               event = ::Event.new(event_type: 'media:reanalysis:file', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
               AnalyzeMediaFileJob.enqueue record, event
+              status 202
             end
-
-            status 202
           end
         end
       end

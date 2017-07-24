@@ -15,6 +15,10 @@ class MediaSourcePolicy < ApplicationPolicy
     admin? || user == record.user
   end
 
+  def analysis?
+    admin? || media_manager? || user == record.user
+  end
+
   def cleanup?
     admin? || media_manager? || user == record.user
   end

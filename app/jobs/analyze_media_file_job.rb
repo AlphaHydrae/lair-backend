@@ -13,7 +13,6 @@ class AnalyzeMediaFileJob < AbstractAnalyzeMediaFilesJob
   end
 
   def self.perform media_file_id, event_id
-    # TODO analysis: create media:analysis:file event (in controller)
     media_file = MediaFile.includes(source: :user).find media_file_id
     event = ::Event.find event_id
     relation = MediaFile.where id: media_file_id, analyzed: false
