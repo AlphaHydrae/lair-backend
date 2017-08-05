@@ -4,13 +4,16 @@ development:
     rate_limit_value: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_VALUE'].to_i %>
     rate_limit_duration: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_DURATION'].to_i %>
   anidb:
-    enabled: <%= ENV['LAIR_ANIDB_SCRAPER_ENABLED'].to_s.match(/^true$/i) %>
+    enabled: <%= ENV['LAIR_ANIDB_SCRAPER_ENABLED'].to_s.match(/^(?:1|y|yes|t|true)$/i) %>
     client_id: <%= ENV['LAIR_ANIDB_CLIENT_ID'] %>
     client_version: <%= ENV['LAIR_ANIDB_CLIENT_VERSION'].to_i %>
   scraping:
     interval: <%= ENV['LAIR_SCRAPING_INTERVAL'].to_i %>
   imageUpload:
-    enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^true$/i) %>
+    enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^(?:1|y|yes|t|true)$/i) %>
+  tmdb:
+    enabled: <%= ENV['LAIR_TMDB_SCRAPER_ENABLED'].to_s.match(/^(?:1|y|yes|t|true)$/i) %>
+    api_key: <%= ENV['LAIR_TMDB_API_KEY'] %>
 test:
   googleCustomSearch:
     search_engine_id: foo
@@ -24,16 +27,22 @@ test:
     interval: 5
   imageUpload:
     enabled: false
+  tmdb:
+    enabled: false
+    api_key: foo
 production:
   googleCustomSearch:
     search_engine_id: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_ENGINE_ID'] %>
     rate_limit_value: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_VALUE'].to_i %>
     rate_limit_duration: <%= ENV['LAIR_GOOGLE_CUSTOM_SEARCH_RATE_LIMIT_DURATION'].to_i %>
   anidb:
-    enabled: <%= ENV['LAIR_ANIDB_SCRAPER_ENABLED'].to_s.match(/^true$/i) %>
+    enabled: <%= ENV['LAIR_ANIDB_SCRAPER_ENABLED'].to_s.match(/^(?:1|y|yes|t|true)$/i) %>
     client_id: <%= ENV['LAIR_ANIDB_CLIENT_ID'] %>
     client_version: <%= ENV['LAIR_ANIDB_CLIENT_VERSION'].to_i %>
   scraping:
     interval: <%= ENV['LAIR_SCRAPING_INTERVAL'].to_i %>
   imageUpload:
-    enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^true$/i) %>
+    enabled: <%= !!ENV['LAIR_IMAGE_UPLOAD_ENABLED'].to_s.match(/^(?:1|y|yes|t|true)$/i) %>
+  tmdb:
+    enabled: <%= ENV['LAIR_TMDB_SCRAPER_ENABLED'].to_s.match(/^(?:1|y|yes|t|true)$/i) %>
+    api_key: <%= ENV['LAIR_TMDB_API_KEY'] %>

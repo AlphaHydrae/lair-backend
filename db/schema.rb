@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170723084620) do
+ActiveRecord::Schema.define(version: 20170805125509) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -272,10 +272,14 @@ ActiveRecord::Schema.define(version: 20170723084620) do
     t.string   "nfo_error",                 limit: 12
     t.boolean  "analyzed",                             default: false, null: false
     t.integer  "immediate_nfo_files_count",            default: 0,     null: false
+    t.integer  "unanalyzed_files_count",               default: 0,     null: false
   end
 
   add_index "media_files", ["api_id"], name: "index_media_files_on_api_id", unique: true, using: :btree
+  add_index "media_files", ["extension"], name: "index_media_files_on_extension", using: :btree
   add_index "media_files", ["path", "source_id"], name: "index_media_files_on_path_and_source_id", unique: true, using: :btree
+  add_index "media_files", ["path"], name: "index_media_files_on_path", using: :btree
+  add_index "media_files", ["type"], name: "index_media_files_on_type", using: :btree
 
   create_table "media_files_ownerships", id: false, force: :cascade do |t|
     t.integer "media_file_id", null: false
@@ -367,10 +371,10 @@ ActiveRecord::Schema.define(version: 20170723084620) do
     t.datetime "expanding_at"
     t.datetime "retrying_scraping_at"
     t.datetime "retrying_expansion_at"
+    t.string   "scraper",               limit: 20,             null: false
   end
 
   add_index "media_scraps", ["api_id"], name: "index_media_scraps_on_api_id", unique: true, using: :btree
-  add_index "media_scraps", ["media_url_id"], name: "index_media_scraps_on_media_url_id", unique: true, using: :btree
 
   create_table "media_searches", force: :cascade do |t|
     t.string   "api_id",        limit: 12, null: false

@@ -36,7 +36,7 @@ module Lair
       get do
         authorize! MediaUrl, :index
 
-        rel = policy_scope MediaUrl.order('media_urls.provider ASC, media_urls.category ASC, media_urls.provider_id ASC')
+        rel = policy_scope MediaUrl.order('media_urls.created_at DESC, media_urls.provider ASC, media_urls.category ASC, media_urls.provider_id ASC')
 
         rel = paginated rel do |rel|
 

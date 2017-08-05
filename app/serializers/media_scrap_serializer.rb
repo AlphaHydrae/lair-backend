@@ -2,6 +2,7 @@ class MediaScrapSerializer < ApplicationSerializer
   def build json, options = {}
     json.id record.api_id
     json.state record.state.to_s.camelize(:lower)
+    json.scraper record.scraper.to_s
 
     json.mediaUrlId record.media_url.api_id
     json.mediaUrl serialize(record.media_url, (options[:media_url_options] || {}).merge(options.slice(:event)).merge(include_scrap: false)) if options.fetch(:include_media_url, options[:event])

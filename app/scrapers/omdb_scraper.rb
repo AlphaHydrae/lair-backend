@@ -1,5 +1,7 @@
-# TODO analysis: switch to http://www.theimdbapi.org/
-class ImdbScraper < ApplicationScraper
+class OmdbScraper < ApplicationScraper
+  def self.scraper
+    :omdb
+  end
 
   def self.provider
     :imdb
@@ -35,6 +37,10 @@ class ImdbScraper < ApplicationScraper
 
       memo << result
     end
+  end
+
+  def self.scraps? *args
+    false
   end
 
   def self.scrap scrap

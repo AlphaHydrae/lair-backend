@@ -1,6 +1,14 @@
 class ApplicationScraper
+  def self.scrapers
+    [ AnidbScraper, TmdbScraper, OmdbScraper ]
+  end
+
+  def self.providers
+    [ provider ]
+  end
+
   def self.scraps? media_url
-    media_url.provider.to_s == provider.to_s
+    providers.collect(&:to_s).include? media_url.provider.to_s
   end
 
   def self.find_existing_work media_url

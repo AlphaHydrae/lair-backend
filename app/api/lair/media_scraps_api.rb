@@ -38,7 +38,7 @@ module Lair
             scrap.retry_expansion!
           else
             error = ValidationError.new
-            error.add "Scraping #{scrap.api_id} can only be retried from the scrapingFailed or expansionFailed states"
+            error.add "Scraping #{scrap.api_id} can only be retried from the scrapingFailed, expansionFailed or expanded states"
             error.raise_if_any
           end
         end
@@ -53,7 +53,7 @@ module Lair
 
           rel.find_each do |scrap|
             retry_scraping scrap
-            status 204
+            status 202
             nil
           end
         end

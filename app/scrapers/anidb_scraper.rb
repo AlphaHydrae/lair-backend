@@ -2,8 +2,8 @@ require 'zlib'
 require 'stringio'
 
 class AnidbScraper < ApplicationScraper
-  def self.scraps? *args
-    config[:enabled] && super(*args)
+  def self.scraper
+    :anidb
   end
 
   def self.provider
@@ -40,6 +40,10 @@ class AnidbScraper < ApplicationScraper
     results.uniq!{ |result| result[:url] }
 
     results.length > 250 ? results[0, 250] : results
+  end
+
+  def self.scraps? *args
+    config[:enabled] && super(*args)
   end
 
   def self.scrap scrap
@@ -510,6 +514,6 @@ class AnidbScraper < ApplicationScraper
   end
 
   def self.config
-    Rails.application.service_config(:anidb).with_indifferent_access
+    Rails.application.service_config :anidb
   end
 end

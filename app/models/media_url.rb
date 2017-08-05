@@ -53,16 +53,8 @@ class MediaUrl < ActiveRecord::Base
   end
 
   def self.search provider:, query:
-
-    scraper = case provider
-    when 'anidb'
-      AnidbScraper
-    when 'imdb'
-      ImdbScraper
-    else
-      raise "Unknown provider #{provider}"
-    end
-
+    scraper = ApplicationScraper.scrapers.find{ |scraper| scraper.providers.collect(&:to_s).include? provider.to_s }
+    raise "No scraper found for provider #{provider.inspect}"
     scraper.search query: query
   end
 
@@ -72,20 +64,17 @@ class MediaUrl < ActiveRecord::Base
     scraper = find_scraper
     return unless scraper
 
-    # TODO analysis: fix movie scraping
-    return if scraper.provider.to_s.downcase == 'imdb'
-
     self.scrap = MediaScrap.new(media_url: self, creator: creator, provider: scraper.provider.to_s).tap &:save!
   end
 
   def find_scraper
-    [ AnidbScraper, ImdbScraper ].find do |s|
+    ApplicationScraper.scrapers.find do |s|
       s.respond_to?(:scraps?) && s.scraps?(self)
     end
   end
 
   def url
-    case provider.to_s
+    case provider.to_s.strip.downcase
     when 'imdb'
       IMDB_URL_PATTERN % { provider_id: provider_id }
     when 'anidb'

@@ -22,10 +22,8 @@ module Lair
     end
 
     def service_config service
-      # TODO: cache
-      config = config_for :services
-      raise "Missing configuration for service #{service}" unless config[service.to_s]
-      config[service.to_s].with_indifferent_access
+      raise "Missing configuration for service #{service}" unless service_configs[service.to_sym]
+      service_configs[service.to_sym]
     end
 
     def current_event
@@ -108,6 +106,17 @@ module Lair
     %w(api jobs scrapers search serializers).each do |dir|
       config.paths.add File.join('app', dir), glob: File.join('**', '*.rb')
       config.autoload_paths += Dir[Rails.root.join('app', dir, '*')]
+    end
+
+    private
+
+    def service_configs
+      return @service_configs if @service_configs
+
+      @service_configs = config_for(:services).inject({}) do |memo,(service,config)|
+        memo[service.to_sym] = config.with_indifferent_access
+        memo
+      end
     end
   end
 end

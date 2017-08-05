@@ -32,6 +32,7 @@ class MediaScrap < ActiveRecord::Base
   has_many :events, as: :trackable
   has_many :job_errors, as: :cause, dependent: :destroy
 
+  validates :scraper, presence: true, inclusion: { in: ApplicationScraper.scrapers.collect(&:scraper), allow_blank: true }
   validates :provider, presence: true, inclusion: { in: MediaUrl::PROVIDERS.collect(&:to_s), allow_blank: true }
   validates :contents, presence: { if: ->(scrap){ %i(scraped expanding expansion_failed expanded).include? scrap.state.to_s } }
   validates :content_type, presence: { if: :contents }, absence: { unless: :contents }, inclusion: { in: CONTENT_TYPES.collect(&:to_s), allow_blank: true }
