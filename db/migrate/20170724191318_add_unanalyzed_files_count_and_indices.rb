@@ -1,4 +1,4 @@
-class AddAnalyzedFilesCountAndIndices < ActiveRecord::Migration
+class AddUnanalyzedFilesCountAndIndices < ActiveRecord::Migration
   BATCH_SIZE = 250
 
   class MediaAbstractFile < ActiveRecord::Base
