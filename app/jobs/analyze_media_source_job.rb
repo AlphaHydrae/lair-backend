@@ -16,6 +16,14 @@ class AnalyzeMediaSourceJob < AbstractAnalyzeMediaFilesJob
     media_source = MediaSource.includes(:user).find media_source_id
     event = ::Event.find event_id
     files_to_analyze_rel = MediaFile.where source_id: media_source_id, analyzed: false
-    perform_analysis relation: files_to_analyze_rel, job_args: [ media_source_id, event_id ], event: event, analysis_event_type: 'media:analysis:source', analysis_user: media_source.user, cause: media_source
+
+    finished = false
+    perform_analysis relation: files_to_analyze_rel, job_args: [ media_source_id, event_id ], event: event, analysis_event_type: 'media:analysis:source', analysis_user: media_source.user, cause: media_source do
+      unanalyzed_deleted_files = MediaFile.where(source: media_source).where deleted: true, analyzed: false
+      unanalyzed_deleted_files.update_all analyzed: true
+      finished = true
+    end
+
+    FixMediaFileCountsJob.enqueue media_source, event if finished
   end
 end

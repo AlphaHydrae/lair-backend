@@ -233,6 +233,8 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
       end
 
       nfo_file.analyzed = true
+      @counts_tracker.track_analysis file: nfo_file, analyzed: nfo_file.analyzed if nfo_file.analyzed_changed?
+
       nfo_file.save!
 
       if nfo_file.media_url.present? != nfo_file_was_linked
@@ -242,6 +244,7 @@ class AbstractAnalyzeMediaFilesJob < ApplicationJob
 
     def link_or_unlink_files relation:, media_url: nil
       @counts_tracker.track_linking relation: relation, linked: media_url.present?
+      @counts_tracker.track_analysis relation: relation, analyzed: true
       relation.update_all analyzed: true, media_url_id: media_url.try(:id)
     end
   end

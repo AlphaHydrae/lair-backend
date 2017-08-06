@@ -30,7 +30,7 @@ class FixMediaFileCountsJob < ApplicationJob
   private
 
   class FixMediaFileCounts
-    COUNT_TYPES = %i(files_count nfo_files_count linked_files_count)
+    COUNT_TYPES = %i(files_count nfo_files_count linked_files_count unanalyzed_files_count)
     IMMEDIATE_COUNT_TYPES = %i(nfo_files_count)
 
     def initialize source:
@@ -39,7 +39,8 @@ class FixMediaFileCountsJob < ApplicationJob
         hash[key] = {
           files_count: 0,
           nfo_files_count: 0,
-          linked_files_count: 0
+          linked_files_count: 0,
+          unanalyzed_files_count: 0
         }
       end
     end
@@ -53,14 +54,19 @@ class FixMediaFileCountsJob < ApplicationJob
       while max_depth >= 0
         Rails.logger.debug "Fixing file counts for directories at depth #{max_depth}"
 
-        source_directories_rel.select(:id).where(depth: max_depth).find_in_batches batch_size: BATCH_SIZE do |directories|
-          directories_with_counts(directories: directories).each do |directory|
+        columns = %i(id type depth directory_id path) + COUNT_TYPES + IMMEDIATE_COUNT_TYPES.collect{ |t| "immediate_#{t}" }
+        source_directories_rel.select(columns).where(depth: max_depth).find_in_batches batch_size: BATCH_SIZE do |directories|
+          all_directories_with_counts = directories_with_counts directories: directories
+          directories.each do |directory|
             messages = []
             updates = {}
+            directory_with_counts = all_directories_with_counts.find{ |d| d.id == directory.id }
 
             COUNT_TYPES.each do |type|
               actual = directory.send type
-              expected = directory.send("immediate_#{type}_verification") + pull_children_counts!(directory: directory, type: type)
+              immediate = directory_with_counts ? directory_with_counts.send("immediate_#{type}_verification") : 0
+              children = pull_children_counts!(directory: directory, type: type)
+              expected = immediate + children
               if actual != expected
                 messages << "#{type} mismatch (#{actual} != #{expected})"
                 updates[type] = expected
@@ -69,7 +75,7 @@ class FixMediaFileCountsJob < ApplicationJob
 
             IMMEDIATE_COUNT_TYPES.each do |type|
               actual = directory.send "immediate_#{type}"
-              expected = directory.send "immediate_#{type}_verification"
+              expected = directory_with_counts ? directory_with_counts.send("immediate_#{type}_verification") : 0
               if actual != expected
                 messages << "immediate_#{type} mismatch (#{actual} != #{expected})"
                 updates["immediate_#{type}"] = expected
@@ -87,6 +93,8 @@ class FixMediaFileCountsJob < ApplicationJob
 
         max_depth -= 1
       end
+
+      MediaDirectory.delete_empty_directories relation: MediaDirectory.where(source: @source)
     end
 
     private
@@ -113,12 +121,13 @@ class FixMediaFileCountsJob < ApplicationJob
     def directories_with_counts directories:
       counts_sql = <<-SQL
         media_files.*,
-        COUNT(files_media_files.id) AS immediate_files_count_verification,
-        SUM(CASE WHEN files_media_files.media_url_id IS NOT NULL THEN 1 ELSE 0 END) AS immediate_linked_files_count_verification,
-        SUM(CASE WHEN files_media_files.extension = 'nfo' THEN 1 ELSE 0 END) AS immediate_nfo_files_count_verification
+        SUM(CASE WHEN files_media_files.deleted = false THEN 1 ELSE 0 END) AS immediate_files_count_verification,
+        SUM(CASE WHEN files_media_files.media_url_id IS NOT NULL AND files_media_files.deleted = false THEN 1 ELSE 0 END) AS immediate_linked_files_count_verification,
+        SUM(CASE WHEN files_media_files.extension = 'nfo' AND files_media_files.deleted = false THEN 1 ELSE 0 END) AS immediate_nfo_files_count_verification,
+        SUM(CASE WHEN files_media_files.analyzed = false THEN 1 ELSE 0 END) AS immediate_unanalyzed_files_count_verification
       SQL
 
-      MediaDirectory.select(counts_sql).joins(:files).where('media_files.id IN (?) AND files_media_files.type = ? AND files_media_files.deleted = ?', directories.collect(&:id), MediaFile.name, false).group('media_files.id').to_a
+      MediaDirectory.select(counts_sql).joins(:files).where('media_files.id IN (?) AND files_media_files.type = ?', directories.collect(&:id), MediaFile.name).group('media_files.id').to_a
     end
   end
 end

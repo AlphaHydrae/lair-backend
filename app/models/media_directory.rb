@@ -6,6 +6,26 @@ class MediaDirectory < MediaAbstractFile
 
   validates :path, format: { with: /\A(\/|(?:\/[^\/]+)+)\z/ }
 
+  def self.delete_empty_directories relation:
+    directory_ids_to_check_for_deletion = Set.new
+
+    empty_directories = relation
+      .joins('LEFT OUTER JOIN media_files AS child_files ON media_files.id = child_files.directory_id')
+      .where('media_files.deleted = ?', false)
+      .group('media_files.id')
+      .having('SUM(CASE WHEN child_files.deleted = false THEN 1 ELSE 0 END) <= 0')
+      .includes(:directory, :source)
+      .to_a
+
+    empty_directories.each do |directory|
+      directory_ids_to_check_for_deletion << directory.directory_id unless directory.depth <= 0
+      directory.deleted = true
+      directory.save!
+    end
+
+    delete_empty_directories relation: MediaDirectory.where(id: directory_ids_to_check_for_deletion.to_a) if directory_ids_to_check_for_deletion.present?
+  end
+
   def media_search
     searches.first
   end

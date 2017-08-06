@@ -1,6 +1,6 @@
 class MediaFileCountsTracker
-  CHANGE_TYPES = %i(added deleted)
-  COUNT_TYPES = %i(files_count nfo_files_count linked_files_count)
+  CHANGE_TYPES = %i(added modified deleted)
+  COUNT_TYPES = %i(files_count nfo_files_count linked_files_count unanalyzed_files_count)
   IMMEDIATE_COUNT_TYPES = %i(immediate_nfo_files_count)
   ALL_COUNT_TYPES = COUNT_TYPES + IMMEDIATE_COUNT_TYPES
 
@@ -12,7 +12,7 @@ class MediaFileCountsTracker
     raise "File must be a #{MediaFile.name}, got #{file.inspect}" unless file.kind_of? MediaFile
     raise "File must have a parent directory" unless file.directory
 
-    delta = if change == :added
+    delta = if %i(added modified).include? change
       1
     elsif change == :deleted
       -1
@@ -20,10 +20,23 @@ class MediaFileCountsTracker
       raise "Unsupported file count change type #{change.inspect} (must be one of #{CHANGE_TYPES.collect(&:to_s).join(', ')})"
     end
 
-    update_count_delta file: file, type: :files_count, by: delta
-    update_count_delta file: file, type: :nfo_files_count, by: delta if file.nfo?
-    update_count_delta file: file, type: :immediate_nfo_files_count, by: delta if file.nfo?
-    update_count_delta file: file, type: :linked_files_count, by: delta if file.media_url_id && change == :deleted
+    if change != :modified
+      update_count_delta file: file, type: :files_count, by: delta
+      update_count_delta file: file, type: :nfo_files_count, by: delta if file.nfo?
+      update_count_delta file: file, type: :immediate_nfo_files_count, by: delta if file.nfo?
+
+      if change == :added
+        update_count_delta file: file, type: :unanalyzed_files_count, by: delta
+      elsif change == :deleted
+        update_count_delta file: file, type: :linked_files_count, by: delta if file.media_url_id
+
+        unanalyzed_delta = file.analyzed ? -1 : 1
+        update_count_delta file: file, type: :unanalyzed_files_count, by: unanalyzed_delta if file.analyzed_changed?
+      end
+    else
+      unanalyzed_delta = file.analyzed ? -1 : 1
+      update_count_delta file: file, type: :unanalyzed_files_count, by: unanalyzed_delta if file.analyzed_changed?
+    end
   end
 
   def track_linking linked:, file: nil, relation: nil
@@ -45,6 +58,29 @@ class MediaFileCountsTracker
       new_updates_rel.to_a.each do |file|
         delta = linked ? file.link_or_unlinked_files_count : -file.link_or_unlinked_files_count
         update_count_delta file: file, type: :linked_files_count, by: delta
+      end
+    end
+  end
+
+  def track_analysis analyzed:, file: nil, relation: nil
+    raise "File must be a #{MediaFile.name}, got #{file.inspect}" unless file.nil? || file.kind_of?(MediaFile)
+    raise "File must have a parent directory" unless file.nil? || file.directory
+
+    if file
+      delta = analyzed ? -1 : 1
+      update_count_delta file: file, type: :unanalyzed_files_count, by: delta
+    end
+
+    if relation
+      new_updates_rel = relation
+        .select('media_files.directory_id, count(media_files.id) as analyzed_or_unanalyzed_files_count')
+        .where('media_files.analyzed', analyzed ? false : true)
+        .group('media_files.directory_id')
+        .includes(:directory)
+
+      new_updates_rel.to_a.each do |file|
+        delta = analyzed ? -file.analyzed_or_unanalyzed_files_count : file.analyzed_or_unanalyzed_files_count
+        update_count_delta file: file, type: :unanalyzed_files_count, by: delta
       end
     end
   end

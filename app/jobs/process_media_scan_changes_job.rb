@@ -43,22 +43,28 @@ class ProcessMediaScanChangesJob < ApplicationJob
       changes = @changes_rel.to_a
 
       directories_by_path = {}
-      paths_to_check_for_deletion = Set.new
+      directory_ids_to_check_for_deletion = Set.new
+
+      deletions = changes.select &:deleted?
+      deleted_files = MediaFile.where(source_id: @scan.source_id, path: deletions.collect(&:path)).includes(:directory).to_a
 
       changes.each do |change|
 
         if change.deleted?
-          if file = MediaFile.where(source_id: @scan.source_id, path: change.path).includes(:directory).first!
-            paths_to_check_for_deletion << File.dirname(change.path)
+          file = deleted_files.find{ |f| f.path == change.path }
+          raise "Could not find deleted file #{change.path}" unless file
 
-            @counts_tracker.track_change file: file, change: :deleted
+          directory_ids_to_check_for_deletion << file.directory_id
 
-            file.deleted = true
-            file.analyzed = !file.nfo?
-            file.last_scan = @scan
-            file.scanned_at = scanned_at
-            file.save!
-          end
+          file.deleted = true
+          file.analyzed = !file.nfo?
+          file.last_scan = @scan
+          file.scanned_at = scanned_at
+
+          # Must be done before saving the file to detect analyzed changes
+          @counts_tracker.track_change file: file, change: :deleted
+
+          file.save!
 
           next
         end
@@ -94,10 +100,13 @@ class ProcessMediaScanChangesJob < ApplicationJob
           @counts_tracker.track_change file: file, change: :added
         elsif file.deleted?
           file.media_url = nil
-          file.analyzed = false
+          file.analyzed = !file.nfo?
           @counts_tracker.track_change file: file, change: :added
         elsif file.nfo?
           file.analyzed = false
+
+          # Must be done before saving the file to detect analyzed changes
+          @counts_tracker.track_change file: file, change: :modified
         end
 
         FILE_PROPERTIES.each do |key|
@@ -118,10 +127,10 @@ class ProcessMediaScanChangesJob < ApplicationJob
         file.save!
       end
 
-      MediaDirectory.where(source_id: @scan.source_id, path: directories_by_path.keys, deleted: true).update_all deleted: false, files_count: 0, nfo_files_count: 0, linked_files_count: 0, immediate_nfo_files_count: 0, unanalyzed_files_count: 0
+      MediaDirectory.where(id: directories_by_path.values.collect(&:id), deleted: true).update_all deleted: false, files_count: 0, nfo_files_count: 0, linked_files_count: 0, unanalyzed_files_count: 0, immediate_nfo_files_count: 0
 
-      paths_to_check_for_deletion -= directories_by_path.keys
-      delete_directories paths: paths_to_check_for_deletion if paths_to_check_for_deletion.present?
+      directory_ids_to_check_for_deletion -= directories_by_path.values.collect(&:id)
+      MediaDirectory.delete_empty_directories MediaDirectory.where(id: directory_ids_to_check_for_deletion.to_a) if directory_ids_to_check_for_deletion.present?
 
       @counts_tracker.apply!
       @changes_rel.update_all processed: true
@@ -135,30 +144,6 @@ class ProcessMediaScanChangesJob < ApplicationJob
       else
         MediaScan.update_counters @scan.id, processed_changes_count: changes.length
       end
-    end
-
-    private
-
-    def delete_directories paths:
-
-      paths_to_check_for_deletion = Set.new
-
-      directories = MediaDirectory
-        .select('media_files.*, count(sub_media_files.id) AS not_deleted_files_count')
-        .joins('INNER JOIN media_files AS sub_media_files ON media_files.id = sub_media_files.directory_id')
-        .where('media_files.source_id = ? AND media_files.path IN (?) AND sub_media_files.deleted = ?', @scan.source_id, paths, false)
-        .group('media_files.id')
-        .to_a
-
-      directories.each do |directory|
-        if directory.not_deleted_files_count <= 0
-          paths_to_check_for_deletion << File.dirname(directory.path) unless directory.depth <= 0
-          directory.deleted = true
-          directory.save!
-        end
-      end
-
-      delete_directories paths: paths_to_check_for_deletion unless paths_to_check_for_deletion.empty?
     end
   end
 end

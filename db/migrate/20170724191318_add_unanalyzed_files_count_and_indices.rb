@@ -30,6 +30,10 @@ class AddUnanalyzedFilesCountAndIndices < ActiveRecord::Migration
     add_index :media_files, :path
     add_index :media_files, :type
 
+    say_with_time "mark all deleted files as analyzed" do
+      MediaFile.where(deleted: true).update_all analyzed: true
+    end
+
     children_unanalyzed_files_count_by_directory = Hash.new do |hash,key|
       hash[key] = 0
     end
@@ -55,7 +59,6 @@ class AddUnanalyzedFilesCountAndIndices < ActiveRecord::Migration
             end
           end
         end
-        Rails.logger.debug children_unanalyzed_files_count_by_directory.inspect
       end
 
       max_depth -= 1
