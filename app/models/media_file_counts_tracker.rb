@@ -74,7 +74,7 @@ class MediaFileCountsTracker
     if relation
       new_updates_rel = relation
         .select('media_files.directory_id, count(media_files.id) as analyzed_or_unanalyzed_files_count')
-        .where('media_files.analyzed', analyzed ? false : true)
+        .where('media_files.analyzed = ?', analyzed ? false : true)
         .group('media_files.directory_id')
         .includes(:directory)
 

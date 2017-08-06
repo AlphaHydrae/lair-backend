@@ -96,7 +96,19 @@ module Lair
             authorize! record, :analysis
 
             MediaSource.transaction do
-              record.files.update_all 'analyzed = deleted'
+
+              tracker = MediaFileCountsTracker.new
+
+              deleted_files_rel = record.files.where deleted: true
+              tracker.track_analysis analyzed: true, relation: deleted_files_rel
+
+              files_rel = record.files.where deleted: false
+              tracker.track_analysis analyzed: false, relation: files_rel
+
+              deleted_files_rel.update_all analyzed: true
+              files_rel.update_all analyzed: false
+              tracker.apply!
+
               event = ::Event.new(event_type: 'media:reanalysis:source', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
               AnalyzeMediaSourceJob.enqueue record, event
               status 202

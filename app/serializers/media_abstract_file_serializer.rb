@@ -4,7 +4,6 @@ class MediaAbstractFileSerializer < ApplicationSerializer
     json.path record.path
     json.deleted record.deleted
     json.sourceId record.source.api_id
-    json.analyzed record.analyzed
 
     basename = File.basename record.path
     json.basename basename

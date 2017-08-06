@@ -24,6 +24,6 @@ class AnalyzeMediaSourceJob < AbstractAnalyzeMediaFilesJob
       finished = true
     end
 
-    FixMediaFileCountsJob.enqueue media_source, event if finished
+    FixMediaFileCountsJob.enqueue source: media_source, event: event if finished
   end
 end

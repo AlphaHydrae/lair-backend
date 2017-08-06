@@ -34,6 +34,11 @@ module Lair
 
         rel = paginated rel do |rel|
 
+          if params.key? :id
+            ids = params[:id].kind_of?(Array) ? params[:id].collect(&:to_s) : params[:id].to_s
+            rel = rel.where(ids.kind_of?(Array) ? 'media_files.api_id IN (?)' : 'media_files.api_id = ?', ids)
+          end
+
           if current_user.admin? && params.key?(:userId)
             rel = rel.where 'users.api_id = ?', params[:userId].to_s
           end
@@ -155,7 +160,12 @@ module Lair
             authorize! record, :analysis
 
             MediaFile.transaction do
+
+              tracker = MediaFileCountsTracker.new
+              tracker.track_analysis analyzed: false, file: record
               record.update_column :analyzed, false
+              tracker.apply!
+
               event = ::Event.new(event_type: 'media:reanalysis:file', user: current_user, trackable: record, trackable_api_id: record.api_id).tap &:save!
               AnalyzeMediaFileJob.enqueue record, event
               status 202

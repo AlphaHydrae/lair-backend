@@ -1,4 +1,3 @@
-# TODO: add unique constraint on (type, id)
 class MediaAbstractFile < ActiveRecord::Base
   include ResourceWithIdentifier
 

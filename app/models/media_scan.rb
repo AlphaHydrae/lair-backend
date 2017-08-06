@@ -66,7 +66,10 @@ class MediaScan < ActiveRecord::Base
   private
 
   def reanalyze_files
+    tracker = MediaFileCountsTracker.new
+    tracker.track_analysis analyzed: false, relation: scanned_files
     scanned_files.update_all analyzed: false
+    tracker.apply!
   end
 
   def queue_process_job
