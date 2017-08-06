@@ -6,7 +6,8 @@ class MediaUrl < ActiveRecord::Base
   before_create :set_identifier
   after_create :queue_scraping
 
-  has_one :scrap, class_name: 'MediaScrap'
+  has_many :scraps, class_name: 'MediaScrap'
+  belongs_to :last_scrap, class_name: 'MediaScrap'
   has_one :work
   belongs_to :creator, class_name: 'User'
   has_many :items
@@ -59,12 +60,12 @@ class MediaUrl < ActiveRecord::Base
   end
 
   def queue_scraping
-    return if scrap.present?
+    return if last_scrap.present?
 
     scraper = find_scraper
     return unless scraper
 
-    self.scrap = MediaScrap.new(media_url: self, creator: creator, provider: scraper.provider.to_s).tap &:save!
+    MediaScrap.new(media_url: self, creator: creator, provider: provider.to_s, scraper: scraper.scraper.to_s).tap &:save!
   end
 
   def find_scraper

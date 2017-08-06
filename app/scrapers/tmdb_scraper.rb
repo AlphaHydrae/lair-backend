@@ -66,6 +66,7 @@ class TmdbScraper < ApplicationScraper
   end
 
   def self.expand scrap
+    raise 'not yet implemented'
   end
 
   def self.test media_url

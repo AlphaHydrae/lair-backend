@@ -4,13 +4,13 @@ module Lair
       helpers do
         def serialization_options *args
           {
-            include_scrap: include_in_response?(:scrap),
+            include_last_scrap: include_in_response?(:lastScrap),
             include_work: include_in_response?(:work)
           }
         end
 
         def with_serialization_includes rel
-          rel = rel.includes(:work, { scrap: :media_url })
+          rel = rel.includes(:work, { last_scrap: :media_url })
           rel
         end
 
@@ -46,7 +46,7 @@ module Lair
           rel = rel.where category: Array.wrap(params[:category]).collect(&:to_s) if params[:category].present?
           rel = rel.where provider_id: Array.wrap(params[:providerId]).collect(&:to_s) if params[:providerId].present?
 
-          rel = rel.joins :scrap if params[:scrapStates].present? || true_flag?(:scrapWarnings) || false_flag?(:scrapWarnings)
+          rel = rel.joins :last_scrap if params[:scrapStates].present? || true_flag?(:scrapWarnings) || false_flag?(:scrapWarnings)
 
           if params[:scrapStates].present?
             states = Array.wrap(params[:scrapStates]).collect(&:to_s).collect &:underscore

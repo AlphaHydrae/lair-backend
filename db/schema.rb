@@ -416,13 +416,14 @@ ActiveRecord::Schema.define(version: 20170805125509) do
   add_index "media_sources", ["normalized_name", "user_id"], name: "index_media_sources_on_normalized_name_and_user_id", unique: true, using: :btree
 
   create_table "media_urls", force: :cascade do |t|
-    t.string   "api_id",      limit: 12,  null: false
-    t.string   "provider",    limit: 20,  null: false
-    t.string   "category",    limit: 20,  null: false
-    t.string   "provider_id", limit: 100, null: false
-    t.integer  "creator_id",              null: false
-    t.datetime "created_at",              null: false
-    t.datetime "updated_at",              null: false
+    t.string   "api_id",        limit: 12,  null: false
+    t.string   "provider",      limit: 20,  null: false
+    t.string   "category",      limit: 20,  null: false
+    t.string   "provider_id",   limit: 100, null: false
+    t.integer  "creator_id",                null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.integer  "last_scrap_id"
   end
 
   add_index "media_urls", ["provider", "provider_id"], name: "index_media_urls_on_provider_and_provider_id", unique: true, using: :btree
@@ -607,6 +608,7 @@ ActiveRecord::Schema.define(version: 20170805125509) do
   add_foreign_key "media_settings", "users", on_delete: :cascade
   add_foreign_key "media_sources", "media_scans", column: "last_scan_id", on_delete: :nullify
   add_foreign_key "media_sources", "users", on_delete: :cascade
+  add_foreign_key "media_urls", "media_scraps", column: "last_scrap_id", on_delete: :nullify
   add_foreign_key "media_urls", "users", column: "creator_id", on_delete: :restrict
   add_foreign_key "ownerships", "items", on_delete: :cascade
   add_foreign_key "ownerships", "media_urls", on_delete: :nullify

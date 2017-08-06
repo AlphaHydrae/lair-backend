@@ -7,6 +7,7 @@ class MediaScrap < ActiveRecord::Base
   include EncodingHelper
 
   before_create :set_identifier
+  after_create :update_media_url_last_scrap
   before_save :set_warnings_count
   before_save :clean_warnings
   before_save :clean_data
@@ -86,5 +87,9 @@ class MediaScrap < ActiveRecord::Base
   def clean_data
     clean_utf8! data
     write_attribute :data, nil if read_attribute(:data).blank?
+  end
+
+  def update_media_url_last_scrap
+    MediaUrl.where(id: media_url_id).update_all last_scrap_id: id
   end
 end
